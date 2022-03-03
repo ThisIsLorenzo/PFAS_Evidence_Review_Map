@@ -1,8 +1,10 @@
 # test for Lorenzo
 
-y <- rnorm(1000)
+y <- rnorm(10000)
 
 hist(y)
 mean(y)
 var(y)
 sd(y)
+
+mean(y)
