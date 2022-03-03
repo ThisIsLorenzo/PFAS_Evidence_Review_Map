@@ -8,3 +8,5 @@ var(y)
 sd(y)
 
 mean(y)
+
+#TODO Lorenzo you need to add something here 
