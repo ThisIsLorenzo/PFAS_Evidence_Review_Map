@@ -1,0 +1,41 @@
+---
+title: "deduplicating"
+author: "LR"
+date: "09/03/2022"
+output: html_document
+---
+
+I have performed main searches for elegible review articles using Scopus, Web of Science, PubMed, and grey literature.
+Total paper uploaded on Rayyan: 2336
+Total potential duplicates detected: 1659 
+Time needed to resolve 10 potential duplicates: 4 mins
+Time expected to resolve 1659 pot.dupl.: 11 hours
+11 hours is too much.
+
+Here is the markdown with the code I used to delete duplicates.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(synthesisr)
+library(tidystringdist)
+library(bibliometrix)
+
+dat <- read.csv("./articles.csv")
+dim(dat) #[1] 2446   19
+#tidy up and simplify titles removing all punctuation and extra white spaces
+dat$title2 <- str_replace_all(dat$title,"[:punct:]","") %>% str_replace_all(.,"[ ]+", " ") %>% tolower()
+#remove extra title matches
+dat2 <- distinct(dat, title2, .keep_all = TRUE) #select records with unique titles (removes exact duplicates)
+dim(dat2) #[1] 1630   20
+#removing partial matches in titles
+duplicates_string <- find_duplicates(dat2$title2, method = "string_osa", to_lower = TRUE, rm_punctuation = TRUE, threshold = 7)
+dat3 <- extract_unique_references(dat2, duplicates_string)
+dim(dat3) #[1] 1562   21
+#Save as a bib file to upload to Zotero. Then export from Zotero as ris file to reimport into Rayyan
+write_refs(dat3, format = "bib", file = ".abstracts_for_screening_deduplicated.bib")
+```
+
+Deduplicated articles uploaded on Rayyan (Review named PFAS_Evidence_Review_Map_deduplicated): 1560
+Total potential duplicates detected: 63
+I'm going to resolve these on Rayyan.
