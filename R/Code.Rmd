@@ -1,0 +1,52 @@
+---
+title: "Code"
+author: "LR"
+date: '2022-06-29'
+output: html_document
+---
+# PFAS exposure of humans, animals and the environment: a systematic meta-review map and bibliometric analysis  
+
+# supplementary Material - data processing and data visualization
+
+# Setup and load packages
+
+```{r setup, include=TRUE}
+library(tidyverse)
+library(here)
+library(stringr)
+library(knitr)
+library(formatR)
+library(forcats)
+library(ggplot2)
+library(hrbrthemes) 
+library(patchwork)
+library(bibliometrix)
+library(igraph)
+
+
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+```
+
+# Load data
+
+Manually extracted data using Google Forms is stored in the "data" folder. This data is splitted in four difference .csv files:
+1. **Main.csv** = main data sheet for the systematic map
+2. **AMSTAR2.csv** = AMSTAR2 quality assessment data sheet
+3. **PFAS_types.csv** = data sheet about PFAS types investigated in the included systematic reviews
+4. **Species.csv** = data sheet on species investigated in the included systematic reviews
+
+Bibliographic data records are exported from Scopus (including cited references field) in .bib format and locally saved as **scopus.bib** in the "data" folder.
+
+```{r load data}
+mdata <- read_csv(here("data", "Main.csv"))
+spdata <- read.csv(here("data", "Species.csv"))
+qdata <- read.csv(here("data", "AMSTAR2.csv"))
+ptdata <- read.csv(here("data", "PFAS_types.csv"))
+# change data format
+ptdata <- ptdata %>% 
+  select(Study_ID:PFAS_type) %>% 
+  separate_rows(PFAS_type, sep = ', ')
+  
+```
+
