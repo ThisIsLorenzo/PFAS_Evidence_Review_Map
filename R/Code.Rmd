@@ -39,14 +39,46 @@ Manually extracted data using Google Forms is stored in the "data" folder. This 
 Bibliographic data records are exported from Scopus (including cited references field) in .bib format and locally saved as **scopus.bib** in the "data" folder.
 
 ```{r load data}
-mdata <- read_csv(here("data", "Main.csv"))
-spdata <- read.csv(here("data", "Species.csv"))
-qdata <- read.csv(here("data", "AMSTAR2.csv"))
+mdata <- read_csv(here("data", "Main_data.csv"))
+# Remove columns that are unnecessary for analysis (i.e., Timestamp, Initials_data_extraction, and initials_data_checked)
+mdata <- mdata %>% 
+  select(-c(Timestamp, Initials_data_extraction, initials_data_checked))
+
+spdata <- read.csv(here("data", "Species_info.csv"))
+# Remove columns that are unnecessary for analysis (i.e., Comment)
+spdata <- spdata %>% 
+  select(-Comment)
+# Replace special characters that are exporting mistakes (e.g., replace "Ã¼" with "ü")
+spdata <- apply(spdata, 2, function (x) gsub("â€™", "'", x))
+spdata <- apply(spdata, 2, function (x) gsub("Ã¼", "ü", x))
+spdata <- apply(spdata, 2, function (x) gsub("Ã©", "e", x))
+spdata <- as_tibble(spdata)
+
+qdata <- read.csv(here("data", "AMSTAR2_assessment.csv"))
+# Remove columns that are unnecessary for analysis (i.e., Timestamp, Initials_data_extraction, initials_data_checked, and all answers comment [e.g., Q1_comment])
+qdata <- qdata %>% 
+  select(-c(Timestamp, Initials_data_extraction, initials_data_checked)) %>% 
+  select(- ends_with("Comment"))
+# Replace special characters that are exporting mistakes (e.g., replace "â€œYesâ€" with "Yes")
+qdata <- apply(qdata, 2, function (x) gsub("â€œYesâ€", "Yes", x))
+qdata <- apply(qdata, 2, function (x) gsub("â€Noâ€", "No", x))
+qdata <- apply(qdata, 2, function (x) gsub("â€œCanâ€™t", "Cannot", x))
+qdata <- apply(qdata, 2, function (x) gsub("â€", "", x))
+qdata <- apply(qdata, 2, function (x) gsub("â€œ", "", x))
+qdata <- as_tibble(qdata)
+
 ptdata <- read.csv(here("data", "PFAS_types.csv"))
 # change data format
 ptdata <- ptdata %>% 
   select(Study_ID:PFAS_type) %>% 
   separate_rows(PFAS_type, sep = ', ')
-  
+```
+
+# Merge relational datasheets
+
+Here we merge data stored across different relational datasheets. This step is necessary to perform some of the analysis.
+
+```{r merge data}
+
 ```
 
