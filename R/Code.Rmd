@@ -72,13 +72,21 @@ ptdata <- read.csv(here("data", "PFAS_types.csv"))
 ptdata <- ptdata %>% 
   select(Study_ID:PFAS_type) %>% 
   separate_rows(PFAS_type, sep = ', ')
-```
 
+pidata <- read_csv(here("data", "PFAS_info.csv"))
+#remove comment column
+pidata <- pidata %>% 
+  select(- PFAS_comment)
+```
 # Merge relational datasheets
 
 Here we merge data stored across different relational datasheets. This step is necessary to perform some of the analysis.
 
 ```{r merge data}
+# Merge main data with species info
+mspdata <- left_join(mdata, spdata, by = "Study_ID")
+# Merge PFAS types data with PFAS info and then with main data
+ptidata <- left_join(ptdata, pidata, by = "PFAS_type")
 
 ```
 
