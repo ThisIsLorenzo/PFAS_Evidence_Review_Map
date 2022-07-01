@@ -87,6 +87,64 @@ Here we merge data stored across different relational datasheets. This step is n
 mspdata <- left_join(mdata, spdata, by = "Study_ID")
 # Merge PFAS types data with PFAS info and then with main data
 ptidata <- left_join(ptdata, pidata, by = "PFAS_type")
-
+mpti <- left_join(mdata, ptidata, by = "Study_ID")
 ```
+
+# Create a summary of included studies
+```{r summary included studies}
+knitr::kable(select(mdata, Study_ID,	Author_year,	Paper_title), caption = "Table of included studies")
+```
+
+# OBJECTIVE 1: Mapping evidence on PFAS
+
+#Do reviews investigate one or multiple PFAS types? 
+```{r}
+mdata %>% count(PFAS_focus, PFAS_one_many) %>% arrange(desc(n)) %>% 
+  filter(PFAS_focus != "NA") -> t_PFASfocus
+
+ggplot(t_PFASfocus, aes(x = PFAS_focus, y = n)) +
+ theme_light() +
+ labs(title = expression("PFAS focus")) + #~bold(A.)~' Type and subject'
+ coord_flip() +
+ scale_fill_brewer() +
+ guides(fill=guide_legend(title="PFAS:")) + 
+ geom_col(aes(fill = PFAS_one_many), width = 0.7) + 
+ scale_y_continuous(name = "Article count") +
+ theme_light() +
+ theme(legend.position = "bottom", legend.box.background = element_rect(colour = "black"), 
+       legend.title = element_text(size=10),  legend.text=element_text(size = 10), 
+       axis.title.x = element_text(size = 10), axis.title.y = element_blank())
+```
+ # What are the PFAS types investigated the most?
+```{r}
+ptidata %>% count(PFAS_type) %>% arrange(desc(n)) %>% filter(PFAS_type != "NA") -> t_PFAStype #filter out NA
+t_PFAStype$PFAS_type <- factor(t_PFAStype$PFAS_type, levels = t_PFAStype$PFAS_type[order(t_PFAStype$n, decreasing = FALSE)])
+PFAS_levels_order <- t_PFAStype$PFAS_type[order(t_PFAStype$n, decreasing = FALSE)] #save for another plot
+# simple barplot with PFAS types
+ggplot(t_PFAStype, aes(x = PFAS_type, y = n)) +
+  geom_col(aes(fill = ""), width = 0.7) +
+  theme_light() +
+  labs(title = expression("PFAS types reviewed")) + #~bold(A.)~' Type and subject'
+  coord_flip()+
+  scale_y_continuous(name = "Reviews count") +
+  scale_fill_manual(values = c("#919191")) +
+  theme(legend.position = "none", axis.title.x = element_text(size = 10), axis.title.y = element_blank())
+```
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
