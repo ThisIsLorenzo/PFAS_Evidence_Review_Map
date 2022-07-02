@@ -4,13 +4,27 @@ author: "LR"
 date: '2022-06-29'
 output: html_document
 ---
-# PFAS exposure of humans, animals and the environment: a systematic meta-review map and bibliometric analysis  
+# PFAS exposure of humans, animals and the environment: a Systematic Meta-review Map and Bibliometric analysis  
 
-# supplementary Material - data processing and data visualization
+*Supplementary Material - data processing and data visualization*
 
-# Setup and load packages
+## Purpose: This .Rmd document provides the workflow and code so that anyone can replicate our analysis. 
+## Structure: Different chunks for different tasks. A brief introduction and description of the chunk is always provided for ease of reading.
+The following code has three main parts, one for every map's objective.
+- Objective 1 = **Mapping**
+  + What evidence on PFAS has been synthesized so far?
+  + We aim to reveal what areas in the realm of PFAS health-related and environmental research have been synthesized the most and where syntheses of evidence are lacking.
+- Objective 2 = **Critical appraisal**
+  + How robust are syntheses of PFAS evidence?
+  + We will examine the included syntheses for their reporting quality and potential biases, in order to assess reliability of reviews’ conclusions, reveal syntheses that should be re-done, and highlight the aspects of review methodology that need to be improved.
+- Objective 3 = **Bibliometrics**:
+  + How is synthesized PFAS evidence connected?
+  + We will examine which countries and institutions are mostly involved in secondary PFAS research and what do the networks between these institutions look like.
 
-```{r setup, include=TRUE}
+## Setup
+### Packages loading
+
+```{r packages loading, include=TRUE}
 library(tidyverse)
 library(here)
 library(stringr)
@@ -22,85 +36,83 @@ library(hrbrthemes)
 library(patchwork)
 library(bibliometrix)
 library(igraph)
+```
 
+### Suppressing messages and warnings from the output document
 
+```{r suppressing}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
-
 ```
 
-# Load data
+## Load Data
 
-Manually extracted data using Google Forms is stored in the "data" folder. This data is splitted in four difference .csv files:
-1. **Main.csv** = main data sheet for the systematic map
-2. **AMSTAR2.csv** = AMSTAR2 quality assessment data sheet
-3. **PFAS_types.csv** = data sheet about PFAS types investigated in the included systematic reviews
-4. **Species.csv** = data sheet on species investigated in the included systematic reviews
+### Overview:
+We extracted data from the included reviews using Google Forms. Manually extracted data is organized in four difference .csv files representing four different aspects of the data. We related the .csv files each other using key_IDs that allow merging and breking down data. An additional fixed table stores pre-extracted data on PFAS types included in this map. Bibliographic data records are exported from Scopus (including the cited references field) in .bib format.
 
-Bibliographic data records are exported from Scopus (including cited references field) in .bib format and locally saved as **scopus.bib** in the "data" folder.
+### Name, description and location of data:
+1. **Main_data.csv** = main spreadsheet used to draw the systematic map. It includes both systematic and non-systematic reviews.
+  + PFAS_Systematic_MetaReview_Map/data/Main_data.csv
+2. **AMSTAR2_assessment.csv** = AMSTAR2 quality assessment spreadsheet of the included systematic reviews.
+  + PFAS_Systematic_MetaReview_Map/data/AMSTAR2_assessment.csv
+3. **PFAS_types.csv** = PFAS types investigated in the included systematic reviews.
+  + PFAS_Systematic_MetaReview_Map/data/PFAS_types.csv
+4. **Species_info.csv** = species investigated in the included systematic reviews.
+  + PFAS_Systematic_MetaReview_Map/data/Species_info.csv
+5. **PFAS_info** = fixed table of pre-extracted data on PFAS types included in this meta-review map.
+  + PFAS_Systematic_MetaReview_Map/data/PFAS_info.csv
+6. **Scopus.bib** = bibliographic data records.
+  + PFAS_Systematic_MetaReview_Map/data/Scopus.bib
+  
+### Loading data
 
-```{r load data}
+```{r loading data}
 mdata <- read_csv(here("data", "Main_data.csv"))
-# Remove columns that are unnecessary for analysis (i.e., Timestamp, Initials_data_extraction, and initials_data_checked)
-mdata <- mdata %>% 
-  select(-c(Timestamp, Initials_data_extraction, initials_data_checked))
-
 spdata <- read.csv(here("data", "Species_info.csv"))
-# Remove columns that are unnecessary for analysis (i.e., Comment)
-spdata <- spdata %>% 
-  select(-Comment)
-# Replace special characters that are exporting mistakes (e.g., replace "Ã¼" with "ü")
-spdata <- apply(spdata, 2, function (x) gsub("â€™", "'", x))
-spdata <- apply(spdata, 2, function (x) gsub("Ã¼", "ü", x))
-spdata <- apply(spdata, 2, function (x) gsub("Ã©", "e", x))
-spdata <- as_tibble(spdata)
-
 qdata <- read.csv(here("data", "AMSTAR2_assessment.csv"))
-# Remove columns that are unnecessary for analysis (i.e., Timestamp, Initials_data_extraction, initials_data_checked, and all answers comment [e.g., Q1_comment])
-qdata <- qdata %>% 
-  select(-c(Timestamp, Initials_data_extraction, initials_data_checked)) %>% 
-  select(- ends_with("Comment"))
-# Replace special characters that are exporting mistakes (e.g., replace "â€œYesâ€" with "Yes")
-qdata <- apply(qdata, 2, function (x) gsub("â€œYesâ€", "Yes", x))
-qdata <- apply(qdata, 2, function (x) gsub("â€Noâ€", "No", x))
-qdata <- apply(qdata, 2, function (x) gsub("â€œCanâ€™t", "Cannot", x))
-qdata <- apply(qdata, 2, function (x) gsub("â€", "", x))
-qdata <- apply(qdata, 2, function (x) gsub("â€œ", "", x))
-qdata <- as_tibble(qdata)
-
 ptdata <- read.csv(here("data", "PFAS_types.csv"))
-# change data format
-ptdata <- ptdata %>% 
-  select(Study_ID:PFAS_type) %>% 
-  separate_rows(PFAS_type, sep = ', ')
-
 pidata <- read_csv(here("data", "PFAS_info.csv"))
-#remove comment column
-pidata <- pidata %>% 
-  select(- PFAS_comment)
-```
-# Merge relational datasheets
-
-Here we merge data stored across different relational datasheets. This step is necessary to perform some of the analysis.
-
-```{r merge data}
-# Merge main data with species info
-mspdata <- left_join(mdata, spdata, by = "Study_ID")
-# Merge PFAS types data with PFAS info and then with main data
-ptidata <- left_join(ptdata, pidata, by = "PFAS_type")
-mpti <- left_join(mdata, ptidata, by = "Study_ID")
+#bib_sco <- convert2df(here("data","scopus.bib"), dbsource = "scopus", format = "bibtex")
 ```
 
-# Create a summary of included studies
-```{r summary included studies}
-knitr::kable(select(mdata, Study_ID,	Author_year,	Paper_title), caption = "Table of included studies")
+## Merge relational spreadsheets
+
+Here we merge data stored across the five different relational flat spreadsheets. This step is necessary to perform some of the analysis that requires data from two or more spreadsheets.
+First, we remove unnecessary columns for analysis. These columns will be reported in the final extraction sheet.
+
+```{r removing unnecessary columns}
+mdata <- mdata %>% select(- ends_with("comment")) %>% 
+  select("Study_ID":"DOI")
+qdata <- qdata %>% select(- ends_with("comment")) %>% 
+  select("Study_ID":"Q16..Did.the.review.authors.report.any.potential.sources.of.conflict.of.interest..including.any.funding.they.received.for.conducting.the.review.") # I WANT TO REDUCE IT AS ONLY "Q16"
+ptdata <- ptdata %>% select( "Study_ID":"PFAS_type")
+spdata <- spdata %>% select(- "Comment")
+pidata <- pidata %>% select(- "PFAS_comment")
 ```
 
-# OBJECTIVE 1: Mapping evidence on PFAS
-
-#Do reviews investigate one or multiple PFAS types? 
+Merge main data with species info
 ```{r}
-mdata %>% count(PFAS_focus, PFAS_one_many) %>% arrange(desc(n)) %>% 
-  filter(PFAS_focus != "NA") -> t_PFASfocus
+mspdata <- left_join(mdata, spdata, by = "Study_ID")
+```
+
+Merge PFAS types data with PFAS info and then with main data
+```{r}
+ptidata <- left_join(ptdata, pidata, by = "PFAS_type")
+mpidata <- left_join(mdata, ptidata, by = "Study_ID")
+```
+
+## Summary of included studies
+
+```{r simple table included studies}
+knitr::kable(select(mdata, Study_ID,	Author_year,	Paper_title, DOI), caption = "Table of included studies")
+```
+
+## OBJECTIVE 1: Mapping: What evidence on PFAS has been synthesized so far?
+
+- How many reviews are focused on PFAS?
+- How many reviews investigate one PFAS type and how many investigate multiple PFAS types?
+
+```{r PFAS focus one_many barplot, height = 2, width = 8}
+t_PFASfocus <- mdata %>% count(PFAS_focus, PFAS_one_many) %>% arrange(desc(n)) %>% filter(PFAS_focus != "NA") -> t_PFASfocus #filter out NA
 
 ggplot(t_PFASfocus, aes(x = PFAS_focus, y = n)) +
  theme_light() +
@@ -114,8 +126,11 @@ ggplot(t_PFASfocus, aes(x = PFAS_focus, y = n)) +
  theme(legend.position = "bottom", legend.box.background = element_rect(colour = "black"), 
        legend.title = element_text(size=10),  legend.text=element_text(size = 10), 
        axis.title.x = element_text(size = 10), axis.title.y = element_blank())
+# ggsave(here("plots","figure_PFAS_focus.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
 ```
- # What are the PFAS types investigated the most?
+
+- What are the PFAS types investigated the most?
+
 ```{r}
 ptidata %>% count(PFAS_type) %>% arrange(desc(n)) %>% filter(PFAS_type != "NA") -> t_PFAStype #filter out NA
 t_PFAStype$PFAS_type <- factor(t_PFAStype$PFAS_type, levels = t_PFAStype$PFAS_type[order(t_PFAStype$n, decreasing = FALSE)])
@@ -129,12 +144,49 @@ ggplot(t_PFAStype, aes(x = PFAS_type, y = n)) +
   scale_y_continuous(name = "Reviews count") +
   scale_fill_manual(values = c("#919191")) +
   theme(legend.position = "none", axis.title.x = element_text(size = 10), axis.title.y = element_blank())
+
+
 ```
  
 
 
 
 
+```{r removed code stored here for a later time}
+# Remove columns that are unnecessary for analysis (i.e., Timestamp, Initials_data_extraction, and initials_data_checked)
+mdata <- mdata %>% 
+  select(-c(Timestamp, Initials_data_extraction, initials_data_checked))
+
+# Remove columns that are unnecessary for analysis (i.e., Comment)
+spdata <- spdata %>% 
+  select(-Comment)
+# Replace special characters that are exporting mistakes (e.g., replace "Ã¼" with "ü")
+spdata <- apply(spdata, 2, function (x) gsub("â€™", "'", x))
+spdata <- apply(spdata, 2, function (x) gsub("Ã¼", "ü", x))
+spdata <- apply(spdata, 2, function (x) gsub("Ã©", "e", x))
+spdata <- as_tibble(spdata)
+
+# Remove columns that are unnecessary for analysis (i.e., Timestamp, Initials_data_extraction, initials_data_checked, and all answers comment [e.g., Q1_comment])
+qdata <- qdata %>% 
+  select(-c(Timestamp, Initials_data_extraction, initials_data_checked)) %>% 
+  select(- ends_with("Comment"))
+# Replace special characters that are exporting mistakes (e.g., replace "â€œYesâ€" with "Yes")
+qdata <- apply(qdata, 2, function (x) gsub("â€œYesâ€", "Yes", x))
+qdata <- apply(qdata, 2, function (x) gsub("â€Noâ€", "No", x))
+qdata <- apply(qdata, 2, function (x) gsub("â€œCanâ€™t", "Cannot", x))
+qdata <- apply(qdata, 2, function (x) gsub("â€", "", x))
+qdata <- apply(qdata, 2, function (x) gsub("â€œ", "", x))
+qdata <- as_tibble(qdata)
+
+# change data format
+ptdata <- ptdata %>% 
+  select(Study_ID:PFAS_type) %>% 
+  separate_rows(PFAS_type, sep = ', ')
+
+#remove comment column
+pidata <- pidata %>% 
+  select(- PFAS_comment)
+```
 
 
 
