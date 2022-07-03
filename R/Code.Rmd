@@ -24,7 +24,7 @@ The following code has three main parts, one for every map's objective.
 ## Setup
 ### Packages loading
 
-```{r packages loading, include=TRUE}
+```{r packages loading, include = FALSE}
 library(tidyverse)
 library(here)
 library(stringr)
@@ -70,6 +70,10 @@ mdata <- read_csv(here("data", "Main_data.csv"))
 spdata <- read.csv(here("data", "Species_info.csv"))
 qdata <- read.csv(here("data", "AMSTAR2_assessment.csv"))
 ptdata <- read.csv(here("data", "PFAS_types.csv"))
+# Change to long format
+ptdata <- ptdata %>% 
+  filter(PFAS_type != "") %>% 
+  separate_rows(PFAS_type, sep = ', ')
 pidata <- read_csv(here("data", "PFAS_info.csv"))
 #bib_sco <- convert2df(here("data","scopus.bib"), dbsource = "scopus", format = "bibtex")
 ```
@@ -83,7 +87,7 @@ First, we remove unnecessary columns for analysis. These columns will be reporte
 mdata <- mdata %>% select(- ends_with("comment")) %>% 
   select("Study_ID":"DOI")
 qdata <- qdata %>% select(- ends_with("comment")) %>% 
-  select("Study_ID":"Q16..Did.the.review.authors.report.any.potential.sources.of.conflict.of.interest..including.any.funding.they.received.for.conducting.the.review.") # I WANT TO REDUCE IT AS ONLY "Q16"
+  select("Study_ID":"Q16") # I WANT TO REDUCE IT AS ONLY "Q16"
 ptdata <- ptdata %>% select( "Study_ID":"PFAS_type")
 spdata <- spdata %>% select(- "Comment")
 pidata <- pidata %>% select(- "PFAS_comment")
@@ -148,15 +152,23 @@ ggplot(t_PFAStype, aes(x = PFAS_type, y = n)) +
 
 ```
  
+### How many species and which ones
+```{r species focus one_many barplot, height = 4, width = 8}
+
+```
 
 
 
 
-```{r removed code stored here for a later time}
-# Remove columns that are unnecessary for analysis (i.e., Timestamp, Initials_data_extraction, and initials_data_checked)
-mdata <- mdata %>% 
-  select(-c(Timestamp, Initials_data_extraction, initials_data_checked))
+### Clean AMSTAR2 checklist data - remove description of values
+```{r clean AMSTAR2 checklist}
+unique(qdata$Q1)
+```
 
+
+
+
+{r removed code stored here for a later time}
 # Remove columns that are unnecessary for analysis (i.e., Comment)
 spdata <- spdata %>% 
   select(-Comment)
@@ -186,6 +198,17 @@ ptdata <- ptdata %>%
 #remove comment column
 pidata <- pidata %>% 
   select(- PFAS_comment)
+
+#number of publication per year
+mdata %>% count(Publication_year)%>% ggplot(aes(x = Publication_year, y = n)) + 
+  geom_area(fill = '#919195', alpha = 1) +
+  geom_line(color = 'black', size = 0.11) + 
+  geom_point(size=0.05, color = 'black') +
+  theme_minimal() +
+  scale_x_continuous(name = "") +
+  scale_y_continuous(name = "Article count") +
+  ggtitle("Publication year") + 
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
 
