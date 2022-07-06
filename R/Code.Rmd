@@ -81,17 +81,6 @@ pidata <- read_csv(here("data", "PFAS_info.csv"))
 ## Merge relational spreadsheets
 
 Here we merge data stored across the five different relational flat spreadsheets. This step is necessary to perform some of the analysis that requires data from two or more spreadsheets.
-First, we remove unnecessary columns for analysis. These columns will be reported in the final extraction sheet.
-
-```{r removing unnecessary columns}
-mdata <- mdata %>% select(- ends_with("comment")) %>% 
-  select("Study_ID":"DOI")
-qdata <- qdata %>% select(- ends_with("comment")) %>% 
-  select("Study_ID":"Q16") # I WANT TO REDUCE IT AS ONLY "Q16"
-ptdata <- ptdata %>% select( "Study_ID":"PFAS_type")
-spdata <- spdata %>% select(- "Comment")
-pidata <- pidata %>% select(- "PFAS_comment")
-```
 
 Merge main data with species info
 ```{r}
@@ -160,9 +149,16 @@ ggplot(t_PFAStype, aes(x = PFAS_type, y = n)) +
 
 
 
-### Clean AMSTAR2 checklist data - remove description of values
-```{r clean AMSTAR2 checklist}
-unique(qdata$Q1)
+### Make a table with AMSTAR questions
+```{r AMSTAR questions table}
+questions_list <- qdata %>% select(starts_with("Q") & !ends_with("_comment")) %>% colnames()
+questions <- tibble(questions = questions_list, label = c("question and criteria", "a priori protocol", "included study designs", "comprehensive search", "selection duplicated", "extraction duplicated", "list of excluded studies", "summary of included studies", "critical appraisal", "sources of funding", "quantitative synthesis", "risk of bias", "effect of bias", "variability investigated", "publication bias", "conflict of interest"))
+knitr::kable(questions, caption = "Table. List of AMSTAR2 questions with labeld for plotting")
+```
+### Summary plot for pilot AMSTAR2 data
+```{r simplify column names to Q + number format}
+qtable <- qdata %>% filter(Study_ID != "NA") %>% select(starts_with("Q") & !ends_with("_comment"))
+names(qtable) <- gsub("\\..*", "", names(qtable))
 ```
 
 
@@ -189,6 +185,16 @@ qdata <- apply(qdata, 2, function (x) gsub("â€œCanâ€™t", "Cannot", x))
 qdata <- apply(qdata, 2, function (x) gsub("â€", "", x))
 qdata <- apply(qdata, 2, function (x) gsub("â€œ", "", x))
 qdata <- as_tibble(qdata)
+
+{r removing unnecessary columns}
+mdata <- mdata %>% select(- ends_with("comment")) %>% 
+  select("Study_ID":"DOI")
+colnames(qdata)
+qdata <- qdata %>% select(- ends_with("comment")) %>% 
+  select("Study_ID":"Q16..Did.the.review.authors.report.any.potential.sources.of.conflict.of.interest..including.any.funding.they.received.for.conducting.the.review.") # I WANT TO REDUCE IT AS ONLY "Q16"
+ptdata <- ptdata %>% select( "Study_ID":"PFAS_type")
+spdata <- spdata %>% select(- "Comment")
+pidata <- pidata %>% select(- "PFAS_comment")
 
 # change data format
 ptdata <- ptdata %>% 
