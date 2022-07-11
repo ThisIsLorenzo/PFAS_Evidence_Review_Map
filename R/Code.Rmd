@@ -162,6 +162,13 @@ names(qtable) <- gsub("\\..*", "", names(qtable))
 ```
 
 
+### Time-trends
+```{r}
+mdata %>% count(Publication_year) %>% ggplot(aes(x = Publication_year, y = n)) + 
+  geom_line(color = 'black', size = 0.5) +
+  geom_area(fill = '#E69F00', alpha = 0.4) +
+  geom_point(size=1, color = 'black')
+```
 
 
 {r removed code stored here for a later time}
