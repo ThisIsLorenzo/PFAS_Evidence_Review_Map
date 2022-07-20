@@ -1,41 +1,67 @@
 ---
-title: "deduplicating"
+title: "deduplication"
 author: "LR"
 date: "09/03/2022"
 output: html_document
 ---
+# PFAS exposure of humans, animals and the environment: a Systematic Meta-review Map and Bibliometric analysis  
 
-I have performed main searches for elegible review articles using Scopus, Web of Science, PubMed, and grey literature.
+*Supplementary Material - data processing and data visualization*
+
+## Porpuse: This .Rmd document provides the code we used for deduplication of articles. The file named "articles.csv" contains the output of the searching process of databases. We merged the articles found searching databases using Rayyan.
+
 Total paper uploaded on Rayyan: 2336
 Total potential duplicates detected: 1659 
-Time needed to resolve 10 potential duplicates: 4 mins
-Time expected to resolve 1659 pot.dupl.: 11 hours
-11 hours is too much.
+Time needed to resolve 10 potential duplicates on Rayyan: 4 mins
+Time expected to resolve 1659 potential duplicates on Rayyan: 11 hours
+Since carrying out deduplication on Rayyan was extremely time consuming, we used the following code.
 
-Here is the markdown with the code I used to delete duplicates.
-
-```{r setup, include=FALSE}
+### Setup and packages loading
+```{r, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(here)
 library(tidyverse)
 library(synthesisr)
 library(tidystringdist)
 library(bibliometrix)
-
-dat <- read.csv("./articles.csv")
+```
+### Loading file
+```{r, include=FALSE}
+dat <- read.csv(here("data/articles.csv"))
 dim(dat) #[1] 2446   19
-#tidy up and simplify titles removing all punctuation and extra white spaces
+```
+### Tidy up and simplify titles removing all punctuation and extra white spaces
+```{r, include=FALSE}
 dat$title2 <- str_replace_all(dat$title,"[:punct:]","") %>% str_replace_all(.,"[ ]+", " ") %>% tolower()
-#remove extra title matches
+```
+### Remove extra title matches
+```{r, include=FALSE}
 dat2 <- distinct(dat, title2, .keep_all = TRUE) #select records with unique titles (removes exact duplicates)
-dim(dat2) #[1] 1630   20
-#removing partial matches in titles
+dim(dat2) #[1] 1656   20
+```
+### Removing partial matches in titles
+```{r, include=FALSE}
 duplicates_string <- find_duplicates(dat2$title2, method = "string_osa", to_lower = TRUE, rm_punctuation = TRUE, threshold = 7)
 dat3 <- extract_unique_references(dat2, duplicates_string)
-dim(dat3) #[1] 1562   21
-#Save as a bib file to upload to Zotero. Then export from Zotero as ris file to reimport into Rayyan
-write_refs(dat3, format = "bib", file = ".abstracts_for_screening_deduplicated.bib")
+dim(dat3) #[1] 1563   21
+```
+### Manually review those titles to confirm they are duplicates
+```{r, include=FALSE}
+manual_checks <- review_duplicates(dat2$title, duplicates_string)
+view(manual_checks)
+dat3 <- extract_unique_references(dat2, duplicates_string)
+dim(dat3) #[1] 1563   21
+```
+### Drop columns "title2" and "n_duplicates"
+```{r, include=FALSE}
+dat4 <- select(dat3, -c(title2,n_duplicates))
+dim(dat4) #[1] 1563   19
+```
+### Save as a .bib file to upload on Zotero. Then export from Zotero as .ris file to reimport into Rayyan
+```{r, include=FALSE}
+write_refs(dat4, format = "bib", file = "abstracts_for_screening_deduplicated.bib")
 ```
 
-Deduplicated articles uploaded on Rayyan (Review named PFAS_Evidence_Review_Map_deduplicated): 1560
-Total potential duplicates detected: 63
-I'm going to resolve these on Rayyan.
+Deduplicated articles uploaded on Rayyan (Review named PFAS_Evidence_Review_Map_deduplicated): 1563
+Total potential duplicates detected: 60
+We resolved manually these 60 potential duplicates on Rayyan.
