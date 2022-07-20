@@ -6,7 +6,7 @@ output: html_document
 ---
 # PFAS exposure of humans, animals and the environment: a Systematic Meta-review Map and Bibliometric analysis  
 
-*Supplementary Material - data processing and data visualization*
+*Supplementary Material - deduplication code*
 
 ## Porpuse: This .Rmd document provides the code we used for deduplication of articles. The file named "articles.csv" contains the output of the searching process of databases. We merged the articles found searching databases using Rayyan.
 
