@@ -18,7 +18,7 @@ S_017,Phalacrocorax auritus,Double-crested cormorant,na
 S_017,Phalacrocorax carbo,Great cormorant,na
 S_017,Stercorarius maccormicki,South polar skua,na
 S_017,Stercorarius lonnbergi,Brown skua,na
-S_017,Larus audouinii,Audouin's gull,na
+S_017,Larus audouinii,Audouin’s gull,na
 S_017,Larus marinus,Great black-backed gull,na
 S_017,Larus michahellis,Yellow-legged gull,na
 S_017,Larus hyperboreus,Glaucous gull,na
@@ -26,9 +26,9 @@ S_017,Larus argentatus,Herring gull,na
 S_017,Larus fuscus,Lesser black-backed gull,na
 S_017,Rissa tridactyla,Black-legged kittiwake,na
 S_017,Hydroprogne caspia,Caspian tern,na
-S_017,Sterna forsteri,Forster's tern,na
+S_017,Sterna forsteri,Forster’s tern,na
 S_017,Alle alle,Little auk,na
-S_017,Uria lomvia,Br�nnich's guillemot,na
+S_017,Uria lomvia,Brünnich’s guillemot,na
 S_017,Fratercula arctica,Atlantic puffin,na
 S_036,Pusa hispida,Ringed seal,The authors did not report the scientific name
 S_036,Leptonychotes weddellii,Weddell Seals,The authors did not report the scientific name
@@ -194,7 +194,7 @@ S_103,Enhydra lutris nereis,Sea otter,na
 S_103,Halichoerus grypus,Grey seal,na
 S_103,Anguilla anguilla,Eel,na
 S_103,Cerorhinca monocerata,Rhinoceros auklet,na
-S_103,Oceanodroma leucorhoa,Leach's storm petrel,na
+S_103,Oceanodroma leucorhoa,Leach’s storm petrel,na
 S_103,Phalacrocorax auritus,Double-crested cormorant,na
 S_103,Mytilus edulis,Mussel,na
 S_103,Cyprinus carpio,Carp,na
@@ -214,7 +214,7 @@ S_114,Mus musculus,C57BL/6J-Apc mice,The authors did not report the scientific n
 S_114,Rattus norvegicus,Sprague Dawley rat,The authors did not report the scientific name
 S_120,Mus musculus,Mice,The authors did not report the scientific name
 S_120,Rattus norvegicus,Sprague Dawley rat,The authors did not report the scientific name
-S_123,,,The review authors did not provide a list of included species in the included studies in the review (it's a narrative review). Remove from this datasheet? 
+S_123,na,na,The review authors did not provide a list of included species in the included studies in the review (it's a narrative review).
 S_136,Mus musculus,C57Bl/6 mice,The authors did not report the scientific name
 S_136,Mus musculus,CD1 mice,The authors did not report the scientific name
 S_136,Mus musculus,129S1/SvlmJ mice,The authors did not report the scientific name
