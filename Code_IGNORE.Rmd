@@ -247,7 +247,7 @@ p_PFAStype
 ### How many species and which ones
 ```{r species focus one_many barplot, height = 4, width = 8}
 t_spfocus <- mspdata %>%
-  count(Species_scientific_name, Species_one_many) %>%
+  count(Species_scientific_name, Species_one_many, Review_type_claimed) %>%
   arrange(desc(n)) %>%
   filter(Species_one_many != "NA") #filter out NA
 t_spfocus <- split(t_spfocus, (seq(nrow(t_spfocus))-1) %/% 50) 
@@ -262,7 +262,7 @@ ggplot(t_spfocus$`0`, aes(x = Species_scientific_name, y = n)) +
  geom_col(aes(fill = Species_one_many), width = 0.7) + 
  scale_y_continuous(name = "Article count") +
  theme_light() +
- theme(legend.position = "bottom", legend.box.background = element_rect(colour = "black"), legend.title = element_text(size=10),  legend.text=element_text(size = 10), axis.title.x = element_text(size = 10), axis.title.y = element_blank()) + #+
+ theme(legend.position = "bottom", legend.box.background = element_rect(colour = "black"), legend.title = element_text(size=10),  legend.text=element_text(size = 10), axis.title.x = element_text(size = 10), axis.title.y = element_blank()) #+
 #ggsave(here("plots","figure_species_focus_1.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
 
 ggplot(t_spfocus$`1`, aes(x = Species_scientific_name, y = n)) +
