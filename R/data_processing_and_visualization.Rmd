@@ -142,7 +142,7 @@ mpidata <- left_join(mdata, ptidata, by = "Study_ID")
 mdata <- 
   mdata[order(mdata$Study_ID),]
 
-knitr::kable(select(mdata, Study_ID,	Author_year,	Paper_title, DOI), caption = "Table of included studies")
+knitr::kable(select(mdata, Study_ID,	Author_year,	Paper_title), caption = "Table of included studies")
 ```
 
 ------------------------------------------------------------------------
