@@ -438,14 +438,15 @@ theme_classic() +
 ```{r area plots year, height = 2, width = 8}
 
 mdata %>% count(Publication_year) %>% ggplot(aes(x = Publication_year, y = n)) + 
-  geom_area(fill = '#919191', alpha = 1) +
-  geom_line(color = 'black', size = 1) + 
-  geom_point(size=1, color = 'black') +
+  geom_area(fill = '#919191', alpha = 0.5) +
+  geom_line(color = 'black', size = 0.5) + 
+  geom_point(size = 0.8, color = 'black') +
   theme_minimal() +
-  scale_x_continuous(name = "", limits = c(2005, 2020)) +
-  scale_y_continuous(name = "Article count", limits = c(0, 5)) +
+  scale_x_continuous(name = "", breaks = seq(2008, 2022, by = 1)) +
+  scale_y_continuous(name = "Article count", breaks = seq(0, 50, by = 2), sec.axis = sec_axis(~ . *1, name = "Article count", breaks = seq(0, 50, by = 2))) +
   ggtitle("Publication year") + 
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 0, size = 13, margin = margin(t = 5, r = 0, l = 0)), axis.text.y = element_text(size = 10, margin = margin(t = 0, r = 5, l = 5)))
+  
 
 #ggsave(here("plots","figure_area_publ_year.pdf"), width = 4, height = 3, units = "cm", scale = 2, device = cairo_pdf)
 
@@ -487,7 +488,7 @@ dim(qdata) #some empty rows to be removed
 #studies <- qdata$Author_year #normally would use this
 
 #only select columns with assessment codes (drop comments and empty rows)
-qtable <- qdata %>% filter(Study_ID!="NA") %>% select(starts_with("Q") & !ends_with("_comment"))  
+qtable <- qdata %>% filter(Study_ID!="NA") %>% select(starts_with("Q") & !ends_with("_Comment"))  
 
 #simiplify column names to Q+number format
 names(qtable) <- gsub("\\..*", "", names(qtable)) 
@@ -499,9 +500,7 @@ qtable <- apply(qtable, 2, function(y) as.character(gsub(" =.*", "", y)))
 studies <- qdata$Study_ID[!is.na(qdata$Study_ID)]
 
 #convert to long format data frame with Study_ID
-qtable_long <- data.frame(study = rep(as.factor(studies), each = length(studies)),
-                     question = rep(colnames(qtable), each = length(studies)),
-                     score = as.vector(qtable), stringsAsFactors = TRUE) #make long format table
+qtable_long <- data.frame(study = rep(as.factor(studies), each = length(studies)), question = rep(colnames(qtable), each = length(studies)), score = as.vector(qtable), stringsAsFactors = TRUE) #make long format table
 
 rownames(qtable_long) <- NULL
 qtable_long$question <- factor(qtable_long$question, levels(qtable_long$question)[rev(c(1,9:16,2:8))]) #setting the order of levels - by Q-number
