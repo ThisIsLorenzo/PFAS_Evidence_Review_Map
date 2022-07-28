@@ -42,6 +42,8 @@ library(hrbrthemes) #for ggplot2
 library(patchwork) #for ggplot2
 library(bibliometrix)
 library(igraph)
+library(xtable)
+library(kableExtra)
 
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
@@ -68,6 +70,9 @@ spdata <- read_csv(here("data","ReviewMap_PFAS_species.csv"), skip = 0)
 # Data from .csv file - PFAS_types sheet:
 ptdata <- read_csv(here("data","ReviewMap_PFAS_types.csv"), skip = 0) 
 #dim(ptdata) #175 rows 5 columns
+# change to long format (one type per row - one or multple rows per study):
+ptdata <- ptdata %>% separate_rows(PFAS_type, sep=', ')
+#dim(ptdata) #817 rows 3 columns
 
 # Data from .csv file - PFAS_info sheet:
 pidata <- read_csv(here("data","PFAS_info.csv"), skip = 0) 
@@ -78,7 +83,7 @@ qdata <- read_csv(here("data", "ReviewMap_PFAS_quality.csv"), skip = 0)
 #dim(qdata) #140 rows 36 columns
 
 #Bibliometric data of included papers (with references) dwonloaded from Scopus in .bib format:
-#bib_sco <- convert2df(here("data","scopus.bib"), dbsource = "scopus", format = "bibtex")
+bib_sco <- convert2df(here("data","scopus.bib"), dbsource = "scopus", format = "bibtex")
 #dim(bib_sco) #8 rows 33 columns
 ```
 
@@ -135,21 +140,20 @@ mpidata <- left_join(mdata, ptidata, by = "Study_ID")
 
 ## Make a simple summary table of included papers
 
-**Note:** authors names and paper titles are blinded for the protocol.
-
 ```{r simple table of included studies, eval = TRUE}
 #First, order the table by Study_ID
 mdata <- 
   mdata[order(mdata$Study_ID),]
 
-knitr::kable(select(mdata, Study_ID,	Author_year,	Paper_title), caption = "Table of included studies")
+knitr::kable(select(mdata, Study_ID,	Author_year,	Paper_title), caption = "Table of included studies") %>% kable_paper(bootstrap_options = "striped", full_width = F) %>% #save_kable(file = "table1.html", self_contained = T)
+
 ```
 
 ------------------------------------------------------------------------
 
 ## Objective 1. Mapping: What evidence on PFAS has been synthesized?
 
-Here we aim to reveal what areas in the realm of PFAS health-related and environmental research have been synthesized the most and where syntheses of evidence are lacking. Below, we include examples of potential data summaries and visualizations that will form the evidence review map. The pilot dataset presented here consists of `r length(unique(mdata$Study_ID))` review studies.
+Here we aim to reveal what areas in the realm of PFAS health-related and environmental research have been synthesized the most and where syntheses of evidence are lacking.
 
 ### Focus on PFAS, or POPs, and how many PFAS
 
@@ -227,7 +231,7 @@ colnames(t_MESH2)  <- c("MeSH_terms", "MeSH_headings", "MeSH_qualifiers")
 
 #count frequencies of headings
 t_MESH2 %>% select(MeSH_headings) %>% count(MeSH_headings) %>% arrange(desc(n)) %>% 
-  filter(MeSH_headings != "NA") ->  MeSH_headings_counts 
+  filter(MeSH_headings != "NA") %>% filter(MeSH_headings != "") ->  MeSH_headings_counts 
 #str(MeSH_headings_counts)
 
 MeSH_headings_counts$MeSH_headings <- factor(MeSH_headings_counts$MeSH_headings, levels = MeSH_headings_counts$MeSH_headings[order(MeSH_headings_counts$n, decreasing = FALSE)])
