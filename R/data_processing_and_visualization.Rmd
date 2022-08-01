@@ -145,7 +145,7 @@ mpidata <- left_join(mdata, ptidata, by = "Study_ID")
 mdata <- 
   mdata[order(mdata$Study_ID),]
 
-knitr::kable(select(mdata, Study_ID,	Author_year,	Paper_title), caption = "Table of included studies") %>% kable_paper(bootstrap_options = "striped", full_width = F) %>% #save_kable(file = "table1.html", self_contained = T)
+knitr::kable(select(mdata, Study_ID,	Author_year,	Paper_title), caption = "Table of included studies") %>% kable_paper(bootstrap_options = "striped", full_width = F) #%>% save_kable(file = "table1.html", self_contained = T)
 
 ```
 
@@ -331,7 +331,7 @@ ggplot(t_topic_subject, aes(x = MeSH_qualifiers, y = n)) +
  labs(title = expression("MeSH qualifiers and subjects reviewed")) + #~bold(A.)~' Type and subject'
  coord_flip()  +
  scale_fill_brewer() +
- geom_col(aes(fill = Subject), width = 0.7) + 
+ geom_col(aes(fill = fct_relevel(Subject, c("Mixed", "Plants", "Environment", "Animals", "Humans"))), width = 0.7) + 
  scale_y_continuous(name = "Article count") +
  theme_light() +
  theme(legend.position = "bottom", legend.box.background = element_rect(colour = "black"), legend.title = element_blank(),  legend.text = element_text(size = 10), axis.title.x = element_text(size = 10), axis.title.y = element_blank(), axis.text = element_text(size = 7)) 
