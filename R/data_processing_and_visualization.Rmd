@@ -649,14 +649,14 @@ Whether Conflict Of Interests statement is provided for individual reviews.
 
 mdata %>% count(COI_statement) %>% arrange(desc(n)) %>% filter(COI_statement != "NA") -> t_COI_statement #filter out NA
 
-ggplot(t_COI_statement, aes(x = COI_statement, y = n)) +
+p1 <- ggplot(t_COI_statement, aes(x = COI_statement, y = n)) +
  theme_light() +
  theme(legend.position = "none", axis.title.y = element_blank()) +
  labs(title = expression("COI statement availability")) + #~bold(A.)~' Type and subject'
  coord_flip()  +
  geom_col(aes(fill = COI_statement), width = 0.7) + 
  scale_y_continuous(name = "Article count")
- 
+p1
 ```
 
 ### COI present
@@ -667,14 +667,14 @@ Whether potential Conflict Of Interests is acknowledged for individual reviews.
 
 mdata %>% count(COI_present) %>% arrange(desc(n)) %>% filter(COI_present != "NA") -> t_COI_present #filter out NA
 
-ggplot(t_COI_present, aes(x = COI_present, y = n)) +
+p2 <- ggplot(t_COI_present, aes(x = COI_present, y = n)) +
  theme_light() +
  theme(legend.position = "none", axis.title.y = element_blank()) +
  labs(title = expression("Conflict of Interest")) + #~bold(A.)~' Type and subject'
  coord_flip()  +
  geom_col(aes(fill = COI_present), width = 0.7) + 
  scale_y_continuous(name = "Article count")
-
+p2
 ```
 
 ### Funding statement
@@ -685,14 +685,14 @@ Whether funding statement is provided for individual reviews.
 
 mdata %>% count(Funding_statement) %>% arrange(desc(n)) %>% filter(Funding_statement != "NA") -> t_Funding_statement #filter out NA
 
-ggplot(t_Funding_statement, aes(x = Funding_statement, y = n)) +
+p3 <- ggplot(t_Funding_statement, aes(x = Funding_statement, y = n)) +
  theme_light() +
  theme(legend.position = "none", axis.title.y = element_blank()) +
  labs(title = expression("Funding statement availability")) + #~bold(A.)~' Type and subject'
  coord_flip()  +
  geom_col(aes(fill = Funding_statement), width = 0.7) + 
  scale_y_continuous(name = "Article count")
- 
+p3
 ```
 
 ### Non-profit funding acknowledged
@@ -704,7 +704,7 @@ mdata <- mdata %>% rename(Nonprofit_funding = "Non-profit_funding")
 
 mdata %>% count(Nonprofit_funding) %>% arrange(desc(n)) %>% filter(Nonprofit_funding != "NA") -> t_Nonprofit_funding #filter out NA
 
-ggplot(t_Nonprofit_funding, aes(x = Nonprofit_funding, y = n)) +
+p4 <- ggplot(t_Nonprofit_funding, aes(x = Nonprofit_funding, y = n)) +
  theme_light() +
  theme(legend.position = "none", axis.title.y = element_blank()) +
  labs(title = expression("Non-profit funding")) + #~bold(A.)~' Type and subject'
@@ -722,14 +722,13 @@ Whether funding from industry (including government-industry collaborations) is 
 
 mdata %>% count(Industry_funding) %>% arrange(desc(n)) %>% filter(Industry_funding != "NA") -> t_Funding_industry #filter out NA
 
-ggplot(t_Funding_industry, aes(x = Industry_funding, y = n)) +
+p5 <- ggplot(t_Funding_industry, aes(x = Industry_funding, y = n)) +
  theme_light() +
  theme(legend.position = "none", axis.title.y = element_blank()) +
  labs(title = expression("Funding from industry")) + #~bold(A.)~' Type and subject'
  coord_flip()  +
  geom_col(aes(fill = Industry_funding), width = 0.7) + 
  scale_y_continuous(name = "Article count")
-
 ```
 
 ### Data availability
@@ -740,7 +739,7 @@ Whether extracted data is made available for individual reviews.
 #str(mdata)
 mdata %>% count(Raw_data) %>% arrange(desc(n)) %>% filter(Raw_data != "NA") -> t_Raw_data #filter out NA
 
-ggplot(t_Raw_data, aes(x = Raw_data, y = n)) +
+p6 <- ggplot(t_Raw_data, aes(x = Raw_data, y = n)) +
  theme_light() +
  theme(legend.position = "none", axis.title.y = element_blank()) +
  labs(title = expression("Data availability")) + #~bold(A.)~' Type and subject'
@@ -760,7 +759,7 @@ Whether code for analyses is made available for individual reviews.
 
 mdata %>% count(Analysis_code) %>% arrange(desc(n)) %>% filter(Analysis_code != "NA") -> t_Analysis_code #filter out NA
 
-ggplot(t_Analysis_code, aes(x = Analysis_code, y = n)) +
+p7 <- ggplot(t_Analysis_code, aes(x = Analysis_code, y = n)) +
  theme_light() +
  theme(legend.position = "none", axis.title.y = element_blank()) +
  labs(title = expression("Analysis code availability")) + #~bold(A.)~' Type and subject'
@@ -768,6 +767,19 @@ ggplot(t_Analysis_code, aes(x = Analysis_code, y = n)) +
  geom_col(aes(fill = Analysis_code), width = 0.7) + 
  scale_y_continuous(name = "Article count")
 
+```
+
+### Plots combined - COI
+```{r plots combined}
+(p1+p2)
+```
+### Plots combined - Funding
+```{r plots combined}
+(p3)/(p4+p5)
+```
+### Plots combined - Data and Code availability
+```{r plots combined}
+(p6+p7)
 ```
 
 ------------------------------------------------------------------------
@@ -783,14 +795,11 @@ Examine which countries and institutions are mostly involved in secondary PFAS r
 ### Basic summaries from bibliographic records
 
 ```{r basic bibliometric summaries}
-
 results1 <- biblioAnalysis(bib_sco) #run basic standard descriptive analysis of the dataset (data frame)
 summary(results1, k = 10, pause = F, width = 130) #produces a sequence of standard summary tables displayed in the console
 plot(x = results1, k = 10, pause = F) #produces a sequence of standard summary plots displayed in the plots window
 #for individual plots assign the above to an object (p <- ) and then call individual plots (1-5, e.g. p[5])
-p <- plot(x = results1, k = 10, pause = F)
-par(mfrow=c(2,3))
-
+#p <- plot(x = results1, k = 10, pause = F)
 ```
 
 ```{r table - counts by journal}
@@ -807,11 +816,11 @@ knitr::kable(table(bib_sco$JI), caption = "Table SX. counts of numbers of public
 #pdf(file="./plots/figure_keywords_network.pdf", width = 6, height = 5, pointsize = 12, family = "Helvetica", fonts = c("Helvetica"))
 #par(mfrow=c(1,1), mar=c(2,4,2,4))
 NetMatrix_keywords <- biblioNetwork(bib_sco, analysis = "co-occurrences", network = "keywords", sep = ";")
-NetMatrix_keywords_plot <- networkPlot(NetMatrix_keywords, normalize="association", n = 10, 
+NetMatrix_keywords_plot <- networkPlot(NetMatrix_keywords, normalize="association", n = 30, 
                                        Title = "Keyword co-occurrences", type = "fruchterman", 
-                                       size.cex = TRUE, size = 10, remove.multiple = F, 
+                                       size.cex = TRUE, size = 15, remove.multiple = F, 
                                        edgesize = 4, labelsize = 3, label.cex = TRUE, 
-                                       edges.min = 2, label.n = 9, alpha = 0.3) #adjust number and size of labels, as needed, etc.
+                                       edges.min = 2, label.n = 30, alpha = 0.3) #adjust number and size of labels, as needed, etc.
 #dev.off()
 
 #str(NetMatrix_keywords_plot)
