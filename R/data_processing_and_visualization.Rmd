@@ -160,8 +160,10 @@ Here we aim to reveal what areas in the realm of PFAS health-related and environ
 
 ```{r PFAS focus one_many barplot, height = 2, width = 8}
 #str(mdata)
-mdata %>% count(PFAS_focus, PFAS_one_many) %>% arrange(desc(n)) %>% 
-  filter(PFAS_focus != "NA") -> t_PFASfocus #filter out NA
+t_PFASfocus <- mdata %>%
+  count(PFAS_focus, PFAS_one_many) %>%
+  arrange(desc(n)) %>% 
+  filter(PFAS_focus != "NA") #filter out NA
 
 #Use a colorblind-friendly palette:
 cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
@@ -177,9 +179,12 @@ PFAS_focus <- ggplot(t_PFASfocus, aes(x = PFAS_focus, y = n)) +
  scale_y_continuous(name = "Article count") +
   scale_fill_manual(values=cbp1, breaks=c('One', 'Multiple', 'Not specified')) +
  theme_light() +
- theme(legend.position = "bottom", legend.box.background = element_rect(colour = "black"), 
+ theme(legend.position = "bottom",
+       legend.box.background = element_rect(colour = "black"), 
        legend.title = element_text(size=10),  legend.text=element_text(size = 10), 
-       axis.title.x = element_text(size = 10), axis.title.y = element_blank())
+       axis.title.x = element_text(size = 10),
+       axis.title.y = element_blank(),
+       legend.background = element_blank())
 
 PFAS_focus
 
@@ -192,8 +197,13 @@ PFAS_focus
 ```{r plot PFAS types barplot, height = 8, width = 8}
 
 #str(ptidata)
-ptidata %>% count(PFAS_type) %>% arrange(desc(n)) %>% filter(PFAS_type != "NA") -> t_PFAStype #filter out NA
-t_PFAStype$PFAS_type <- factor(t_PFAStype$PFAS_type, levels = t_PFAStype$PFAS_type[order(t_PFAStype$n, decreasing = FALSE)])
+t_PFAStype <- ptidata %>%
+  count(PFAS_type) %>%
+  arrange(desc(n)) %>%
+  filter(PFAS_type != "NA") #filter out NA
+
+t_PFAStype$PFAS_type <-
+  factor(t_PFAStype$PFAS_type, levels = t_PFAStype$PFAS_type[order(t_PFAStype$n, decreasing = FALSE)])
 PFAS_levels_order <- t_PFAStype$PFAS_type[order(t_PFAStype$n, decreasing = FALSE)] #save for another plot
 
 # simple barplot with PFAS types
@@ -220,7 +230,10 @@ Some MeSH headings also have qualifiers (sometimes called subheadings) - these a
 ```{r plot main topics barplot prep, height = 4, width = 8}
 
 # change to long format (one species per row - one or multple rows per study):
-mdata %>% select(MeSH_terms) %>% separate_rows(MeSH_terms, sep = ";\\\n") %>% separate_rows(MeSH_terms, sep = "; ") -> t_MESH
+t_MESH <- mdata %>%
+  select(MeSH_terms) %>%
+  separate_rows(MeSH_terms, sep = ";\\\n") %>%
+  separate_rows(MeSH_terms, sep = "; ")
 #bring to lower case and remove ending and trailing whitespace from character strings, single character vector:
 tmesh <- str_to_lower(trimws(t_MESH$MeSH_terms)) 
 #remove star character:
@@ -238,11 +251,16 @@ colnames(t_MESH2)  <- c("MeSH_terms", "MeSH_headings", "MeSH_qualifiers")
 ```{r plot MeSH headings barplot, height = 4, width = 8}
 
 #count frequencies of headings
-t_MESH2 %>% select(MeSH_headings) %>% count(MeSH_headings) %>% arrange(desc(n)) %>% 
-  filter(MeSH_headings != "NA") %>% filter(MeSH_headings != "") ->  MeSH_headings_counts 
+MeSH_headings_counts <- t_MESH2 %>%
+  select(MeSH_headings) %>%
+  count(MeSH_headings) %>%
+  arrange(desc(n)) %>% 
+  filter(MeSH_headings != "NA") %>%
+  filter(MeSH_headings != "")
 #str(MeSH_headings_counts)
 
 MeSH_headings_counts$MeSH_headings <- factor(MeSH_headings_counts$MeSH_headings, levels = MeSH_headings_counts$MeSH_headings[order(MeSH_headings_counts$n, decreasing = FALSE)])
+
 MESH_headings_order <- MeSH_headings_counts$MeSH_headings[order(MeSH_headings_counts$n, decreasing = FALSE)] #save for the next plot
 
 # simple barplot with top 10 MESH headings
@@ -261,7 +279,12 @@ ggplot(MeSH_headings_counts[1:10, ], aes(x = MeSH_headings, y = n)) +
 ```{r plot MeSH qualifiers barplot, height = 4, width = 8}
 
 #count frequencies of qualifiers
-t_MESH2 %>% select(MeSH_qualifiers) %>% count(MeSH_qualifiers) %>% arrange(desc(n)) %>% filter(MeSH_qualifiers != "NA") %>% filter(MeSH_qualifiers != "")->  MeSH_qualifiers_counts 
+MeSH_qualifiers_counts <- t_MESH2 %>%
+  select(MeSH_qualifiers) %>%
+  count(MeSH_qualifiers) %>%
+  arrange(desc(n)) %>%
+  filter(MeSH_qualifiers != "NA") %>%
+  filter(MeSH_qualifiers != "")
 #str(MeSH_qualifiers_counts)
 
 MeSH_qualifiers_counts$MeSH_qualifiers <- factor(MeSH_qualifiers_counts$MeSH_qualifiers, levels = MeSH_qualifiers_counts$MeSH_qualifiers[order(MeSH_qualifiers_counts$n, decreasing = FALSE)])
@@ -285,9 +308,15 @@ ggplot(MeSH_qualifiers_counts[, ], aes(x = MeSH_qualifiers, y = n)) +
 ```{r plot main subjects barplot, height = 2, width = 8}
 
 #str(mdata)
-mdata %>% count(Human_animal_environment) %>% arrange(desc(n)) %>% 
-  filter(Human_animal_environment != "NA") %>% filter(Human_animal_environment != "") -> t_subject #filter out NA
-t_subject$Human_animal_environment <- factor(t_subject$Human_animal_environment, levels = unique(t_subject$Human_animal_environment[order(t_subject$n, decreasing = FALSE)]))
+t_subject <- mdata %>%
+  count(Human_animal_environment) %>%
+  arrange(desc(n)) %>% 
+  filter(Human_animal_environment != "NA") %>%
+  filter(Human_animal_environment != "") #filter out NA
+
+t_subject$Human_animal_environment <-
+  factor(t_subject$Human_animal_environment, levels = unique(t_subject$Human_animal_environment[order(t_subject$n, decreasing = FALSE)]))
+
 subjects_levels_order <- t_subject$Human_animal_environment[order(t_subject$n, decreasing = FALSE)] #save for another plot
 
 # simple barplot with MESH_heading
@@ -312,8 +341,11 @@ ggplot(t_subject, aes(x = Human_animal_environment, y = n)) +
 #table(mdata$Human_animal_environment)
 
 # change to long format (one species per row - one or multple rows per study):
-mdata %>% group_by(Human_animal_environment) %>% select(MeSH_terms) %>% 
-  separate_rows(MeSH_terms, sep = ";\\\n") %>% separate_rows(MeSH_terms, sep = "; ") -> t_MESHby
+t_MESHby <- mdata %>%
+  group_by(Human_animal_environment) %>%
+  select(MeSH_terms) %>% 
+  separate_rows(MeSH_terms, sep = ";\\\n") %>%
+  separate_rows(MeSH_terms, sep = "; ")
 #str(t_MESHby)
 
 tmeshby <- str_to_lower(trimws(t_MESHby$MeSH_terms)) #bring to lower case and remove ending and trailing whitespace from character strings, single character vector
@@ -323,15 +355,24 @@ tmeshby <- sub("[\\*]", "", tmeshby) #remove star character
 tmeshby2 <- str_split_fixed(tmeshby, " / ", n = 2)
 
 #create a MeSH dataframe with three columns: terms, headings, qualifiers
-t_MESHby2 <- bind_cols(t_MESHby$Human_animal_environment, tmeshby, tmeshby2[,1], tmeshby2[,2])
-colnames(t_MESHby2)  <- c("Subject", "MeSH_terms", "MeSH_headings", "MeSH_qualifiers")
+t_MESHby2 <-
+  bind_cols(t_MESHby$Human_animal_environment, tmeshby, tmeshby2[,1], tmeshby2[,2])
+
+colnames(t_MESHby2) <-
+  c("Subject", "MeSH_terms", "MeSH_headings", "MeSH_qualifiers")
 #str(t_MESHby2)
 
-t_MESHby2 %>% count(MeSH_qualifiers, Subject) %>% arrange(desc(n)) %>% filter(MeSH_qualifiers != "NA") %>% 
-  filter(MeSH_qualifiers != "") -> t_topic_subject #filter out NA
+t_topic_subject <-
+  t_MESHby2 %>%
+  count(MeSH_qualifiers, Subject) %>%
+  arrange(desc(n)) %>%
+  filter(MeSH_qualifiers != "NA") %>% 
+  filter(MeSH_qualifiers != "") #filter out NA
 
-t_topic_subject$Subject <- factor(t_topic_subject$Subject, levels = subjects_levels_order) #use order from the previous graph
-t_topic_subject$MeSH_qualifiers <- factor(t_topic_subject$MeSH_qualifiers, levels = MESH_qualifiers_order) #use order from the previous graph
+t_topic_subject$Subject <-
+  factor(t_topic_subject$Subject, levels = subjects_levels_order) #use order from the previous graph
+t_topic_subject$MeSH_qualifiers <-
+  factor(t_topic_subject$MeSH_qualifiers, levels = MESH_qualifiers_order) #use order from the previous graph
 #str(t_topic_subject)
 
 ggplot(t_topic_subject, aes(x = MeSH_qualifiers, y = n)) +
@@ -339,11 +380,19 @@ ggplot(t_topic_subject, aes(x = MeSH_qualifiers, y = n)) +
  labs(title = expression("MeSH qualifiers and subjects reviewed")) + #~bold(A.)~' Type and subject'
  coord_flip()  +
  scale_fill_brewer() +
- geom_col(aes(fill = fct_relevel(Subject, c("Mixed", "Plants", "Environment", "Animals", "Humans" ))), width = 0.7) + 
-   scale_fill_manual(values=cbp1, breaks=c("Humans", "Animals", "Environment", "Plants", "Mixed"))+
+ geom_col(aes(fill = fct_relevel(Subject, c("Mixed", "Plants", "Environment", "Animals", "Humans"))), width = 0.7) + 
+   scale_fill_manual(values=cbp1,
+                     breaks=c("Humans", "Animals", "Environment", "Plants", "Mixed"))+
  scale_y_continuous(name = "Article count") +
  theme_light() +
- theme(legend.position = "bottom", legend.box.background = element_rect(colour = "black"), legend.title = element_blank(),  legend.text = element_text(size = 20), axis.title.x = element_text(size = 18), axis.title.y = element_blank(), axis.text = element_text(size = 18)) 
+ theme(legend.position = c(0.8, 0.5),
+       legend.box.background = element_rect(colour = "black"),
+       legend.title = element_blank(),
+       legend.text = element_text(size = 20),
+       axis.title.x = element_text(size = 18),
+       axis.title.y = element_blank(),
+       axis.text = element_text(size = 18),
+       legend.background = element_blank())
 
 #ggsave(here("plots","figure_MeSH_qualifiers_subjects.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
 
@@ -353,13 +402,27 @@ ggplot(t_topic_subject, aes(x = MeSH_qualifiers, y = n)) +
 
 ```{r plot PFAS focus by Human_animal_environment barplot, height = 2, width = 8}
 # PFAS_one_many vs. Human_animal_environment contingency table
-mdata %>% count(Human_animal_environment, PFAS_one_many) -> t1
+t1 <-
+  mdata %>%
+  count(Human_animal_environment, PFAS_one_many)
 
 ggplot(t1, aes(x = PFAS_one_many , y = n)) +
  coord_flip()  +
- geom_col(aes(fill = Human_animal_environment), width = 0.7) +
+  theme_light() +
+ labs(title = expression("PFAS focus and subjects reviewed")) +
+ geom_col(aes(fill = fct_relevel(Human_animal_environment, c("Mixed", "Plants", "Environment", "Animals", "Humans"))),
+          width = 0.7) +
+  scale_fill_manual(values=cbp1,
+                    breaks=c("Humans", "Animals", "Environment", "Plants", "Mixed")) +
  theme_light() +  
- theme(legend.position = "bottom", legend.box.background = element_rect(colour = "black")) +
+ theme(legend.position = "bottom",
+       legend.box.background = element_rect(colour = "black"),
+       legend.title = element_blank(),
+       legend.text = element_text(size = 20),
+       axis.title.x = element_text(size = 18),
+       axis.title.y = element_blank(),
+       axis.text = element_text(size = 18),
+       legend.background = element_blank()) +
  ylab("Article count") +
  xlab("PFAS reviwed") +
  guides(fill=guide_legend(title="Subject:"))
@@ -373,21 +436,35 @@ ggplot(t1, aes(x = PFAS_one_many , y = n)) +
 ```{r plot PFAS types by Human_animal_environment barplot, height = 8, width = 8}
 
 #str(mpidata)
-mpidata %>% count(PFAS_type, Human_animal_environment) %>% arrange(desc(n)) %>% filter(PFAS_type != "NA") -> t_PFAStype #filter out NA
+t_PFAStype <-
+  mpidata %>%
+  count(PFAS_type, Human_animal_environment) %>%
+  arrange(desc(n)) %>%
+  filter(PFAS_type != "NA") #filter out NA
 #t_PFAStype$PFAS_type <- factor(t_PFAStype$PFAS_type, levels = unique(t_PFAStype$PFAS_type[order(t_PFAStype$n, decreasing = FALSE)]))
-t_PFAStype$PFAS_type <- factor(t_PFAStype$PFAS_type, levels = PFAS_levels_order) #use order from the previous graph
+t_PFAStype$PFAS_type <-
+  factor(t_PFAStype$PFAS_type, levels = PFAS_levels_order) #use order from the previous graph
 
 
-p_PFAStype <- ggplot(t_PFAStype, aes(x = PFAS_type, y = n)) +
- theme_light() +
- labs(title = expression("PFAS type and main subjects reviewed")) + #~bold(A.)~' Type and subject'
- coord_flip()  +
- scale_fill_brewer() +
- geom_col(aes(fill = Human_animal_environment), width = 0.7) + 
- scale_y_continuous(name = "Article count") +
- theme_light() +
- theme(legend.position = "bottom", legend.box.background = element_rect(colour = "black"), legend.title = element_blank(),  legend.text=element_text(size = 10), axis.title.x = element_text(size = 10), axis.title.y = element_blank()) +
-  theme(legend.position = c(0.8, 0.5), legend.background = element_rect(fill = "white", color = "black")) #lace legend inside plot area
+p_PFAStype <-
+  ggplot(t_PFAStype, aes(x = PFAS_type, y = n)) +
+  theme_light() +
+  labs(title = expression("PFAS type and main subjects reviewed")) + #~bold(A.)~' Type and subject'
+  coord_flip()  +
+  scale_fill_brewer() +
+  geom_col(aes(fill = fct_relevel(Human_animal_environment, c("Mixed", "Plants", "Environment", "Animals", "Humans"))),
+           width = 0.7) +
+  scale_fill_manual(values=cbp1,
+                    breaks=c("Humans", "Animals", "Environment", "Plants", "Mixed")) +
+  scale_y_continuous(name = "Article count") +
+  theme_light() +
+  theme(legend.position = c(0.6, 0.5),
+       legend.box.background = element_rect(colour = "black"),
+       legend.title = element_blank(),
+       legend.text=element_text(size = 10),
+       axis.title.x = element_text(size = 10),
+       axis.title.y = element_blank(),
+       legend.background = element_blank())
 #theme(legend.position = "none", axis.title.x = element_text(size = 10), axis.title.y = element_blank())
 p_PFAStype
 
@@ -399,7 +476,11 @@ p_PFAStype
 
 ```{r species focus one_many barplot, height = 4, width = 8}
 #str(mspdata)
-mspdata %>% count(Species_scientific_name, Species_one_many) %>% arrange(desc(n)) %>% filter(Species_one_many != "NA") -> t_spfocus #filter out NA
+t_spfocus <-
+  mspdata %>%
+  count(Species_scientific_name, Species_one_many) %>%
+  arrange(desc(n)) %>%
+  filter(Species_one_many != "NA")  #filter out NA
 
 ggplot(t_spfocus, aes(x = Species_scientific_name, y = n)) +
  theme_light() +
@@ -410,7 +491,12 @@ ggplot(t_spfocus, aes(x = Species_scientific_name, y = n)) +
  geom_col(aes(fill = Species_one_many), width = 0.7) + 
  scale_y_continuous(name = "Article count") +
  theme_light() +
- theme(legend.position = "bottom", legend.box.background = element_rect(colour = "black"), legend.title = element_text(size=10),  legend.text=element_text(size = 10), axis.title.x = element_text(size = 10), axis.title.y = element_blank()) #+
+ theme(legend.position = "bottom",
+       legend.box.background = element_rect(colour = "black"),
+       legend.title = element_text(size=10),
+       legend.text=element_text(size = 10),
+       axis.title.x = element_text(size = 10),
+       axis.title.y = element_blank()) #+
 
 #ggsave(here("plots","figure_species_focus.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
 
@@ -418,25 +504,33 @@ ggplot(t_spfocus, aes(x = Species_scientific_name, y = n)) +
 
 ```{r PFAS and species focus one_many dotplot, height = 2, width = 8}
 
-mdata %>% count(Species_one_many, PFAS_one_many) -> t2 #make table of counts across two columns 
+t2 <- mdata %>%
+  count(Species_one_many, PFAS_one_many) #make table of counts across two columns 
+
 t2$Species_one_many <- as.factor(t2$Species_one_many)
+
 levels(t2$Species_one_many) <- c("Many", "One") #reorder levels for Species_one_many
-t2 %>% filter(Species_one_many != "NA") -> t2 #filter out NA
+
+t2 <- t2 %>%
+  filter(Species_one_many != "NA") #filter out NA
 
 # simple dot plot
 ggplot(data = t2, aes(Species_one_many, PFAS_one_many)) + geom_point(aes(size = n), colour = "darkgrey") +
 theme_classic() +
-  theme(axis.ticks.x=element_blank(), axis.text.x=element_text(size = 20, angle = 90, hjust = 0)) +
-  theme(axis.ticks.y=element_blank(), axis.text.y=element_text(size = 20)) +
-  theme(axis.line=element_blank()) +
-  theme(text = element_text(size = 22)) +
-  theme(legend.position = "bottom", legend.box.background = element_rect(colour = "black")) +
-  theme(plot.margin = unit(c(10,10,10,10), "mm")) +
+  theme(axis.ticks.x=element_blank(),
+        axis.text.x=element_text(size = 20, angle = 90, hjust = -1),
+        axis.ticks.y=element_blank(),
+        axis.text.y=element_text(size = 20, hjust = 1.1),
+        axis.line=element_blank(),
+        text = element_text(size = 22),
+        legend.position = "bottom",
+        legend.box.background = element_rect(colour = "black"),
+        plot.margin = unit(c(5,5,5,5), "mm")) +
   scale_size_continuous(range = c(1, 10)) +
   #theme(axis.title = element_blank()) +
   scale_x_discrete(position = "top") +
   xlab("Species") +
-  ylab("PFAS")
+  ylab("PFAS focus")
  #+ labs(title = "Counts of reviews by subject and type")
 
 #ggsave(here("plots","figure_dotplot_PFAS_Species.pdf"), width = 4, height = 4, units = "cm", scale = 4, device = cairo_pdf)
@@ -446,15 +540,28 @@ theme_classic() +
 
 ```{r area plots year, height = 2, width = 8}
 
-mdata %>% count(Publication_year) %>% ggplot(aes(x = Publication_year, y = n)) + 
+mdata %>%
+  count(Publication_year) %>%
+  ggplot(aes(x = Publication_year, y = n)) + 
   geom_area(fill = '#919191', alpha = 0.5) +
   geom_line(color = 'black', size = 0.5) + 
   geom_point(size = 0.8, color = 'black') +
   theme_minimal() +
-  scale_x_continuous(name = "", breaks = seq(2008, 2022, by = 1)) +
-  scale_y_continuous(name = "Article count", breaks = seq(0, 50, by = 2), sec.axis = sec_axis(~ . *1, name = "Article count", breaks = seq(0, 50, by = 2))) +
+  scale_x_continuous(name = "Year",
+                     breaks = seq(2008, 2022, by = 1)) +
+  scale_y_continuous(name = "Article count",
+                     breaks = seq(0, 50, by = 2),
+                     sec.axis = sec_axis(~ . *1,
+                                         name = "Article count",
+                                         breaks = seq(0, 50, by = 2))) +
   ggtitle("Publication year") + 
-  theme(plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 45, size = 9, margin = margin(t = 5, r = 0, l = 0)), axis.text.y = element_text(size = 10, margin = margin(t = 0, r = 5, l = 5)))
+  theme(plot.title = element_text(size = 20, hjust = 0.5),
+        axis.text.x = element_text(angle = 45, size = 11, margin = margin(t = 5, r = 0, l = 0)),
+        axis.text.y = element_text(size = 11, margin = margin(t = 0, r = 5, l = 5)),
+        axis.text.y.right = element_text(size = 11, margin = margin(t = 0, r = 5, l = 5)),
+        axis.title.x = element_text(size = 16),
+        axis.title.y = element_text(size = 16, margin = margin(t = 0, r = 10, l = 10)),
+        axis.title.y.right = element_text(size = 16, margin = margin(t = 0, r = 10, l = 10)))
   
 
 #ggsave(here("plots","figure_area_publ_year.pdf"), width = 4, height = 3, units = "cm", scale = 2, device = cairo_pdf)
@@ -464,6 +571,7 @@ mspdata %>%
   count(Publication_year, Review_type_claimed) %>%
   ggplot(aes(x = Publication_year, y = n, fill = Review_type_claimed, text = Review_type_claimed)) +
   geom_line(color = 'black', size = 0.5)
+  
   
 
 #modified graph with breakdown by Species_higher_taxon (needs more data points to be displayed properly)
@@ -505,7 +613,9 @@ dim(qdata) #some empty rows to be removed
 #studies <- qdata$Author_year #normally would use this
 
 #only select columns with assessment codes (drop comments and empty rows)
-qtable <- qdata %>% filter(Study_ID!="NA") %>% select(starts_with("Q") & !ends_with("_Comment"))  
+qtable <- qdata %>%
+  filter(Study_ID!="NA") %>%
+  select(starts_with("Q") & !ends_with("_Comment"))  
 
 #simiplify column names to Q+number format
 names(qtable) <- gsub("\\..*", "", names(qtable)) 
@@ -517,38 +627,37 @@ qtable <- apply(qtable, 2, function(y) as.character(gsub(" =.*", "", y)))
 studies <- qdata$Study_ID[!is.na(qdata$Study_ID)]
 
 #convert to long format data frame with Study_ID
-qtable_long <- data.frame(study = studies, question = rep(colnames(qtable), each = length(studies)), score = as.vector(qtable), stringsAsFactors = TRUE) #make long format table
+qtable_long <-
+  data.frame(study = studies,
+             question = rep(colnames(qtable),each = length(studies)),
+             score = as.vector(qtable), stringsAsFactors = TRUE) #make long format table
 
 rownames(qtable_long) <- NULL
 qtable_long$question <- factor(qtable_long$question, levels(qtable_long$question)[rev(c(1,9:16,2:8))]) #setting the order of levels - by Q-number
 
 #add a column with verbal expression of scores:   
 qtable_long$score_word <- qtable_long$score
-levels(qtable_long$score_word) <- c("No", "Partially", "Yes", "NotApplicable")
+levels(qtable_long$score_word) <- c("No", "Partially", "Yes", "Not Applicable")
 
 
-summaryplot <- ggplot(data = qtable_long) +
-      geom_bar(mapping = aes(x = question, fill = score_word), width = 0.7,
+summaryplot <-
+  ggplot(data = qtable_long) +
+  geom_bar(mapping = aes(x = question, fill = fct_relevel(score_word, c("Not Applicable", "Partially", "No", "Yes"))), width = 0.7,
                position = "fill", color = "black") +
-      coord_flip(ylim = c(0, 1)) +
-      guides(fill = guide_legend(reverse = TRUE)) +
-      scale_fill_manual("Risk of Bias",
-                        labels = c("  Partially   ", 
-                                   "  No  ",
-                                   "  Yes  ",
-                                   "  Not Applicable  "),
-                        values = c(Partially = "#E2DF07", #yellow
-                                   No = "#BF0000", #red
-                                   Yes = "#02C100", #green
-                                   NotApplicable = "grey")) +
-      scale_y_continuous(labels = scales::percent) +
-      theme(axis.title.x = element_blank(),
+  coord_flip(ylim = c(0, 1)) +
+  guides(fill = guide_legend(reverse = F)) +
+  scale_fill_manual("Risk of Bias",
+                        values=cbp1,
+                        breaks=c("Yes", "No", "Partially", "Not Applicable")) +
+  scale_y_continuous(labels = scales::percent, expand = c(0.02,0)) +
+  scale_x_discrete(expand = c(0.02,0)) +
+  theme(axis.title.x = element_blank(),
             axis.title.y = element_blank(),
             axis.ticks.y = element_blank(),
             axis.text.x = element_text(size = 14, color = "black", hjust=0.5),
             axis.text.y = element_text(size = 14, color = "black", hjust=0),
             axis.line.x = element_line(colour = "black", size = 0.5, linetype = "solid"),
-            legend.position = "top",
+            legend.position = "bottom",
             panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
             panel.background = element_blank(),
@@ -578,7 +687,9 @@ studies <- qdata$Study_ID[!is.na(qdata$Study_ID)]
 #studies <- qdata$Author_year #normally would use this
 
 #only select columns with assessment codes (drop comments and empty rows)
-qtable <- qdata %>% filter(Study_ID!="NA") %>% select(starts_with("Q") & !ends_with("_comment"))  
+qtable <- qdata %>%
+  filter(Study_ID!="NA") %>%
+  select(starts_with("Q") & !ends_with("_comment")) 
 
 #simiplify column names to Q+number format
 names(qtable) <- gsub("\\..*", "", names(qtable)) 
@@ -587,7 +698,7 @@ names(qtable) <- gsub("\\..*", "", names(qtable))
 qtable <- apply(qtable, 2, function(y) as.character(gsub(" =.*", "", y)))
 
 ## prepare data - change scores to verbal expressions: 
-qtable <- gsub("N/A", "NotApplicable", qtable)
+qtable <- gsub("N/A", "Not Applicable", qtable)
 qtable <- gsub("0.5", "Partially", qtable)
 qtable <- gsub("1", "Yes", qtable)
 qtable <- gsub("0", "No", qtable)
@@ -597,6 +708,7 @@ qtable <- gsub("0", "No", qtable)
 qtable_long <- data.frame(study = as.factor(studies),
                      question = rep(colnames(qtable), each = length(studies)),
                      measurement = as.vector(qtable), stringsAsFactors=FALSE)
+
 rownames(qtable_long) = NULL
 qtable_long$question <- as.factor(qtable_long$question)
 qtable_long$question <- factor(qtable_long$question, levels(qtable_long$question)[c(1,9:16,2:8)]) #setting the order of levels - by Q-number
@@ -608,23 +720,22 @@ scoresplot <-
   geom_tile(color="black", fill="white", size = 1) +
   geom_point(aes(color=as.factor(measurement)), size=3) +
   #geom_text(aes(label = measurement), size = 8) +
-  scale_x_discrete(position = "top") +
-  scale_color_manual(values = c("Partially" = "#E2DF07",
-                                "No" = "#BF0000",
-                                "Yes" = "#02C100",
-                                "NotApplicable" = "grey")) +
+  scale_color_manual(values=cbp1,
+                     breaks=c("Yes", "No", "Partially", "Not Applicable"),
+                     guide = guide_legend(override.aes = list(size = 6,
+                                                               alpha = 1))) +
   theme_minimal() +
   coord_equal() +
         theme(axis.title.x = element_text(size = 14, color = "black", face = "italic"),
               axis.title.y = element_blank(),
               axis.ticks.y = element_blank(),
               axis.text.y = element_text(size = 12, color = "black"),
-              axis.text.x = element_text(size = 10, color = "black", angle = 90, hjust=0),
+              axis.text.x = element_text(size = 10, color = "black", angle = 90, ),
               legend.position = "bottom",
-              legend.background = element_rect(linetype = "solid", colour = "grey"),
+              legend.background = element_rect(linetype = "solid", colour = "black"),
               legend.title = element_blank(),
-              legend.key.size = unit(0.75, "cm"),
-              legend.text = element_text(size = 12),
+              legend.key.size = unit(1, "cm"),
+              legend.text = element_text(size = 14),
               panel.grid.major = element_blank(),
               panel.grid.minor = element_blank(),
               panel.background = element_blank()
@@ -655,16 +766,23 @@ Whether Conflict Of Interests statement is provided for individual reviews.
 
 ```{r COI_statement barplot, height = 2, width = 8}
 
-mdata %>% count(COI_statement) %>% arrange(desc(n)) %>% filter(COI_statement != "NA") -> t_COI_statement #filter out NA
+t_COI_statement <-
+  mdata %>%
+  count(COI_statement) %>%
+  arrange(desc(n)) %>%
+  filter(COI_statement != "NA") #filter out NA
 
-p1 <- ggplot(t_COI_statement, aes(x = COI_statement, y = n)) +
- theme_light() +
- theme(legend.position = "none", axis.title.y = element_blank()) +
- labs(title = expression("COI statement availability")) + #~bold(A.)~' Type and subject'
- coord_flip()  +
- geom_col(aes(fill = COI_statement), width = 0.7) + 
- scale_y_continuous(name = "Article count")
-p1
+#p1 <-
+  ggplot(t_COI_statement, aes(x = COI_statement, y = n)) +
+  labs(title = expression("COI statement availability")) + #~bold(A.)~' Type and subject'
+  geom_col(aes(fill = COI_statement, width = 0.7)) +
+  scale_y_continuous(name = "Article count") +
+  theme(legend.position = "none",
+        axis.title.y = element_blank()) +
+  theme_light() +
+  coord_flip()
+  
+#p1
 ```
 
 ### COI present
