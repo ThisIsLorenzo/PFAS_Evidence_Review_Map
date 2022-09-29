@@ -163,18 +163,25 @@ Here we aim to reveal what areas in the realm of PFAS health-related and environ
 mdata %>% count(PFAS_focus, PFAS_one_many) %>% arrange(desc(n)) %>% 
   filter(PFAS_focus != "NA") -> t_PFASfocus #filter out NA
 
-ggplot(t_PFASfocus, aes(x = PFAS_focus, y = n)) +
+#Use a colorblind-friendly palette:
+cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
+          "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+PFAS_focus <- ggplot(t_PFASfocus, aes(x = PFAS_focus, y = n)) +
  theme_light() +
  labs(title = expression("PFAS focus")) + #~bold(A.)~' Type and subject'
  coord_flip() +
  scale_fill_brewer() +
  guides(fill=guide_legend(title="PFAS:")) + 
- geom_col(aes(fill = fct_relevel(PFAS_one_many, c("Not specified", "Multiple", "One")) ), width = 0.7) + 
+ geom_col(aes(fill = fct_relevel(PFAS_one_many, c("Not specified", "Multiple", "One"))), width = 0.7) + 
  scale_y_continuous(name = "Article count") +
+  scale_fill_manual(values=cbp1, breaks=c('One', 'Multiple', 'Not specified')) +
  theme_light() +
- theme(legend.position = "right", legend.box.background = element_rect(colour = "black"), 
+ theme(legend.position = "bottom", legend.box.background = element_rect(colour = "black"), 
        legend.title = element_text(size=10),  legend.text=element_text(size = 10), 
        axis.title.x = element_text(size = 10), axis.title.y = element_blank())
+
+PFAS_focus
 
 #ggsave(here("plots","figure_PFAS_focus.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
 
@@ -332,10 +339,11 @@ ggplot(t_topic_subject, aes(x = MeSH_qualifiers, y = n)) +
  labs(title = expression("MeSH qualifiers and subjects reviewed")) + #~bold(A.)~' Type and subject'
  coord_flip()  +
  scale_fill_brewer() +
- geom_col(aes(fill = fct_relevel(Subject, c("Mixed", "Plants", "Environment", "Animals", "Humans"))), width = 0.7) + 
+ geom_col(aes(fill = fct_relevel(Subject, c("Mixed", "Plants", "Environment", "Animals", "Humans" ))), width = 0.7) + 
+   scale_fill_manual(values=cbp1, breaks=c("Humans", "Animals", "Environment", "Plants", "Mixed"))+
  scale_y_continuous(name = "Article count") +
  theme_light() +
- theme(legend.position = "bottom", legend.box.background = element_rect(colour = "black"), legend.title = element_blank(),  legend.text = element_text(size = 10), axis.title.x = element_text(size = 10), axis.title.y = element_blank(), axis.text = element_text(size = 7)) 
+ theme(legend.position = "bottom", legend.box.background = element_rect(colour = "black"), legend.title = element_blank(),  legend.text = element_text(size = 20), axis.title.x = element_text(size = 18), axis.title.y = element_blank(), axis.text = element_text(size = 18)) 
 
 #ggsave(here("plots","figure_MeSH_qualifiers_subjects.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
 
