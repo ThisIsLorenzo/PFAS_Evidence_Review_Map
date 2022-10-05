@@ -101,7 +101,9 @@ The data stored across multiple flat spreadsheets needs merged for some of the a
 # also remove any other redundand columns:
 mdata <- 
   mdata %>%
-  select(-ends_with("checked")) %>% select(-("Timestamp")) %>% select(-starts_with("Initials"))
+  select(-ends_with("checked")) %>%
+  select(-("Timestamp")) %>%
+  select(-starts_with("Initials"))
 #dim(mdata) #176 rows 35 columns
 #remove last two rows because empty
 mdata <- 
@@ -114,7 +116,9 @@ spdata <-
 #dim(spdata) #428 rows 4 columns
 ptdata <- 
   ptdata %>%
-  select(-ends_with("checked")) %>% select(-("Timestamp")) %>% select(-starts_with("Initials"))
+  select(-ends_with("checked")) %>%
+  select(-("Timestamp")) %>%
+  select(-starts_with("Initials"))
 #dim(ptdata) #174 rows 3 columns
 
 ## Merge main data with species info
@@ -146,7 +150,8 @@ mpidata <- left_join(mdata, ptidata, by = "Study_ID")
 mdata <- 
   mdata[order(mdata$Study_ID),]
 
-knitr::kable(select(mdata, Study_ID,	Author_year,	Paper_title), caption = "Table of included studies") %>% kable_paper(bootstrap_options = "striped", full_width = F) #%>% save_kable(file = "table1.html", self_contained = T)
+knitr::kable(select(mdata, Study_ID,	Author_year,	Paper_title), caption = "Table of included studies") %>%
+  kable_paper(bootstrap_options = "striped", full_width = F) #%>% save_kable(file = "table1.html", self_contained = T)
 
 ```
 
@@ -160,28 +165,37 @@ Here we aim to reveal what areas in the realm of PFAS health-related and environ
 
 ```{r PFAS focus one_many barplot, height = 2, width = 8}
 #str(mdata)
-t_PFASfocus <- mdata %>%
+t_PFASfocus <-
+  mdata %>%
   count(PFAS_focus, PFAS_one_many) %>%
   arrange(desc(n)) %>% 
   filter(PFAS_focus != "NA") #filter out NA
 
 #Use a colorblind-friendly palette:
-cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
-          "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+cbp1 <- c("#999999",
+          "#E69F00",
+          "#56B4E9",
+          "#009E73",
+          "#F0E442",
+          "#0072B2",
+          "#D55E00",
+          "#CC79A7")
 
-PFAS_focus <- ggplot(t_PFASfocus, aes(x = PFAS_focus, y = n)) +
- theme_light() +
- labs(title = expression("PFAS focus")) + #~bold(A.)~' Type and subject'
- coord_flip() +
- scale_fill_brewer() +
- guides(fill=guide_legend(title="PFAS:")) + 
- geom_col(aes(fill = fct_relevel(PFAS_one_many, c("Not specified", "Multiple", "One"))), width = 0.7) + 
- scale_y_continuous(name = "Article count") +
+PFAS_focus <-
+  ggplot(t_PFASfocus, aes(x = PFAS_focus, y = n)) +
+  theme_light() +
+  labs(title = expression("PFAS focus")) + #~bold(A.)~' Type and subject'
+  coord_flip() +
+  scale_fill_brewer() +
+  guides(fill=guide_legend(title="PFAS:")) + 
+  geom_col(aes(fill = fct_relevel(PFAS_one_many, c("Not specified", "Multiple", "One"))), width = 0.7) + 
+  scale_y_continuous(name = "Article count") +
   scale_fill_manual(values=cbp1, breaks=c('One', 'Multiple', 'Not specified')) +
- theme_light() +
- theme(legend.position = "bottom",
+  theme_light() +
+  theme(legend.position = "bottom",
        legend.box.background = element_rect(colour = "black"), 
-       legend.title = element_text(size=10),  legend.text=element_text(size = 10), 
+       legend.title = element_text(size=10),
+       legend.text=element_text(size = 10), 
        axis.title.x = element_text(size = 10),
        axis.title.y = element_blank(),
        legend.background = element_blank())
@@ -204,7 +218,9 @@ t_PFAStype <- ptidata %>%
 
 t_PFAStype$PFAS_type <-
   factor(t_PFAStype$PFAS_type, levels = t_PFAStype$PFAS_type[order(t_PFAStype$n, decreasing = FALSE)])
-PFAS_levels_order <- t_PFAStype$PFAS_type[order(t_PFAStype$n, decreasing = FALSE)] #save for another plot
+
+PFAS_levels_order <-
+  t_PFAStype$PFAS_type[order(t_PFAStype$n, decreasing = FALSE)] #save for another plot
 
 # simple barplot with PFAS types
 ggplot(t_PFAStype, aes(x = PFAS_type, y = n)) +
@@ -214,7 +230,10 @@ ggplot(t_PFAStype, aes(x = PFAS_type, y = n)) +
   coord_flip()+
   scale_y_continuous(name = "Article count") +
   scale_fill_manual(values = c("#919191")) +
-  theme(legend.position = "none", axis.title.x = element_text(size = 11), axis.title.y = element_blank(), axis.text.y = element_text(size = 7))
+  theme(legend.position = "none",
+        axis.title.x = element_text(size = 11),
+        axis.title.y = element_blank(),
+        axis.text.y = element_text(size = 7))
 
 
 #ggsave(here("plots","figure_PFAS_types.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
@@ -230,21 +249,27 @@ Some MeSH headings also have qualifiers (sometimes called subheadings) - these a
 ```{r plot main topics barplot prep, height = 4, width = 8}
 
 # change to long format (one species per row - one or multple rows per study):
-t_MESH <- mdata %>%
+t_MESH <-
+  mdata %>%
   select(MeSH_terms) %>%
   separate_rows(MeSH_terms, sep = ";\\\n") %>%
   separate_rows(MeSH_terms, sep = "; ")
 #bring to lower case and remove ending and trailing whitespace from character strings, single character vector:
-tmesh <- str_to_lower(trimws(t_MESH$MeSH_terms)) 
+tmesh <- 
+  str_to_lower(trimws(t_MESH$MeSH_terms)) 
 #remove star character:
-tmesh <- sub("[\\*]", "", tmesh) 
+tmesh <- 
+  sub("[\\*]", "", tmesh) 
 
 #separate terms before and after "/" into separate columns (headings and quantifiers, respectively)
-tmesh2 <- str_split_fixed(tmesh, " / ", n = 2)
+tmesh2 <- 
+  str_split_fixed(tmesh, " / ", n = 2)
 
 #create a MeSH dataframe with three columns: terms, headings, qualifiers
-t_MESH2 <- bind_cols(tmesh, tmesh2[,1], tmesh2[,2])
-colnames(t_MESH2)  <- c("MeSH_terms", "MeSH_headings", "MeSH_qualifiers")
+t_MESH2 <- 
+  bind_cols(tmesh, tmesh2[,1], tmesh2[,2])
+
+colnames(t_MESH2) <- c("MeSH_terms", "MeSH_headings", "MeSH_qualifiers")
 
 ```
 
@@ -259,9 +284,11 @@ MeSH_headings_counts <- t_MESH2 %>%
   filter(MeSH_headings != "")
 #str(MeSH_headings_counts)
 
-MeSH_headings_counts$MeSH_headings <- factor(MeSH_headings_counts$MeSH_headings, levels = MeSH_headings_counts$MeSH_headings[order(MeSH_headings_counts$n, decreasing = FALSE)])
+MeSH_headings_counts$MeSH_headings <- 
+  factor(MeSH_headings_counts$MeSH_headings, levels = MeSH_headings_counts$MeSH_headings[order(MeSH_headings_counts$n, decreasing = FALSE)])
 
-MESH_headings_order <- MeSH_headings_counts$MeSH_headings[order(MeSH_headings_counts$n, decreasing = FALSE)] #save for the next plot
+MESH_headings_order <- 
+  MeSH_headings_counts$MeSH_headings[order(MeSH_headings_counts$n, decreasing = FALSE)] #save for the next plot
 
 # simple barplot with top 10 MESH headings
 ggplot(MeSH_headings_counts[1:10, ], aes(x = MeSH_headings, y = n)) +
@@ -271,7 +298,9 @@ ggplot(MeSH_headings_counts[1:10, ], aes(x = MeSH_headings, y = n)) +
   coord_flip() +
   scale_y_continuous(name = "Article count") +
   scale_fill_manual(values = c("#919191")) +
-  theme(legend.position = "none", axis.title.x = element_text(size = 11), axis.title.y = element_blank())
+  theme(legend.position = "none",
+        axis.title.x = element_text(size = 11),
+        axis.title.y = element_blank())
 
 #ggsave(here("plots","figure_MeSH_headings.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
 ```
@@ -287,8 +316,11 @@ MeSH_qualifiers_counts <- t_MESH2 %>%
   filter(MeSH_qualifiers != "")
 #str(MeSH_qualifiers_counts)
 
-MeSH_qualifiers_counts$MeSH_qualifiers <- factor(MeSH_qualifiers_counts$MeSH_qualifiers, levels = MeSH_qualifiers_counts$MeSH_qualifiers[order(MeSH_qualifiers_counts$n, decreasing = FALSE)])
-MESH_qualifiers_order <- MeSH_qualifiers_counts$MeSH_qualifiers[order(MeSH_qualifiers_counts$n, decreasing = FALSE)] #save for the next plot
+MeSH_qualifiers_counts$MeSH_qualifiers <- 
+  factor(MeSH_qualifiers_counts$MeSH_qualifiers, levels = MeSH_qualifiers_counts$MeSH_qualifiers[order(MeSH_qualifiers_counts$n, decreasing = FALSE)])
+
+MESH_qualifiers_order <- 
+  MeSH_qualifiers_counts$MeSH_qualifiers[order(MeSH_qualifiers_counts$n, decreasing = FALSE)] #save for the next plot
 
 # simple barplot with MESH qualifiers
 ggplot(MeSH_qualifiers_counts[, ], aes(x = MeSH_qualifiers, y = n)) +
@@ -298,7 +330,10 @@ ggplot(MeSH_qualifiers_counts[, ], aes(x = MeSH_qualifiers, y = n)) +
   coord_flip() +
   scale_y_continuous(name = "Article count") +
   scale_fill_manual(values = c("#919191")) +
-  theme(legend.position = "none", axis.title.x = element_text(size = 10), axis.title.y = element_blank(), axis.text = element_text(size = 7))
+  theme(legend.position = "none",
+        axis.title.x = element_text(size = 10),
+        axis.title.y = element_blank(),
+        axis.text = element_text(size = 7))
 
 #ggsave(here("plots","figure_MeSH_qualifiers.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
 ```
@@ -317,7 +352,8 @@ t_subject <- mdata %>%
 t_subject$Human_animal_environment <-
   factor(t_subject$Human_animal_environment, levels = unique(t_subject$Human_animal_environment[order(t_subject$n, decreasing = FALSE)]))
 
-subjects_levels_order <- t_subject$Human_animal_environment[order(t_subject$n, decreasing = FALSE)] #save for another plot
+subjects_levels_order <- 
+  t_subject$Human_animal_environment[order(t_subject$n, decreasing = FALSE)] #save for another plot
 
 # simple barplot with MESH_heading
 ggplot(t_subject, aes(x = Human_animal_environment, y = n)) +
@@ -327,7 +363,9 @@ ggplot(t_subject, aes(x = Human_animal_environment, y = n)) +
   coord_flip()+
   scale_y_continuous(name = "Article count") +
   scale_fill_manual(values = c("#919191")) +
-  theme(legend.position = "none", axis.title.x = element_text(size = 10), axis.title.y = element_blank())
+  theme(legend.position = "none",
+        axis.title.x = element_text(size = 10),
+        axis.title.y = element_blank())
 
 #ggsave(here("plots","figure_subjects.pdf"), width = 4, height = 2, units = "cm", scale = 2, device = cairo_pdf)
 ```
@@ -348,11 +386,14 @@ t_MESHby <- mdata %>%
   separate_rows(MeSH_terms, sep = "; ")
 #str(t_MESHby)
 
-tmeshby <- str_to_lower(trimws(t_MESHby$MeSH_terms)) #bring to lower case and remove ending and trailing whitespace from character strings, single character vector
-tmeshby <- sub("[\\*]", "", tmeshby) #remove star character
+tmeshby <- 
+  str_to_lower(trimws(t_MESHby$MeSH_terms)) #bring to lower case and remove ending and trailing whitespace from character strings, single character vector
+tmeshby <- 
+  sub("[\\*]", "", tmeshby) #remove star character
 
 #separate terms before and after "/" into separate columns (headings and quantifiers, respectively)
-tmeshby2 <- str_split_fixed(tmeshby, " / ", n = 2)
+tmeshby2 <- 
+  str_split_fixed(tmeshby, " / ", n = 2)
 
 #create a MeSH dataframe with three columns: terms, headings, qualifiers
 t_MESHby2 <-
@@ -371,6 +412,7 @@ t_topic_subject <-
 
 t_topic_subject$Subject <-
   factor(t_topic_subject$Subject, levels = subjects_levels_order) #use order from the previous graph
+
 t_topic_subject$MeSH_qualifiers <-
   factor(t_topic_subject$MeSH_qualifiers, levels = MESH_qualifiers_order) #use order from the previous graph
 #str(t_topic_subject)
@@ -380,9 +422,17 @@ ggplot(t_topic_subject, aes(x = MeSH_qualifiers, y = n)) +
  labs(title = expression("MeSH qualifiers and subjects reviewed")) + #~bold(A.)~' Type and subject'
  coord_flip()  +
  scale_fill_brewer() +
- geom_col(aes(fill = fct_relevel(Subject, c("Mixed", "Plants", "Environment", "Animals", "Humans"))), width = 0.7) + 
-   scale_fill_manual(values=cbp1,
-                     breaks=c("Humans", "Animals", "Environment", "Plants", "Mixed"))+
+ geom_col(aes(fill = fct_relevel(Subject, c("Mixed", 
+                                            "Plants", 
+                                            "Environment", 
+                                            "Animals", 
+                                            "Humans"))), width = 0.7) + 
+  scale_fill_manual(values=cbp1,
+                     breaks=c("Humans", 
+                              "Animals", 
+                              "Environment", 
+                              "Plants", 
+                              "Mixed"))+
  scale_y_continuous(name = "Article count") +
  theme_light() +
  theme(legend.position = c(0.8, 0.5),
