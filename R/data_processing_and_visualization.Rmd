@@ -435,13 +435,12 @@ ggplot(t_topic_subject, aes(x = MeSH_qualifiers, y = n)) +
                               "Mixed"))+
  scale_y_continuous(name = "Article count") +
  theme_light() +
- theme(legend.position = c(0.8, 0.5),
+ theme(legend.position = c(0.7, 0.5),
        legend.box.background = element_rect(colour = "black"),
        legend.title = element_blank(),
-       legend.text = element_text(size = 20),
-       axis.title.x = element_text(size = 18),
-       axis.title.y = element_blank(),
-       axis.text = element_text(size = 18),
+       legend.text = element_text(size = 13),
+       axis.title.x = element_text(size = 15),
+       axis.title.y = element_text(size = 15),
        legend.background = element_blank())
 
 #ggsave(here("plots","figure_MeSH_qualifiers_subjects.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
@@ -507,7 +506,6 @@ p_PFAStype <-
   scale_fill_manual(values=cbp1,
                     breaks=c("Humans", "Animals", "Environment", "Plants", "Mixed")) +
   scale_y_continuous(name = "Article count") +
-  theme_light() +
   theme(legend.position = c(0.6, 0.5),
        legend.box.background = element_rect(colour = "black"),
        legend.title = element_blank(),
@@ -663,18 +661,22 @@ dim(qdata) #some empty rows to be removed
 #studies <- qdata$Author_year #normally would use this
 
 #only select columns with assessment codes (drop comments and empty rows)
-qtable <- qdata %>%
+qtable <- 
+  qdata %>%
   filter(Study_ID!="NA") %>%
   select(starts_with("Q") & !ends_with("_Comment"))  
 
 #simiplify column names to Q+number format
-names(qtable) <- gsub("\\..*", "", names(qtable)) 
+names(qtable) <- 
+  gsub("\\..*", "", names(qtable)) 
 
 #simplify all the answers to short strings (version for a single column: gsub(" =.*", "", qtable$Q1)):
-qtable <- apply(qtable, 2, function(y) as.character(gsub(" =.*", "", y)))
+qtable <- 
+  apply(qtable, 2, function(y) as.character(gsub(" =.*", "", y)))
 
 #save studies in a new vector
-studies <- qdata$Study_ID[!is.na(qdata$Study_ID)]
+studies <- 
+  qdata$Study_ID[!is.na(qdata$Study_ID)]
 
 #convert to long format data frame with Study_ID
 qtable_long <-
@@ -683,7 +685,8 @@ qtable_long <-
              score = as.vector(qtable), stringsAsFactors = TRUE) #make long format table
 
 rownames(qtable_long) <- NULL
-qtable_long$question <- factor(qtable_long$question, levels(qtable_long$question)[rev(c(1,9:16,2:8))]) #setting the order of levels - by Q-number
+qtable_long$question <- 
+  factor(qtable_long$question, levels(qtable_long$question)[rev(c(1,9:16,2:8))]) #setting the order of levels - by Q-number
 
 #add a column with verbal expression of scores:   
 qtable_long$score_word <- qtable_long$score
@@ -692,8 +695,7 @@ levels(qtable_long$score_word) <- c("No", "Partially", "Yes", "Not Applicable")
 
 summaryplot <-
   ggplot(data = qtable_long) +
-  geom_bar(mapping = aes(x = question, fill = fct_relevel(score_word, c("Not Applicable", "Partially", "No", "Yes"))), width = 0.7,
-               position = "fill", color = "black") +
+  geom_bar(mapping = aes(x = question, fill = fct_relevel(score_word, c("Not Applicable", "Partially", "No", "Yes"))), width = 0.7, position = "fill", color = "black") +
   coord_flip(ylim = c(0, 1)) +
   guides(fill = guide_legend(reverse = F)) +
   scale_fill_manual("Risk of Bias",
@@ -841,15 +843,21 @@ Whether potential Conflict Of Interests is acknowledged for individual reviews.
 
 ```{r COI_present barplot, height = 2, width = 8}
 
-mdata %>% count(COI_present) %>% arrange(desc(n)) %>% filter(COI_present != "NA") -> t_COI_present #filter out NA
+t_COI_present <- 
+  mdata %>% 
+  count(COI_present) %>% 
+  arrange(desc(n)) %>% 
+  filter(COI_present != "NA") #filter out NA
 
-p2 <- ggplot(t_COI_present, aes(x = COI_present, y = n)) +
- theme_light() +
- theme(legend.position = "none", axis.title.y = element_blank()) +
- labs(title = expression("Conflict of Interest")) + #~bold(A.)~' Type and subject'
- coord_flip()  +
- geom_col(aes(fill = COI_present), width = 0.7) + 
- scale_y_continuous(name = "Article count")
+p2 <- 
+  ggplot(t_COI_present, aes(x = COI_present, y = n)) +
+  theme_light() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank()) +
+  labs(title = expression("Conflict of Interest")) + #~bold(A.)~' Type and subject'
+  coord_flip()  +
+  geom_col(aes(fill = COI_present), width = 0.7) + 
+  scale_y_continuous(name = "Article count")
 p2
 ```
 
@@ -859,15 +867,20 @@ Whether funding statement is provided for individual reviews.
 
 ```{r Funding_statement barplot, height = 2, width = 8}
 
-mdata %>% count(Funding_statement) %>% arrange(desc(n)) %>% filter(Funding_statement != "NA") -> t_Funding_statement #filter out NA
+t_Funding_statement <- mdata %>% 
+  count(Funding_statement) %>% 
+  arrange(desc(n)) %>% 
+  filter(Funding_statement != "NA") #filter out NA
 
-p3 <- ggplot(t_Funding_statement, aes(x = Funding_statement, y = n)) +
- theme_light() +
- theme(legend.position = "none", axis.title.y = element_blank()) +
- labs(title = expression("Funding statement availability")) + #~bold(A.)~' Type and subject'
- coord_flip()  +
- geom_col(aes(fill = Funding_statement), width = 0.7) + 
- scale_y_continuous(name = "Article count")
+p3 <- 
+  ggplot(t_Funding_statement, aes(x = Funding_statement, y = n)) +
+  theme_light() +
+  theme(legend.position = "none", axis.title.y = element_blank()) +
+  labs(title = expression("Funding statement availability")) + #~bold(A.)~' Type and subject'
+  coord_flip()  +
+  geom_col(aes(fill = Funding_statement), width = 0.7) + 
+  scale_y_continuous(name = "Article count")
+
 p3
 ```
 
@@ -876,17 +889,25 @@ p3
 Whether funding from non-profit (NGO, government, universities, etc.) is acknowledged for individual reviews.
 
 ```{r t_Nonprofit_funding barplot, height = 2, width = 8}
-mdata <- mdata %>% rename(Nonprofit_funding = "Non-profit_funding") 
+mdata <- 
+  mdata %>% 
+  rename(Nonprofit_funding = "Non-profit_funding") 
 
-mdata %>% count(Nonprofit_funding) %>% arrange(desc(n)) %>% filter(Nonprofit_funding != "NA") -> t_Nonprofit_funding #filter out NA
+t_Nonprofit_funding <- 
+  mdata %>% 
+  count(Nonprofit_funding) %>% 
+  arrange(desc(n)) %>% 
+  filter(Nonprofit_funding != "NA") #filter out NA
 
-p4 <- ggplot(t_Nonprofit_funding, aes(x = Nonprofit_funding, y = n)) +
- theme_light() +
- theme(legend.position = "none", axis.title.y = element_blank()) +
- labs(title = expression("Non-profit funding")) + #~bold(A.)~' Type and subject'
- coord_flip()  +
- geom_col(aes(fill = Nonprofit_funding), width = 0.7) + 
- scale_y_continuous(name = "Article count")
+p4 <- 
+  ggplot(t_Nonprofit_funding, aes(x = Nonprofit_funding, y = n)) +
+  theme_light() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank()) +
+  labs(title = expression("Non-profit funding")) + #~bold(A.)~' Type and subject'
+  coord_flip()  +
+  geom_col(aes(fill = Nonprofit_funding), width = 0.7) + 
+  scale_y_continuous(name = "Article count")
 
 ```
 
@@ -896,15 +917,20 @@ Whether funding from industry (including government-industry collaborations) is 
 
 ```{r Industry_funding barplot, height = 2, width = 8}
 
-mdata %>% count(Industry_funding) %>% arrange(desc(n)) %>% filter(Industry_funding != "NA") -> t_Funding_industry #filter out NA
+t_Funding_industry <- mdata %>% 
+  count(Industry_funding) %>% 
+  arrange(desc(n)) %>% 
+  filter(Industry_funding != "NA") #filter out NA
 
-p5 <- ggplot(t_Funding_industry, aes(x = Industry_funding, y = n)) +
- theme_light() +
- theme(legend.position = "none", axis.title.y = element_blank()) +
- labs(title = expression("Funding from industry")) + #~bold(A.)~' Type and subject'
- coord_flip()  +
- geom_col(aes(fill = Industry_funding), width = 0.7) + 
- scale_y_continuous(name = "Article count")
+p5 <- 
+  ggplot(t_Funding_industry, aes(x = Industry_funding, y = n)) +
+  theme_light() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank()) +
+  labs(title = expression("Funding from industry")) + #~bold(A.)~' Type and subject'
+  coord_flip()  +
+  geom_col(aes(fill = Industry_funding), width = 0.7) + 
+  scale_y_continuous(name = "Article count")
 ```
 
 ### Data availability
@@ -913,11 +939,16 @@ Whether extracted data is made available for individual reviews.
 
 ```{r Raw_data barplot, height = 2, width = 8}
 #str(mdata)
-mdata %>% count(Raw_data) %>% arrange(desc(n)) %>% filter(Raw_data != "NA") -> t_Raw_data #filter out NA
+t_Raw_data <- 
+  mdata %>% 
+  count(Raw_data) %>% 
+  arrange(desc(n)) %>% 
+  filter(Raw_data != "NA") #filter out NA
 
 p6 <- ggplot(t_Raw_data, aes(x = Raw_data, y = n)) +
  theme_light() +
- theme(legend.position = "none", axis.title.y = element_blank()) +
+ theme(legend.position = "none",
+       axis.title.y = element_blank()) +
  labs(title = expression("Data availability")) + #~bold(A.)~' Type and subject'
  coord_flip()  +
  geom_col(aes(fill = Raw_data), width = 0.7) + 
@@ -933,11 +964,16 @@ Whether code for analyses is made available for individual reviews.
 
 ```{r Analysis_code barplot, height = 2, width = 8}
 
-mdata %>% count(Analysis_code) %>% arrange(desc(n)) %>% filter(Analysis_code != "NA") -> t_Analysis_code #filter out NA
+t_Analysis_code <- 
+  mdata %>% 
+  count(Analysis_code) %>% 
+  arrange(desc(n)) %>% 
+  filter(Analysis_code != "NA") #filter out NA
 
 p7 <- ggplot(t_Analysis_code, aes(x = Analysis_code, y = n)) +
  theme_light() +
- theme(legend.position = "none", axis.title.y = element_blank()) +
+ theme(legend.position = "none",
+       axis.title.y = element_blank()) +
  labs(title = expression("Analysis code availability")) + #~bold(A.)~' Type and subject'
  coord_flip()  +
  geom_col(aes(fill = Analysis_code), width = 0.7) + 
@@ -991,12 +1027,24 @@ knitr::kable(table(bib_sco$JI), caption = "Table SX. counts of numbers of public
 
 #pdf(file="./plots/figure_keywords_network.pdf", width = 6, height = 5, pointsize = 12, family = "Helvetica", fonts = c("Helvetica"))
 #par(mfrow=c(1,1), mar=c(2,4,2,4))
-NetMatrix_keywords <- biblioNetwork(bib_sco, analysis = "co-occurrences", network = "keywords", sep = ";")
-NetMatrix_keywords_plot <- networkPlot(NetMatrix_keywords, normalize="association", n = 30, 
-                                       Title = "Keyword co-occurrences", type = "fruchterman", 
-                                       size.cex = TRUE, size = 15, remove.multiple = F, 
-                                       edgesize = 4, labelsize = 3, label.cex = TRUE, 
-                                       edges.min = 2, label.n = 30, alpha = 0.3) #adjust number and size of labels, as needed, etc.
+NetMatrix_keywords <- 
+  biblioNetwork(bib_sco, 
+                analysis = "co-occurrences", 
+                network = "keywords", 
+                sep = ";")
+
+NetMatrix_keywords_plot <- 
+  networkPlot(NetMatrix_keywords,
+              normalize="association", n = 30,
+              Title = "Keyword co-occurrences", type = "fruchterman",
+              size.cex = TRUE, size = 15,
+              remove.multiple = F,
+              edgesize = 4, 
+              labelsize = 3, 
+              label.cex = TRUE,
+              edges.min = 2,
+              label.n = 30, 
+              alpha = 0.3) #adjust number and size of labels, as needed, etc.
 #dev.off()
 
 #str(NetMatrix_keywords_plot)
@@ -1010,7 +1058,17 @@ NetMatrix_keywords_plot <- networkPlot(NetMatrix_keywords, normalize="associatio
 
 #pdf(file="./plots/figure_thematic_map.pdf", width = 5, height = 5, pointsize = 8, family = "Helvetica", fonts = c("Helvetica"))
 par(mfrow=c(1,1), mar=c(0,2,0,2))
-map_thematic <- thematicMap(bib_sco, field = "ID", n = 1000, minfreq = 5, stemming = FALSE, size = 0.5, n.labels = 1, repel = TRUE)
+
+map_thematic <- 
+  thematicMap(bib_sco, 
+              field = "ID", 
+              n = 1000, 
+              minfreq = 5, 
+              stemming = FALSE, 
+              size = 0.5, 
+              n.labels = 1, 
+              repel = TRUE)
+
 plot(map_thematic$map)
 #dev.off()
 
@@ -1022,11 +1080,18 @@ Links between review authors based on their co-authorship on these reviews. Curr
 
 ```{r author collaboration network}
 
-NetMatrix_authors <- biblioNetwork(bib_sco, analysis = "collaboration",  network = "authors", sep = ";")
-NetMatrix_authors_plot <- networkPlot(NetMatrix_authors,  n = 50, 
-                                      Title = "Author collaboration", 
-                                      type = "auto", size = 2, size.cex = TRUE, 
-                                      edgesize = 10, labelsize = 1.1) #note there are potentially some mistakes in authors initials
+NetMatrix_authors <- 
+  biblioNetwork(bib_sco, analysis = "collaboration",  network = "authors", sep = ";")
+
+NetMatrix_authors_plot <- 
+  networkPlot(NetMatrix_authors,
+              n = 50,
+              Title = "Author collaboration", 
+              type = "auto", 
+              size = 2, 
+              size.cex = TRUE, 
+              edgesize = 10, 
+              labelsize = 1.1) #note there are potentially some mistakes in authors initials
 
 ```
 
@@ -1039,12 +1104,23 @@ Links between countries, based on the institutional affiliations of the review a
 #pdf(file="./plots/figure_country_collaboration_network.pdf",width = 4, height = 4, pointsize = 12, family = "Helvetica", fonts = c("Helvetica"))
 #par(mfrow=c(1,1), mar=c(2,3,2,3))
 
-bib_sco2 <- metaTagExtraction(bib_sco, Field = "AU_CO", sep = ";") #we need to extract countries from the affiliations first
+bib_sco2 <-
+  metaTagExtraction(bib_sco,
+                    Field = "AU_CO", 
+                    sep = ";") #we need to extract countries from the affiliations first
 #bib_sco2$AU_CO[1:10]
-NetMatrix_country <- biblioNetwork(bib_sco2, analysis = "collaboration", network = "countries", sep = ";")
-NetMatrix_country_plot <-  networkPlot(NetMatrix_country, n = 50, 
-                                       Title = "Country collaboration", type = "auto", size=TRUE, 
-                                       remove.multiple=FALSE, labelsize=1.5)
+
+NetMatrix_country <- 
+  biblioNetwork(bib_sco2, analysis = "collaboration", network = "countries", sep = ";")
+
+NetMatrix_country_plot <- 
+  networkPlot(NetMatrix_country,
+              n = 50, 
+              Title = "Country collaboration",
+              type = "auto", 
+              size=TRUE,
+              remove.multiple=FALSE, 
+              labelsize=1.5)
 
 #dev.off()
 
@@ -1055,10 +1131,18 @@ NetMatrix_country_plot <-  networkPlot(NetMatrix_country, n = 50,
 ```{r bibliometrix test with refs, eval = TRUE, warning = FALSE}
  
 # analyzing lists of references 
-CR <- citations(bib_sco, field = "article", sep = ";") #list of most cited articles
+CR <- 
+  citations(bib_sco, 
+            field = "article", 
+            sep = ";") #list of most cited articles
+
  cbind(CR$Cited[1:10]) #ten most cited articles
  
-CR <- citations(bib_sco, field = "author", sep = ";")
+CR <- 
+  citations(bib_sco, 
+            field = "author",
+            sep = ";")
+
 cbind(CR$Cited[1:10]) #ten most cited authors
 ```
 
@@ -1067,10 +1151,21 @@ cbind(CR$Cited[1:10]) #ten most cited authors
 ```{r bibliometrix coupling network, eval = TRUE, warning = FALSE}
 
 # classical article coupling network: Citation network
-NetMatrix_coupling <- biblioNetwork(bib_sco, analysis = "coupling", network = "references", sep = "; ")
-NetMatrix_coupling_plot <- networkPlot(NetMatrix_coupling, n = 20, 
-                                       Title = "Paper co-citation", type = "fruchterman", size=T, 
-                                       remove.multiple=FALSE, labelsize=0.8,edgesize = 5) #plot the network
+NetMatrix_coupling <- 
+  biblioNetwork(bib_sco, 
+                analysis = "coupling",
+                network = "references", 
+                sep = "; ")
+
+NetMatrix_coupling_plot <- 
+  networkPlot(NetMatrix_coupling, 
+              n = 20, 
+              Title = "Paper co-citation", 
+              type = "fruchterman", 
+              size=T, 
+              remove.multiple=FALSE, 
+              labelsize=0.8,
+              edgesize = 5) #plot the network
 
 ```
 
@@ -1080,7 +1175,9 @@ Currently not enough papers to create this network plot.
 
 ```{r bibliometrix co-citation network, eval = TRUE, warning = FALSE}
 
-histResults <- histNetwork(bib_sco, sep = ";") 
+histResults <- 
+  histNetwork(bib_sco, 
+              sep = ";") 
 # not possible now - Found 2 documents with no empty Local Citations (LCS)
 
 # pdf(file="./plots/Figure_hstorical_network.pdf", width=8, height=8, pointsize=10)
@@ -1101,19 +1198,24 @@ We will investigate how review type, indicators of review quality or transparenc
 #table(mdata$Review_type_claimed) #needs cleaning
 mdata$Review_type_claimed <- tolower(mdata$Review_type_claimed) 
 
-mdata %>% count(Human_animal_environment, Review_type_claimed) -> t1
+t1 <- 
+  mdata %>% 
+  count(Human_animal_environment, Review_type_claimed)
 
 # barplot of claimed review type vs. subject
 
 ggplot(t1, aes(x = Review_type_claimed, y = n)) +
- labs(title = expression("Review type and subject")) + #~bold(A.)~' Type and subject'
- coord_flip()  +
- scale_fill_brewer() +
- geom_col(aes(fill = Human_animal_environment), width = 0.7) + 
- theme_light() +
-  theme(legend.position = "bottom", legend.box.background = element_rect(colour = "black"), 
-        legend.title = element_blank(),   legend.text=element_text(size = 4), 
-        axis.title.x = element_text(size = 10), axis.title.y = element_blank())
+  labs(title = expression("Review type and subject")) + #~bold(A.)~' Type and subject'
+  coord_flip()  +
+  scale_fill_brewer() +
+  geom_col(aes(fill = Human_animal_environment), width = 0.7) + 
+  theme_light() +
+  theme(legend.position = "bottom", 
+        legend.box.background = element_rect(colour = "black"), 
+        legend.title = element_blank(),  
+        legend.text=element_text(size = 4), 
+        axis.title.x = element_text(size = 10),
+        axis.title.y = element_blank())
 
 #ggsave(here("plots","figure_barplot_type_subject.pdf"), width = 4, height = 4, units = "cm", scale = 2, device = cairo_pdf)
 
@@ -1123,7 +1225,9 @@ ggplot(t1, aes(x = Review_type_claimed, y = n)) +
 ## Code for other simple plots with two crossed variables (not run for pilot data)
 
 # Barplot example Review_type_claimed vs. Human_animal_environment contingency table
-mdata %>% count(Human_animal_environment, Review_type_claimed) -> t1
+t1 <- 
+  mdata %>% 
+  count(Human_animal_environment, Review_type_claimed)
 
 ggplot(t1, aes(x = Human_animal_environment, y = n)) +
  coord_flip()  +
