@@ -1,175 +1,106 @@
 Timestamp,Initials_data_extraction,Study_ID,PFAS_type,PFAS_type_comment
 02/05/2022 09:20:16,LR,S_001,PFOA,
-02/05/2022 09:49:48,LR,S_002,"PFBA, PFPeA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTrA, PFHxS, PFHpS, PFOS, PFDS, FOSA, NMeFOSA",The authors did not clearly state the investigated compounds.
 02/05/2022 10:28:55,LR,S_003,"PFBA, PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFBS, PFHxS, PFHpS, PFOS, 6:2 FTS/FTSA, 8:2 FTS/FTSA, 6:2 Cl-PFESA",The authors did not clearly state the investigated compounds.
 02/05/2022 10:30:08,LR,S_004,"PFOA, PFNA, PFHxS, PFOS",
 02/05/2022 10:33:13,LR,S_005,"PFOA, PFOS",
 02/05/2022 10:40:51,LR,S_006,"PFOA, PFNA, PFDA, PFDoDA, PFBS, PFHxS, PFOS, FOSA",
-05/05/2022 10:55:15,LR,S_007,Fluoropolymers,This study is focused only on Fluoropolymers (a group of polymers within the class of PFAS).
 05/05/2022 10:57:08,LR,S_008,PFOA,NA
-05/05/2022 10:59:24,LR,S_009,PFAS,The authors did not look for a specific type of PFAS.
 05/05/2022 11:00:02,LR,S_010,"PFOA, PFOS",NA
-05/05/2022 11:32:33,LR,S_011,"PFBA, PFPeA, PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTA, PFBS, PFHxS, PFOS, PFDS, FOSA, NEtFOSA, NMeFOSA, 6:2 FTS/FTSA",This review focuses on perfluorinated compounds (PFCs)
-05/05/2022 11:34:35,LR,S_012,PFAS,The authors did not look for a specific type of PFAS.
+05/05/2022 11:34:35,LR,S_012,All PFAS,The authors did not look for a specific type of PFAS.
 05/05/2022 11:39:43,LR,S_013,"PFOA, PFNA, PFDA, PFHxS, PFOS",NA
-05/05/2022 11:43:09,LR,S_014,"PFOA, PFNA, PFUnDA, PFHxS, PFOS",Meta-analysis on 5 PFAS types. Systematic review on PFAS.
-05/05/2022 11:50:12,LR,S_015,PFAS,The authors did not look for a specific type of PFAS.
-05/05/2022 11:52:07,LR,S_016,PFAS,The authors did not look for a specific type of PFAS.
+05/05/2022 11:43:09,LR,S_014,"PFOA, PFNA, PFUnDA, PFHxS, PFOS",Meta-analysis on 5 PFAS types. Systematic review on all PFAS.
+05/05/2022 11:52:07,LR,S_016,All PFAS,The authors did not look for a specific type of PFAS.
 05/05/2022 11:53:33,LR,S_017,PFOS,NA
 05/05/2022 13:27:00,LR,S_018,"PFBA, PFHxA, PFOA, PFNA, PFDA, PFBS, PFHxS, PFOS","""A subset of well-studied substances – per-fluorooctanoic acid (PFOA), perfluorooctanesulfonate (PFOS), per-fluorobutanoic acid (PFBA), perfluorobutane sulfonate (PFBS), perfluorodecanoic acid (PFDA), perfluorohexanoic acid (PFHxA), per-fluorohexanesulfonate (PFHxS), and perfluorononanoic acid (PFNA) – were targeted in the literature for subsequent analysis."""
 05/05/2022 15:07:35,LR,S_019,"PFBA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFBS, PFHxS, PFOS, 6:2 Cl-PFESA",NA
 05/05/2022 16:29:31,LR,S_020,"PFOA, PFNA, PFHxS, PFOS",NA
 10/05/2022 15:02:27,LR,S_021,"PFOA, PFNA, PFDA, PFHxS, PFOS",The total number of PFAS types in the included studies of this review were 20. But only 5 had enough data to conduct a meta-analysis.
 10/05/2022 15:40:33,LR,S_022,"PFOA, PFOS","""Therefore, we prioritized our efforts and streamlined the review process and data collection by primarily focusing on the most common PFAS: PFOA and PFOS."""
-10/05/2022 16:17:29,LR,S_023,PFAS,The authors did not look for a specific type of PFAS.
-11/05/2022 10:08:45,LR,S_024,PFAS,The authors did not look for a specific type of PFAS.
+11/05/2022 10:08:45,LR,S_024,All PFAS,The authors did not look for a specific type of PFAS.
 11/05/2022 11:16:49,LR,S_025,"PFBA, PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTrA, PFTA, PFHxS, PFHpS, PFOS, FOSA, 6:2 FTS/FTSA, 6:2 Cl-PFESA, 8:2 Cl-PFESA",NA
 11/05/2022 11:33:08,LR,S_026,"PFOA, PFOS",NA
-11/05/2022 12:54:42,LR,S_027,PFAS,The review searched databases for PFAS and many compounds are investigated. Different compounds are investigated about values of inhibition concentrations (μM) of PFASs in plants and about bioaccumulation of PFASs in plants taken from contaminated sites.
 11/05/2022 14:10:25,LR,S_028,"PFBA, PFPeA, PFOA, PFBS, PFOS",NA
-11/05/2022 14:50:23,LR,S_029,PFAS,The authors did not look for a specific type of PFAS.
-11/05/2022 15:09:55,LR,S_030,PFAS,The authors did not look for a specific type of PFAS.
+11/05/2022 14:50:23,LR,S_029,All PFAS,The authors did not look for a specific type of PFAS.
 11/05/2022 15:21:57,LR,S_031,"PFOA, PFOS",NA
-11/05/2022 16:27:24,LR,S_032,PFAS,NA
-12/05/2022 09:47:37,LR,S_033,"PFBA, PFHxA, PFOA, PFNA, PFDA, PFBS, PFHxS, PFOS",NA
+11/05/2022 16:27:24,LR,S_032,All PFAS,NA
 12/05/2022 10:02:08,LR,S_034,"PFOA, PFNA, PFDA, PFHxS, PFOS",NA
-12/05/2022 10:28:34,LR,S_035,PFAS,The review searched and discussed for PFAS with a focus on PFOA.
-12/05/2022 10:44:10,LR,S_036,"PFHxS, PFNA, PFOA, PFOS, PFPeA, PFTA, PFTrA, PFUnDA",NA
-12/05/2022 12:36:58,LR,S_037,"PFBA, PFPeA, PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFBS, PFHxS, PFOS, FOSA, 6:2 Cl-PFESA, 8:2 Cl-PFESA, HFPO-DA/GenX, ADONA",NA
+12/05/2022 10:28:34,LR,S_035,All PFAS,The review searched and discussed for all PFAS with a focus on PFOA.
+12/05/2022 12:36:58,LR,S_037,"PFBA, PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTrA, PFTA, PFHxS, PFHpS, PFOS, FOSA, 6:2 FTS/FTSA, 6:2 Cl-PFESA/F-53B, 8:2 Cl-PFESA",NA
 13/05/2022 09:55:00,LR,S_038,"PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFHxS, PFHpS, PFOS",NA
 13/05/2022 10:29:59,LR,S_039,"PFPeA, PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTrA, PFTA, PFBS, PFHxS, PFHpS, PFOS, FOSA, 6:2 Cl-PFESA",NA
 13/05/2022 11:43:52,LR,S_040,"PFBA, PFPeA, PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTrA, PFTA, PFBS, PFHxS, PFHpS, PFOS, PFDS, FOSA",NA
-16/05/2022 10:09:44,LR,S_041,PFOS,NA
 16/05/2022 10:15:45,LR,S_042,"PFPeA, PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTrA, PFTA, PFBS, PFHxS, PFHpS, PFOS, PFDS, FOSA, 6:2 Cl-PFESA, 8:2 Cl-PFESA",NA
 16/05/2022 10:41:11,LR,S_043,"PFOA, PFNA, PFDA, PFUnDA, PFHxS, PFOS",NA
 16/05/2022 11:00:44,LR,S_044,"PFHxA, PFOA, PFNA, PFUnDA, PFDoDA, PFBS, PFHxS, PFOS",NA
-17/05/2022 08:44:58,LR,S_045,HFPO-TA,"The review also focuses on other three ether-based PFAS (i.e. HFPO-DA1 (CAS Reg. No.13252-13-6), DONA2 (CAS Reg. No. 919005-14-4), EEA3 (CAS Reg. No. 908020-52-0)) that are not included in our list."
-17/05/2022 08:54:40,LR,S_046,"PFOA, PFNA, PFUnDA, PFBS, PFHxS, PFOS",NA
-17/05/2022 09:20:36,LR,S_047,PFAS,The authors did not look for a specific type of PFAS.
 17/05/2022 09:30:19,LR,S_048,PFOA,NA
-17/05/2022 13:48:34,LR,S_049,PFAS,The authors did not look for a specific type of PFAS.
 17/05/2022 13:55:17,LR,S_050,PFOA,NA
-18/05/2022 11:29:49,LR,S_051,PFOS,NA
 18/05/2022 11:39:16,LR,S_052,"PFBA, PFPeA, PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTrA, PFTA, PFBS, PFPeS, PFHxS, PFHpS, PFOS, PFNS, PFDS, FOSA",NA
-18/05/2022 13:18:09,LR,S_053,PFAS,The authors did not look for a specific type of PFAS.
-18/05/2022 13:56:14,LR,S_054,PFAS,The authors did not look for a specific type of PFAS.
 19/05/2022 09:40:37,LR,S_055,"PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTrA, PFHxS, PFOS, FOSA","But PFAS studied in some of the included studies are like ""PFOA and sums of PFAS groups""."
 19/05/2022 10:13:46,LR,S_056,"PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTrA, PFHxS, PFHpS, PFOS, FOSA",NA
-19/05/2022 10:57:06,LR,S_057,PFAS,The authors did not look for a specific type of PFAS.
-19/05/2022 11:12:58,LR,S_058,PFAS,The authors did not look for a specific type of PFAS.
-19/05/2022 11:33:11,LR,S_060,PFOA,NA
-20/05/2022 11:27:28,LR,S_061,PFAS,The authors did not look for a specific type of PFAS.
+19/05/2022 10:57:06,LR,S_057,All PFAS,The authors did not look for a specific type of PFAS.
+19/05/2022 11:12:58,LR,S_058,All PFAS,The authors did not look for a specific type of PFAS.
 20/05/2022 11:45:51,LR,S_062,"PFOA, PFNA, PFHxS, PFOS",The SR includes an unspecified more PFAS types.
 20/05/2022 12:33:19,LR,S_063,PFOA,NA
-23/05/2022 09:59:19,LR,S_064,PFAS,The authors did not look for a specific type of PFAS.
-23/05/2022 10:09:30,LR,S_065,PFAS,The authors did not look for a specific type of PFAS.
 23/05/2022 10:24:56,LR,S_066,"PFBA, PFPeA, PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTrA, PFTA, PFBS, PFHxS, PFHpS, PFOS, PFDS, FOSA",NA
 23/05/2022 10:39:35,LR,S_067,"PFOA, PFOS",NA
 23/05/2022 11:17:08,LR,S_068,PFOA,NA
 23/05/2022 11:38:43,LR,S_069,"PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTrA, PFTA, PFBS, PFHxS, PFHpS, PFOS, FOSA",NA
 24/05/2022 10:05:02,LR,S_070,"PFBA, PFPeA, PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTrA, PFTA, PFBS, PFHxS, PFHpS, PFOS, PFDS",NA
 24/05/2022 10:41:44,LR,S_071,"PFBA, PFPeA, PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTrA, PFTA, PFBS, PFHxS, PFHpS, PFOS, PFDS, FOSA",NA
-24/05/2022 11:00:20,LR,S_072,PFAS,The authors did not look for a specific type of PFAS.
-24/05/2022 11:30:11,LR,S_073,PFAS,The authors did not look for a specific type of PFAS.
-25/05/2022 14:37:04,LR,S_074,PFAS,The authors did not look for a specific type of PFAS.
 25/05/2022 14:46:26,LR,S_075,"PFOA, PFOS",NA
-26/05/2022 15:49:26,LR,S_076,PFAS,NA
-30/05/2022 13:38:55,LR,S_077,PFCs,This review focuses on PFCs (perfluorinated compounds).
-30/05/2022 14:41:33,LR,S_078,PFAS,"Very limited discussion about PFAS: ""One study investigated exposure to perfluorinated alkylated substances and reported no association with obesity measures in children62 (online supplementary table 2)."""
-31/05/2022 10:59:13,LR,S_079,PFAS,NA
+26/05/2022 15:49:26,LR,S_076,All PFAS,NA
+30/05/2022 14:41:33,LR,S_078,All PFAS,"Very limited discussion about PFAS: ""One study investigated exposure to perfluorinated alkylated substances and reported no association with obesity measures in children62 (online supplementary table 2)."""
 31/05/2022 11:21:25,LR,S_080,"PFOA, PFOS",NA
-31/05/2022 13:13:45,LR,S_081,PFAS,NA
-31/05/2022 13:31:18,LR,S_082,PFOA,NA
+31/05/2022 13:13:45,LR,S_081,All PFAS,NA
 31/05/2022 13:50:11,LR,S_083,"PFOA, PFNA, PFDA, PFHxS, PFOS",NA
 01/06/2022 11:57:03,LR,S_084,PFOS,NA
 01/06/2022 13:41:33,LR,S_085,"PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTA, PFBS, PFHxS, PFOS, FOSA",NA
 01/06/2022 13:49:56,LR,S_086,"PFBA, PFPeA, PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFHxS, PFOS, FOSA, 6:2 Cl-PFESA",NA
-01/06/2022 14:28:09,LR,S_087,PFAS,NA
-02/06/2022 10:46:45,LR,S_088,"PFBA, PFPeA, PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTrA, PFTA, PFBS, PFHxS, PFOS, PFDS",NA
-02/06/2022 10:56:16,LR,S_089,"PFBA, PFOA, PFHxS, PFOS",NA
 02/06/2022 11:19:10,LR,S_090,"PFBA, PFOA, PFBS, PFHxS, PFOS",NA
 02/06/2022 16:39:39,LR,S_091,"6:2 Cl-PFESA, 8:2 Cl-PFESA, HFPO-DA/GenX, HFPO-TA, ADONA",NA
 03/06/2022 09:36:19,LR,S_092,"PFPeA, PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTrA, PFBS, PFPeS, PFHxS, PFHpS, PFOS, PFNS, PFDS",NA
 03/06/2022 09:55:46,LR,S_093,PFOS,NA
 03/06/2022 10:17:31,LR,S_094,PFHxA,NA
 03/06/2022 10:40:01,LR,S_095,PFHxA,NA
-03/06/2022 11:11:48,LR,S_096,"PFOA, PFOS, PFHxA, PFDA, PFPeA",NA
 03/06/2022 11:42:15,LR,S_097,"PFOA, PFNA, PFHxS, PFOS",NA
-03/06/2022 15:51:36,LR,S_098,PFOS,NA
-03/06/2022 16:08:22,LR,S_099,PFAS,NA
 03/06/2022 16:15:52,LR,S_100,"PFOA, PFNA, PFDA, PFUnDA, PFHxS, PFHpS, PFOS",NA
-06/06/2022 11:12:42,LR,S_101,"PFBA, PFOA, PFBS, PFOS",NA
 06/06/2022 11:20:05,LR,S_102,"PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTrA, PFHxS, PFHpS, PFOS",NA
 06/06/2022 13:06:20,LR,S_103,"PFHxA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTrA, PFTA, PFBS, PFOS, FOSA",NA
 06/06/2022 16:18:58,LR,S_104,PFOA,NA
 07/06/2022 09:26:14,LR,S_106,"PFOA, PFOS",NA
 07/06/2022 09:48:47,LR,S_107,"PFOA, PFOS, FOSA",NA
-07/06/2022 10:27:17,LR,S_108,PFAS,NA
-07/06/2022 10:42:36,LR,S_109,PFAS,NA
-07/06/2022 10:50:48,LR,S_110,"PFBA, PFPeA, PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTrA, PFTA, PFBS, PFHxS, PFHpS, PFOS, PFDS",NA
-07/06/2022 10:55:21,LR,S_111,PFOA,NA
+07/06/2022 10:27:17,LR,S_108,All PFAS,NA
 07/06/2022 11:00:01,LR,S_112,"PFOA, PFOS",NA
-07/06/2022 11:14:08,LR,S_113,"PFOA, PFOS",NA
 07/06/2022 11:18:19,LR,S_114,"PFOA, PFOS",NA
 08/06/2022 16:04:34,LR,S_115,"PFHxA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTA, PFBS, PFHxS, PFOS, FOSA",NA
-09/06/2022 09:38:32,LR,S_116,PFCs,This review is focused on Perfluorinated compounds (PFCs).
-09/06/2022 09:43:16,LR,S_117,PFAS,NA
-09/06/2022 10:06:13,LR,S_118,PFAS,NA
+09/06/2022 10:06:13,LR,S_118,All PFAS,NA
 09/06/2022 10:31:13,LR,S_119,"PFOA, PFNA, PFHxS, PFOS",NA
-10/06/2022 09:10:22,LR,S_120,"PFOA, PFOS",NA
 10/06/2022 09:17:38,LR,S_121,"PFOA, PFOS",NA
 10/06/2022 09:41:18,LR,S_122,"PFBA, PFHxA, PFHpA, PFOA, PFNA, PFDA, PFDoDA, PFBS, PFHxS, PFOS",NA
-10/06/2022 10:12:41,LR,S_123,PFAS,NA
-10/06/2022 10:21:29,LR,S_124,"PFOA, PFNA, PFHxS, PFOS, FOSA",NA
-10/06/2022 12:01:43,LR,S_125,PFAS,NA
 10/06/2022 12:07:09,LR,S_126,"PFOA, PFOS",NA
 14/06/2022 09:16:43,LR,S_127,PFCs,This review is focused on perfluorinated compounds (PFCs).
 14/06/2022 09:46:53,LR,S_128,"PFOA, PFOS",NA
 14/06/2022 10:44:42,LR,S_129,"PFOA, PFOS",NA
 14/06/2022 11:32:36,LR,S_130,"PFOA, PFOS",NA
-14/06/2022 11:58:38,LR,S_131,"PFOA, PFOS, NEtFOSA, 6:2 FTS/FTSA, 8:2 FTS/FTSA, HFPO-DA/GenX, ADONA",This review focuses on polyfluoroalkyl precursors
 15/06/2022 09:52:59,LR,S_133,"PFOA, PFNA, PFHxS, PFOS",NA
 15/06/2022 10:16:26,LR,S_134,"PFOA, PFOS",NA
 15/06/2022 10:40:26,LR,S_135,"PFOA, PFNA, PFUnDA, PFHxS, PFOS",NA
 16/06/2022 09:53:20,LR,S_136,PFOA,NA
 16/06/2022 10:27:32,LR,S_137,PFOA,NA
-16/06/2022 10:58:12,LR,S_138,"PFOA, PFOS",NA
-16/06/2022 11:22:50,LR,S_139,PFAS,not specified.
-16/06/2022 11:26:32,LR,S_140,PFAS,not specified.
-16/06/2022 11:32:25,LR,S_141,"PFOA, PFOS",NA
-16/06/2022 11:43:47,LR,S_142,PFCs,Not specified. This review focuses on polyfluorinated compounds (PFCs).
-16/06/2022 16:18:57,LR,S_143,PFCs,Not specified. This review focuses on polyfluorinated compounds (PFCs).
+16/06/2022 16:18:57,LR,S_143,PFCs,The review focuses on perfluorinated compounds (PFCs).
 20/06/2022 11:32:19,LR,S_144,"PFOA, PFOS",NA
-20/06/2022 13:07:15,LR,S_145,"PFOA, PFOS",NA
-20/06/2022 13:13:27,LR,S_146,"PFOA, PFOS",NA
-21/06/2022 10:44:22,LR,S_147,"PFOA, PFOS",NA
 21/06/2022 10:49:01,LR,S_148,PFOS,NA
-21/06/2022 11:03:19,LR,S_149,PFOA,NA
-21/06/2022 11:26:35,LR,S_150,"PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTrA, PFTA, PFBS, PFHxS, PFHpS, PFOS, PFDS, FOSA, NEtFOSA, NMeFOSA",NA
-21/06/2022 11:37:28,LR,S_151,PFCs,This review focuses on perfluorinated compounds (PFCs).
-21/06/2022 11:43:38,LR,S_152,"PFSAs, PFCAs",This review focuses on perfluorinated sulfonic acids (PFSAs) and carboxylic acids (PFCAs).
-21/06/2022 13:49:41,LR,S_153,"PFOA, PFOS",NA
-22/06/2022 10:12:59,LR,S_154,"PFPeA, PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTrA, PFTA, PFBS, PFHxS, PFOS",NA
-22/06/2022 10:24:03,LR,S_155,PFOS,NA
 22/06/2022 10:48:27,LR,S_156,"PFBA, PFPeA, PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTrA, PFTA, PFBS, PFHxS, PFHpS, PFOS, PFDS, FOSA, HFPO-DA/GenX",This review includes many other new pfas that we could include
 22/06/2022 11:31:06,LR,S_157,"PFBA, PFPeA, PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFBS, PFHxS, PFHpS, PFOS, PFDS, FOSA, 6:2 Cl-PFESA, 8:2 Cl-PFESA",NA
 22/06/2022 11:49:26,LR,S_158,"PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFBS, PFHxS, PFHpS, PFOS",NA
 23/06/2022 09:10:30,LR,S_159,"PFBA, PFPeA, PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTA, PFBS, PFPeS, PFHxS, PFHpS, PFOS, FOSA",NA
 23/06/2022 09:34:54,LR,S_160,"PFOA, PFNA, PFHxS, PFOS",NA
-23/06/2022 09:48:27,LR,S_161,PFAS,NA
 23/06/2022 10:10:50,LR,S_162,"PFOA, PFOS",NA
-23/06/2022 14:37:03,LR,S_163,"PFOA, PFOS",NA
 23/06/2022 15:48:07,LR,S_164,"PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTrA, PFHxS, PFOS, FOSA",NA
-24/06/2022 09:52:08,LR,S_165,PFAS,The authors did not look for a specific type of PFAS.
-24/06/2022 10:13:34,LR,S_166,PFOS,NA
-24/06/2022 10:17:17,LR,S_167,PFAS,The authors did not look for a specific type of PFAS.
+24/06/2022 09:52:08,LR,S_165,All PFAS,The authors did not look for a specific type of PFAS.
 24/06/2022 10:22:49,LR,S_168,"PFBA, PFPeA, PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFBS, PFPeS, PFHxS, PFOS, FOSA, 6:2 FTS/FTSA",NA
-24/06/2022 10:33:44,LR,S_169,"PFOA, PFOS",NA
 24/06/2022 10:39:48,LR,S_170,PFCs,This review focuses on perfluorinated compounds (PFCs).
 27/06/2022 09:47:55,LR,S_171,"PFOA, PFDA, PFDoDA, PFHxS, PFOS",NA
-27/06/2022 11:09:13,LR,S_172,"PFOA, PFOS",NA
 27/06/2022 11:16:57,LR,S_173,PFOA,NA
 27/06/2022 11:40:15,LR,S_174,"PFBA, PFPeA, PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTrA, PFTA, PFBS, PFHxS, PFHpS, PFOS, FOSA",NA
 27/06/2022 12:01:17,LR,S_175,"PFPeA, PFHxA, PFHpA, PFOA, PFNA, PFDA, PFUnDA, PFDoDA, PFTrA, PFBS, PFPeS, PFHxS, PFHpS, PFOS, PFNS, PFDS",NA
-05/07/2022 10:02:12,LR,S_105,"PFOA, PFHxS, PFOS",NA
-05/07/2022 10:10:54,LR,S_059,PFOA,NA
