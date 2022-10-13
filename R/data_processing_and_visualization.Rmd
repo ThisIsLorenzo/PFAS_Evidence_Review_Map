@@ -5,6 +5,8 @@ date: "23/09/2021"
 output:
   html_document: default
   pdf_document: default
+editor_options: 
+  chunk_output_type: inline
 ---
 
 # Supplementary Material - pilot data processing and visualization
@@ -188,7 +190,7 @@ PFAS_focus <-
   coord_flip() +
   scale_fill_brewer() +
   guides(fill=guide_legend(title="PFAS:")) + 
-  geom_col(aes(fill = fct_relevel(PFAS_one_many, c("Not specified", "Multiple", "One"))), width = 0.7) + 
+  geom_col(aes(fill = fct_relevel(PFAS_one_many, c("Not specified", "Multiple", "One"))), width = 0.5) + 
   scale_y_continuous(name = "Article count") +
   scale_fill_manual(values=cbp1, breaks=c('One', 'Multiple', 'Not specified')) +
   theme_light() +
@@ -324,7 +326,9 @@ MESH_qualifiers_order <-
 
 # simple barplot with MESH qualifiers
 ggplot(MeSH_qualifiers_counts[, ], aes(x = MeSH_qualifiers, y = n)) +
-  geom_col(aes(fill = ""), width = 0.7) +
+  geom_col(aes(fill = ""), width = 0.9, position = 'dodge') +
+  geom_text(aes(label = n),
+            position = position_dodge2(width = 2), vjust= 0.5) +
   theme_light() +
   labs(title = expression("MeSH qualifiers reviewed")) + #~bold(A.)~' Type and subject'
   coord_flip() +
@@ -334,7 +338,6 @@ ggplot(MeSH_qualifiers_counts[, ], aes(x = MeSH_qualifiers, y = n)) +
         axis.title.x = element_text(size = 10),
         axis.title.y = element_blank(),
         axis.text = element_text(size = 7))
-
 #ggsave(here("plots","figure_MeSH_qualifiers.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
 ```
 
@@ -1035,7 +1038,7 @@ NetMatrix_keywords <-
 
 NetMatrix_keywords_plot <- 
   networkPlot(NetMatrix_keywords,
-              normalize="association", n = 30,
+              normalize="association", n = 15,
               Title = "Keyword co-occurrences", type = "fruchterman",
               size.cex = TRUE, size = 15,
               remove.multiple = F,
@@ -1052,6 +1055,21 @@ NetMatrix_keywords_plot <-
 #plot(res$map)
 ```
 
+### Co-word Analysis through Correspondence Analysis
+
+```{r co-word analysis through correspondence analysis}
+suppressWarnings(
+conceptualStructure(bib_sco,
+                    method = "MCA",
+                    field = "ID", 
+                    minDegree = 15,
+                    clust = 5,
+                    stemming = FALSE,
+                    labelsize = 15,
+                    documents = 50)
+)
+```
+
 ### Thematic map based on keywords
 
 ```{r thematic map based on keywords}
@@ -1063,8 +1081,7 @@ map_thematic <-
   thematicMap(bib_sco, 
               field = "ID", 
               n = 1000, 
-              minfreq = 5, 
-              stemming = FALSE, 
+              minfreq = 5,  
               size = 0.5, 
               n.labels = 1, 
               repel = TRUE)
@@ -1115,14 +1132,30 @@ NetMatrix_country <-
 
 NetMatrix_country_plot <- 
   networkPlot(NetMatrix_country,
-              n = 50, 
+              n = 30, 
               Title = "Country collaboration",
               type = "auto", 
-              size=TRUE,
+              size.cex = TRUE,
+              size= 10,
               remove.multiple=FALSE, 
-              labelsize=1.5)
+              label.cex = TRUE,
+              labelsize = 8)
 
 #dev.off()
+
+```
+```{r country collaboration network}
+NetMatrix_country_plot2 <- 
+  networkPlot(NetMatrix_country,
+              n = dim(NetMatrix_country)[1], 
+              Title = "Country collaboration",
+              type = "circle", 
+              size = 10,
+              size.cex = TRUE,
+              remove.multiple = FALSE, 
+              edgesize = 7,
+              labelsize = 1,
+              cluster = "none")
 
 ```
 
@@ -1146,26 +1179,27 @@ CR <-
 cbind(CR$Cited[1:10]) #ten most cited authors
 ```
 
-### Article coupling network: Citation network
+### Article (References) co-citation analysis
 
-```{r bibliometrix coupling network, eval = TRUE, warning = FALSE}
+```{r bibliometrix co-citation network, eval = TRUE, warning = FALSE}
 
 # classical article coupling network: Citation network
-NetMatrix_coupling <- 
+NetMatrix_cocitation <- 
   biblioNetwork(bib_sco, 
-                analysis = "coupling",
+                analysis = "co-citation",
                 network = "references", 
                 sep = "; ")
 
-NetMatrix_coupling_plot <- 
+NetMatrix_cocitation_plot <- 
   networkPlot(NetMatrix_coupling, 
-              n = 20, 
-              Title = "Paper co-citation", 
+              n = 30, 
+              Title = "Co-citation Network", 
               type = "fruchterman", 
-              size=T, 
-              remove.multiple=FALSE, 
-              labelsize=0.8,
-              edgesize = 5) #plot the network
+              size.cex = TRUE ,
+              size = 10, 
+              remove.multiple = FALSE, 
+              labelsize = 1,
+              edgesize = 10) #plot the network
 
 ```
 
@@ -1182,7 +1216,7 @@ histResults <-
 
 # pdf(file="./plots/Figure_hstorical_network.pdf", width=8, height=8, pointsize=10)
 # par(mfrow=c(1,1), mar=c(0,0,0,0))
-#histPlot(histResults, size=TRUE, arrowsize = 0.2) 
+histPlot(histResults, n=20, size = 5, labelsize = 4) 
 # dev.off()
 
 ```
