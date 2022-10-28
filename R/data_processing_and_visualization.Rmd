@@ -48,6 +48,16 @@ library(xtable)
 library(kableExtra)
 library(patchwork)
 
+#Use a colorblind-friendly palette:
+cbp1 <- c("#999999",
+          "#E69F00",
+          "#56B4E9",
+          "#009E73",
+          "#F0E442",
+          "#0072B2",
+          "#D55E00",
+          "#CC79A7")
+
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 ```
@@ -88,6 +98,13 @@ qdata <- read_csv(here("data", "ReviewMap_PFAS_quality.csv"), skip = 0)
 #Bibliometric data of included papers (with references) dwonloaded from Scopus in .bib format:
 bib_sco <- convert2df(here("data","scopus.bib"), dbsource = "scopus", format = "bibtex")
 #dim(bib_sco) #8 rows 33 columns
+
+#Extra four studies founded searching on Scopus using the DOIs:
+bib_sco2 <- convert2df(here("data","scopus2.bib"), dbsource = "scopus", format = "bibtex")
+
+#Merging the two .bib files:
+bib_sco3 <- 
+  bind_rows(bib_sco, bib_sco2)
 ```
 
 **DOWNLOAD BIB FILE**
@@ -504,16 +521,25 @@ p_PFAStype <-
   labs(title = expression("PFAS type and main subjects reviewed")) + #~bold(A.)~' Type and subject'
   coord_flip()  +
   scale_fill_brewer() +
-  geom_col(aes(fill = fct_relevel(Human_animal_environment, c("Mixed", "Plants", "Environment", "Animals", "Humans"))),
+  geom_col(aes(fill = fct_relevel(Human_animal_environment, c("Mixed",
+                                                              "Plants", 
+                                                              "Environment",
+                                                              "Animals",
+                                                              "Humans"))),
            width = 0.7) +
   scale_fill_manual(values=cbp1,
-                    breaks=c("Humans", "Animals", "Environment", "Plants", "Mixed")) +
+                    breaks=c("Humans",
+                             "Animals",
+                             "Environment",
+                             "Plants", 
+                             "Mixed")) +
   scale_y_continuous(name = "Article count") +
   theme(legend.position = c(0.6, 0.5),
        legend.box.background = element_rect(colour = "black"),
        legend.title = element_blank(),
-       legend.text=element_text(size = 10),
-       axis.title.x = element_text(size = 10),
+       legend.text=element_text(size = 13),
+       title = element_text(size = 14),
+       axis.title.x = element_text(size = 15),
        axis.title.y = element_blank(),
        legend.background = element_blank())
 #theme(legend.position = "none", axis.title.x = element_text(size = 10), axis.title.y = element_blank())
@@ -576,8 +602,10 @@ theme_classic() +
         text = element_text(size = 22),
         legend.position = "bottom",
         legend.box.background = element_rect(colour = "black"),
+        legend.text = element_text(size = 15) ,
+        legend.title = element_blank(),
         plot.margin = unit(c(5,5,5,5), "mm")) +
-  scale_size_continuous(range = c(1, 10)) +
+  scale_size_continuous(range = c(1, 12.5)) +
   #theme(axis.title = element_blank()) +
   scale_x_discrete(position = "top") +
   xlab("Species") +
@@ -619,8 +647,12 @@ mdata %>%
 
 #modified graph with breakdown by Review_type_claimed (needs more data points to be displayed properly)
 mspdata %>%
-  count(Publication_year, Review_type_claimed) %>%
-  ggplot(aes(x = Publication_year, y = n, fill = Review_type_claimed, text = Review_type_claimed)) +
+  count(Publication_year, 
+        Review_type_claimed) %>%
+  ggplot(aes(x = Publication_year,
+             y = n,
+             fill = Review_type_claimed,
+             text = Review_type_claimed)) +
   geom_line(color = 'black', size = 0.5)
   
   
@@ -827,17 +859,22 @@ t_COI_statement <-
   arrange(desc(n)) %>%
   filter(COI_statement != "NA") #filter out NA
 
-#p1 <-
+p1 <-
   ggplot(t_COI_statement, aes(x = COI_statement, y = n)) +
   labs(title = expression("COI statement availability")) + #~bold(A.)~' Type and subject'
-  geom_col(aes(fill = COI_statement, width = 0.7)) +
+  geom_col(aes(fill = fct_relevel(COI_statement,
+                                  c("No", "Yes")),
+                                  width = 0.7)) +
+  scale_fill_manual(values = cbp1,
+                    breaks = c("No", "Yes")) +
   scale_y_continuous(name = "Article count") +
   theme(legend.position = "none",
         axis.title.y = element_blank()) +
   theme_light() +
   coord_flip()
   
-#p1
+p1
+
 ```
 
 ### COI present
@@ -1031,7 +1068,7 @@ knitr::kable(table(bib_sco$JI), caption = "Table SX. counts of numbers of public
 #pdf(file="./plots/figure_keywords_network.pdf", width = 6, height = 5, pointsize = 12, family = "Helvetica", fonts = c("Helvetica"))
 #par(mfrow=c(1,1), mar=c(2,4,2,4))
 NetMatrix_keywords <- 
-  biblioNetwork(bib_sco, 
+  biblioNetwork(bib_sco3, 
                 analysis = "co-occurrences", 
                 network = "keywords", 
                 sep = ";")
@@ -1059,7 +1096,7 @@ NetMatrix_keywords_plot <-
 
 ```{r co-word analysis through correspondence analysis}
 suppressWarnings(
-conceptualStructure(bib_sco,
+conceptualStructure(bib_sco3,
                     method = "MCA",
                     field = "ID", 
                     minDegree = 15,
@@ -1078,7 +1115,7 @@ conceptualStructure(bib_sco,
 par(mfrow=c(1,1), mar=c(0,2,0,2))
 
 map_thematic <- 
-  thematicMap(bib_sco, 
+  thematicMap(bib_sco3, 
               field = "ID", 
               n = 1000, 
               minfreq = 5,  
@@ -1098,7 +1135,7 @@ Links between review authors based on their co-authorship on these reviews. Curr
 ```{r author collaboration network}
 
 NetMatrix_authors <- 
-  biblioNetwork(bib_sco, analysis = "collaboration",  network = "authors", sep = ";")
+  biblioNetwork(bib_sco3, analysis = "collaboration",  network = "authors", sep = ";")
 
 NetMatrix_authors_plot <- 
   networkPlot(NetMatrix_authors,
@@ -1121,25 +1158,26 @@ Links between countries, based on the institutional affiliations of the review a
 #pdf(file="./plots/figure_country_collaboration_network.pdf",width = 4, height = 4, pointsize = 12, family = "Helvetica", fonts = c("Helvetica"))
 #par(mfrow=c(1,1), mar=c(2,3,2,3))
 
-bib_sco2 <-
-  metaTagExtraction(bib_sco,
+bib_sco4 <-
+  metaTagExtraction(bib_sco3,
                     Field = "AU_CO", 
                     sep = ";") #we need to extract countries from the affiliations first
 #bib_sco2$AU_CO[1:10]
 
 NetMatrix_country <- 
-  biblioNetwork(bib_sco2, analysis = "collaboration", network = "countries", sep = ";")
+  biblioNetwork(bib_sco4, analysis = "collaboration", network = "countries", sep = ";")
 
 NetMatrix_country_plot <- 
   networkPlot(NetMatrix_country,
-              n = 30, 
-              Title = "Country collaboration",
+              n = 15, 
+              Title = "Country collaborations",
               type = "auto", 
               size.cex = TRUE,
-              size= 10,
+              size= 15,
               remove.multiple=FALSE, 
               label.cex = TRUE,
-              labelsize = 8)
+              labelsize = 10,
+              edgesize = 10)
 
 #dev.off()
 
@@ -1154,7 +1192,7 @@ NetMatrix_country_plot2 <-
               size.cex = TRUE,
               remove.multiple = FALSE, 
               edgesize = 7,
-              labelsize = 1,
+              labelsize = 1.3,
               cluster = "none")
 
 ```
