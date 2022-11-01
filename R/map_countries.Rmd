@@ -1,0 +1,92 @@
+---
+title: "Countries_map"
+author: "LR"
+date: "2022-10-31"
+output: html_document
+---
+
+# Figure X - Country of first author  affiliation - map
+
+### https://www.riinu.me/2022/02/world-map-ggplot2/
+
+```{r}
+library(tidyverse)
+library(here)
+library(bibliometrix)
+library(cowplot)
+
+#Bibliometric data of included papers (with references) dwonloaded from Scopus in .bib format:
+bib_sco <- convert2df(here("data","scopus.bib"), dbsource = "scopus", format = "bibtex")
+#dim(bib_sco) #8 rows 33 columns
+
+#Extra four studies founded searching on Scopus using the DOIs:
+bib_sco2 <- convert2df(here("data","scopus2.bib"), dbsource = "scopus", format = "bibtex")
+
+#Merging the two .bib files:
+bib <- 
+  bind_rows(bib_sco, bib_sco2)
+```
+
+```{r}
+#table(bib2$AU1_CO) #column with countries of first authors
+
+bib2 <- metaTagExtraction(bib, Field = "AU1_CO", sep = ";") 
+
+#save counts in a data frame
+firstcountrycounts <- 
+  bib2 %>%
+  group_by(AU1_CO) %>%
+  count() %>% 
+  filter(!is.na(AU1_CO))
+
+#load map data
+world_map <-
+  map_data("world") %>% 
+  filter(! long > 180) #remove countries with longitude >180 to make equal projection-like map without artifacts
+
+table(world_map$region) #note that United Kingdom is UK here
+
+# Format country names to match regions on the world map
+firstcountrycounts$region <- str_to_title(firstcountrycounts$AU1_CO)
+
+firstcountrycounts$region[firstcountrycounts$region == "United Kingdom"] <- "UK" #fix to "UK"
+firstcountrycounts$region[firstcountrycounts$region == "Usa"] <- "USA" #Fix "Usa" to "USA" 
+firstcountrycounts$region[firstcountrycounts$region == "Korea"] <- "North Korea" #Fix "Korea" to "North Korea" 
+
+#(firstcountrycounts$region) %in% world_map$region #check matching
+
+## colour all regions on the map:
+emptymap <- 
+  tibble(region = unique(world_map$region),
+         n = rep(0,length(unique(world_map$region)))) #create table with all counts as 0
+
+fullmap <- 
+  left_join(emptymap,
+            firstcountrycounts,
+            by = "region") #join with actual counts table
+
+fullmap$n <- 
+  fullmap$n.x + fullmap$n.y # make new column for fixed counts
+
+fullmap$n[is.na(fullmap$n)] <- 0 #change NA to 0 for regions with no counts
+
+fig <- 
+  fullmap %>% 
+  ggplot(aes(fill = n,
+             map_id = region)) +
+  geom_map(map = world_map) +
+  expand_limits(x = world_map$long,
+                y = world_map$lat) +
+  coord_map("moll") +
+  theme_map(line_size = 0.5) + 
+  theme(legend.position="right") +
+  scale_fill_gradient(low = "#FEE08B",
+                      high = "#D53E4F",
+                      limits = c(1, 60),
+                      guide = guide_colorbar(direction = "vertical.")) +
+  guides(fill = guide_colourbar(barwidth = unit(15, units = "mm"),
+                                barheight = unit(20, units = "mm")))
+
+fig
+```
+
