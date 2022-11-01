@@ -10,6 +10,7 @@ library(bibliometrix)
 library(here)
 library(circlize)
 library(wesanderson)
+library(tidyverse)
 
 #Bibliometric data of included papers (with references) dwonloaded from Scopus in .bib format:
 bib_sco <- convert2df(here("data","scopus.bib"), 
@@ -58,62 +59,72 @@ rownames(net_matrix2)[rownames(net_matrix2) == "United Kingdom"] <- "UK"
 
 circos.clear()
 
-my.cols2 <- c(USA = "colors()[2]",
-              China = "colors()[3]",
-              Spain = "colors()[4]", 
-              Denmark = "colors()[5]", 
-              Italy = "colors()[6]",
-              France = "colors()[7]",
-              Sweden = "colors()[8]",
-              Canada = "colors()[9]", 
-              Norway = "colors()[10]",
-              UK = "colors()[11]", 
-              Korea = "colors()[12]", 
-              Greece = "colors()[13]", 
-              Germany = "colors()[14]",
-              Australia = "colors()[15]", 
-              Brazil = "colors()[16]", 
-              Finland = "colors()[17]",
-              Austria = "colors()[18]", 
-              Belgium = "colors()[19]", 
-              Malaysia = "colors()[20]",
-              Netherlands = "colors()[21]", 
-              Poland = "colors()[22]",
-              Switzerland = "colors()[23]",
-              Romania = "colors()[24]",
-              Slovenia = "colors()[25]",
-              Uganda = "colors()[26]",
-              Cyprus = "colors()[27]",
-              Hong Kong = "colors()[28]",
-              Japan = "colors()[29]", 
-              Czech Republic = "colors()[30]", 
-              Ghana = "colors()[31]",
-              Hungary = "colors()[32]", 
-              India = "colors()[33]", 
-              Israel = "colors()[34]", 
-              Kenya = "colors()[35]",
-              Luxembourg = "colors()[36]",
-              Mexico = "colors()[37]",
-              Monaco = "colors()[38]", 
-              Portugal = "colors()[39]", 
-              Saudi Arabia = "colors()[40]", 
-              Singapore = "colors()[41]", 
-              Slovakia = "colors()[42]",
-              South Africa = "colors()[43]", 
-              Tanzania = "colors()[44]", 
-              Zimbabwe = "colors()[45]")
+my.cols2 <- c(USA = "#00FFFF",
+              China = "#89CFF0",
+              Spain = "#7393B3", 
+              Denmark = "#088F8F", 
+              Italy = "#9FE2BF",
+              France = "#EADDCA",
+              Sweden = "#E1C16E",
+              Canada = "#CD7F32", 
+              Norway = "#A52A2A",
+              UK = "#DAA06D", 
+              Korea = "#800020", 
+              Greece = "#E97451", 
+              Germany = "#F0E68C",
+              Australia = "#808000", 
+              Brazil = "#FFAC1C", 
+              Finland = "#E3963E",
+              Austria = "#FBCEB1", 
+              Belgium = "#FFC000", 
+              Malaysia = "#F4BB44",
+              Netherlands = "#FFE5B4", 
+              Poland = "#FF4433",
+              Switzerland = "#FA8072",
+              Romania = "#FFF5EE",
+              Slovenia = "#9F2B68",
+              Uganda = "#DE3163",
+              Cyprus = "#811331",
+              Hong_Kong = "#DC143C",
+              Japan = "#AA336A", 
+              Czech_Republic = "#C9A9A6", 
+              Ghana = "#FF69B4",
+              Hungary = "#673147", 
+              India = "#E30B5C", 
+              Israel = "#D8BFD8", 
+              Kenya = "#DA70D6",
+              Luxembourg = "#770737",
+              Mexico = "#E0B0FF",
+              Monaco = "#CCCCFF", 
+              Portugal = "#A95C68", 
+              Saudi_Arabia = "#51414F", 
+              Singapore = "#BDB5D5", 
+              Slovakia = "#FAF9F6",
+              South_Africa = "#EEDC82", 
+              Tanzania = "#DAA520", 
+              Zimbabwe = "#F0E68C")
+
+colnames(net_matrix2)[colnames(net_matrix2) == "Hong Kong"] <- "Hong_Kong"
+rownames(net_matrix2)[rownames(net_matrix2) == "Hong Kong"] <- "Hong_Kong"
+colnames(net_matrix2)[colnames(net_matrix2) == "Czech Republic"] <- "Czech_Republic"
+rownames(net_matrix2)[rownames(net_matrix2) == "Czech Republic"] <- "Czech_Republic"
+colnames(net_matrix2)[colnames(net_matrix2) == "Saudi Arabia"] <- "Saudi_Arabia"
+rownames(net_matrix2)[rownames(net_matrix2) == "Saudi Arabia"] <- "Saudi_Arabia"
+colnames(net_matrix2)[colnames(net_matrix2) == "South Africa"] <- "South_Africa"
+rownames(net_matrix2)[rownames(net_matrix2) == "South Africa"] <- "South_Africa"
+
+
 
 Fig2 <- 
   chordDiagram(net_matrix2,
                annotationTrack = "grid",
                preAllocateTracks = 1, 
-               #grid.col = "Zissou1"
+               grid.col = my.cols2
   )
 
 
 circos.trackPlotRegion(track.index = 1, 
-                       panel.fun = function(x, y) 
-                         {
+                       panel.fun = function(x, y) {
   xlim = get.cell.meta.data("xlim")
   ylim = get.cell.meta.data("ylim")
   sector.name = get.cell.meta.data("sector.index")
