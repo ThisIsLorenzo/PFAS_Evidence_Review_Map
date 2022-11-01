@@ -1,0 +1,135 @@
+---
+title: "country_collaborations"
+author: "LR"
+date: "2022-11-01"
+output: html_document
+---
+
+```{r setup, echo = FALSE, results = 'hide'}
+library(bibliometrix)
+library(here)
+library(circlize)
+library(wesanderson)
+
+#Bibliometric data of included papers (with references) dwonloaded from Scopus in .bib format:
+bib_sco <- convert2df(here("data","scopus.bib"), 
+                      dbsource = "scopus", 
+                      format = "bibtex")
+#dim(bib_sco) #8 rows 33 columns
+
+#Extra four studies founded searching on Scopus using the DOIs:
+bib_sco2 <- convert2df(here("data","scopus2.bib"), 
+                       dbsource = "scopus", 
+                       format = "bibtex")
+
+#Merging the two .bib files:
+bib <- 
+  bind_rows(bib_sco, bib_sco2)
+
+bib2 <- metaTagExtraction(bib, Field = "AU1_CO",
+                          sep = ";") 
+
+bib2 <- metaTagExtraction(bib2, Field = "AU_CO", sep = ";") 
+
+NetMatrix2 <- biblioNetwork(bib2, 
+                            analysis = "collaboration",
+                            network = "countries", 
+                            sep = ";")
+
+net_matrix2 <- as.matrix(NetMatrix2)
+
+#net_matrix2 <- net_matrix2[rownames(NetMatrix2), countries]
+diag(net_matrix2) <- 0 #get rid of collaboration with same country
+
+#net_matrix2
+
+# getting rid of lower triangle (as this is duplication of info)
+#net_matrix2[lower.tri(net_matrix2)] <- 0 
+#colnames(net_matrix2) - change to title case:
+colnames(net_matrix2) <- str_to_title(colnames(net_matrix2))
+#rownames(net_matrix2) - change to title case:
+rownames(net_matrix2) <- str_to_title(rownames(net_matrix2))
+#Fix "Usa" to "USA" :
+colnames(net_matrix2)[colnames(net_matrix2) == "Usa"] <- "USA"
+rownames(net_matrix2)[rownames(net_matrix2) == "Usa"] <- "USA"
+#change "UNITED KINGDOM" to "UK" for easier plotting:
+colnames(net_matrix2)[colnames(net_matrix2) == "United Kingdom"] <- "UK"
+rownames(net_matrix2)[rownames(net_matrix2) == "United Kingdom"] <- "UK"
+
+circos.clear()
+
+my.cols2 <- c(USA = "colors()[2]",
+              China = "colors()[3]",
+              Spain = "colors()[4]", 
+              Denmark = "colors()[5]", 
+              Italy = "colors()[6]",
+              France = "colors()[7]",
+              Sweden = "colors()[8]",
+              Canada = "colors()[9]", 
+              Norway = "colors()[10]",
+              UK = "colors()[11]", 
+              Korea = "colors()[12]", 
+              Greece = "colors()[13]", 
+              Germany = "colors()[14]",
+              Australia = "colors()[15]", 
+              Brazil = "colors()[16]", 
+              Finland = "colors()[17]",
+              Austria = "colors()[18]", 
+              Belgium = "colors()[19]", 
+              Malaysia = "colors()[20]",
+              Netherlands = "colors()[21]", 
+              Poland = "colors()[22]",
+              Switzerland = "colors()[23]",
+              Romania = "colors()[24]",
+              Slovenia = "colors()[25]",
+              Uganda = "colors()[26]",
+              Cyprus = "colors()[27]",
+              Hong Kong = "colors()[28]",
+              Japan = "colors()[29]", 
+              Czech Republic = "colors()[30]", 
+              Ghana = "colors()[31]",
+              Hungary = "colors()[32]", 
+              India = "colors()[33]", 
+              Israel = "colors()[34]", 
+              Kenya = "colors()[35]",
+              Luxembourg = "colors()[36]",
+              Mexico = "colors()[37]",
+              Monaco = "colors()[38]", 
+              Portugal = "colors()[39]", 
+              Saudi Arabia = "colors()[40]", 
+              Singapore = "colors()[41]", 
+              Slovakia = "colors()[42]",
+              South Africa = "colors()[43]", 
+              Tanzania = "colors()[44]", 
+              Zimbabwe = "colors()[45]")
+
+Fig2 <- 
+  chordDiagram(net_matrix2,
+               annotationTrack = "grid",
+               preAllocateTracks = 1, 
+               #grid.col = "Zissou1"
+  )
+
+
+circos.trackPlotRegion(track.index = 1, 
+                       panel.fun = function(x, y) 
+                         {
+  xlim = get.cell.meta.data("xlim")
+  ylim = get.cell.meta.data("ylim")
+  sector.name = get.cell.meta.data("sector.index")
+  circos.text(mean(xlim),
+              ylim[1] + .1, 
+              sector.name, 
+              facing = "clockwise", 
+              niceFacing = TRUE,
+              adj = c(0, 0.5))
+  circos.axis(h = "top", 
+              labels.cex = 0.5,
+              major.tick.percentage = 0.2, 
+              sector.index = sector.name,
+              track.index = 2)
+},
+bg.border = NA)
+
+Fig2
+```
