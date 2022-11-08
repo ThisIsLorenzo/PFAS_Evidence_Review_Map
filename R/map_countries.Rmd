@@ -51,7 +51,7 @@ firstcountrycounts$region <- str_to_title(firstcountrycounts$AU1_CO)
 
 firstcountrycounts$region[firstcountrycounts$region == "United Kingdom"] <- "UK" #fix to "UK"
 firstcountrycounts$region[firstcountrycounts$region == "Usa"] <- "USA" #Fix "Usa" to "USA" 
-firstcountrycounts$region[firstcountrycounts$region == "Korea"] <- "North Korea" #Fix "Korea" to "North Korea" 
+firstcountrycounts$region[firstcountrycounts$region == "Korea"] <- "South Korea" #Fix "Korea" to "North Korea" 
 
 #(firstcountrycounts$region) %in% world_map$region #check matching
 
@@ -85,7 +85,7 @@ fig <-
                       limits = c(1, 60),
                       guide = guide_colorbar(direction = "vertical.")) +
   guides(fill = guide_colourbar(barwidth = unit(15, units = "mm"),
-                                barheight = unit(20, units = "mm")))
+                                barheight = unit(40, units = "mm")))
 
 fig
 ```
