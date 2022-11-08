@@ -22,6 +22,9 @@ library(xtable)
 library(kableExtra)
 library(patchwork)
 library(rotl)
+library(ggtree)
+library(ggnewscale)
+library(ggtreeExtra)
 
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
@@ -40,7 +43,60 @@ table((lengths(gregexpr("\\W+", spdata$Species_scientific_name)) + 1))
 
 taxa <- tnrs_match_names(unique(spdata$Species_scientific_name))
 #Warning message: Peregrine falcon are not matched
+table(taxa$approximate_match) #1 approximate matches
+table(taxa$flags)
 
+mytree <- tol_induced_subtree(ott_ids = taxa$ott_id, label_format= "name") #this will fail with: Error: HTTP failure: 400 - [/v3/tree_of_life/induced_subtree] Error: node_id 'ott4937072' was not found!list(ott4937072 = "pruned_ott_id")
+
+taxa[taxa[["ott_id"]] == "4937072", ] #Xenopus (genus in Nucletmycea)  - "major_rank_conflict"
+spdata$Species_scientific_name[spdata$Species_scientific_name == "Xenopus"] <- "Xenopus laevis"
+
+taxa <- tnrs_match_names(unique(spdata$Species_scientific_name))
+table(taxa$approximate_match)
+table(taxa$flags)
+mytree <- tol_induced_subtree(ott_ids = taxa$ott_id, label_format= "name")
+
+## Tree tip labels need some cleaning:
+mytree$tip.label <- gsub("\\(.*", "", mytree$tip.label) #remove comments
+mytree$tip.label <- gsub("_"," ", mytree$tip.label) #get rid of the underscores
+mytree$tip.label <- trimws(mytree$tip.label) #getting rid of the trailing whitespace
+
+sort(intersect(as.character(mytree$tip.label), unique(spdata$Species_scientific_name))) # 78 names are matching
+
+plot(mytree, show.tip.label = T, cex = 0.8, no.margin = TRUE)
+str(mytree)
+
+sample_data <- count(spdata, Species_scientific_name)
+sample_data <- as.data.frame(sample_data)
+sample_data2 <-mutate(sample_data, tip.label = Species_scientific_name)
+mytree$tip.label <- strip_ott_ids(mytree$tip.label, remove_underscores = TRUE)
+# summary(sample_data2$tip.label)
+# sample_data2$count <- as.numeric(sample_data2$count)
+sample_data3 <- left_join(sample_data2, spdata[,c("Species_scientific_name","Class_scientific_name")], by = "Species_scientific_name")
+sample_data4 <- distinct(sample_data3, Species_scientific_name, .keep_all = TRUE)
+# is.na(sample_data4)
+sample_data4$Species_scientific_name<- as.factor(sample_data4$Species_scientific_name)
+sample_data4$tip.label <- as.factor(sample_data4$tip.label)
+sample_data4$Class_scientific_name<- as.factor(sample_data4$Class_scientific_name)
+
+cols <- c("orange", "violet", "turquoise", "yellow", "red", "olivedrab", "navy", "seagreen", "lightslateblue", "magenta3")
+
+tree2 <- ggtree(mytree, layout = "circular", lwd = 0.75) %<+% sample_data4 +
+  aes(col = Class_scientific_name)+ theme(legend.position = "bottom") +
+  scale_colour_manual(values = cols, (title = "Broad taxa"))
+
+tree3 <- tree2 +
+  new_scale_fill() +
+  geom_fruit(geom = geom_bar, mapping = aes(x = log10(n+0.5), col = "gray30"),
+             stat = "identity", fill = "gray60", col = NA, orientation = "y",
+             axis.params = list(axis = "x", text.angle = -45, hjust = 0, text.size = 3), 
+             grid.params = list(alpha = 0.35)) +
+             # ,
+             # offset = 0.085, pwidth = 0.55, alpha = 0.8) +
+  #geom_tiplab(size = 0.8) +
+  guides(fill ="none")
+
+tree3
 ```
 
 
