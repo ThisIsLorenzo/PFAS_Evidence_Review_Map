@@ -45,7 +45,7 @@ diag(net_matrix2) <- 0 #get rid of collaboration with same country
 #net_matrix2
 
 # getting rid of lower triangle (as this is duplication of info)
-#net_matrix2[lower.tri(net_matrix2)] <- 0 
+net_matrix2[lower.tri(net_matrix2)] <- 0 
 #colnames(net_matrix2) - change to title case:
 colnames(net_matrix2) <- str_to_title(colnames(net_matrix2))
 #rownames(net_matrix2) - change to title case:
@@ -128,16 +128,20 @@ circos.trackPlotRegion(track.index = 1,
   ylim = get.cell.meta.data("ylim")
   sector.name = get.cell.meta.data("sector.index")
   circos.text(mean(xlim),
-              ylim[1] + .1, 
+              ylim[1] + 0.1, 
               sector.name, 
               facing = "clockwise", 
               niceFacing = TRUE,
-              adj = c(0, 0.5))
-  circos.axis(h = "top", 
-              labels.cex = 0.5,
-              major.tick.length = 0.2, 
-              sector.index = sector.name,
-              track.index = 2)
+              adj = c(0, 0.5),
+              cex = 0.8)
+  #circos.axis(h = FALSE, 
+              #major.at = NULL, 
+              #labels.cex = 0.6,
+              #minor.ticks = FALSE,
+             # major.tick.length = NULL, 
+              #sector.index = sector.name,
+              #track.index = 2,
+              #labels.pos.adjust = TRUE)
 },
 bg.border = NA)
 
@@ -175,6 +179,7 @@ fig2
 
 
 ```{r setup, echo = FALSE, results = 'hide'}
+
 ```
 
 
