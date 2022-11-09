@@ -35,6 +35,7 @@ spdata <-
   spdata %>%
   select(-ends_with("checked"))
 
+
 length(unique(spdata$Species_common_name)) # 104
 
 # Make a table of how many words each name has:
@@ -46,7 +47,7 @@ taxa <- tnrs_match_names(unique(spdata$Species_scientific_name))
 table(taxa$approximate_match) #1 approximate matches
 table(taxa$flags)
 
-mytree <- tol_induced_subtree(ott_ids = taxa$ott_id, label_format= "name") #this will fail with: Error: HTTP failure: 400 - [/v3/tree_of_life/induced_subtree] Error: node_id 'ott4937072' was not found!list(ott4937072 = "pruned_ott_id")
+#mytree <- tol_induced_subtree(ott_ids = taxa$ott_id, label_format= "name") #this will fail with: Error: HTTP failure: 400 - [/v3/tree_of_life/induced_subtree] Error: node_id 'ott4937072' was not found!list(ott4937072 = "pruned_ott_id")
 
 taxa[taxa[["ott_id"]] == "4937072", ] #Xenopus (genus in Nucletmycea)  - "major_rank_conflict"
 spdata$Species_scientific_name[spdata$Species_scientific_name == "Xenopus"] <- "Xenopus laevis"
@@ -81,22 +82,36 @@ sample_data4$Class_scientific_name<- as.factor(sample_data4$Class_scientific_nam
 
 cols <- c("orange", "violet", "turquoise", "yellow", "red", "olivedrab", "navy", "seagreen", "lightslateblue", "magenta3")
 
-tree2 <- ggtree(mytree, layout = "circular", lwd = 0.75) %<+% sample_data4 +
-  aes(col = Class_scientific_name)+ theme(legend.position = "bottom") +
-  scale_colour_manual(values = cols, (title = "Broad taxa"))
+tree2 <- 
+  ggtree(mytree,
+         layout = "circular",
+         lwd = 0.75) %<+% sample_data4 +
+  aes(col = Class_scientific_name) + 
+  theme(legend.position = "right") +
+  scale_colour_manual(values = cols,
+                      (title = "Broad taxa"))
 
 tree3 <- tree2 +
   new_scale_fill() +
-  geom_fruit(geom = geom_bar, mapping = aes(x = log10(n+0.5), col = "gray30"),
-             stat = "identity", fill = "gray60", col = NA, orientation = "y",
-             axis.params = list(axis = "x", text.angle = -45, hjust = 0, text.size = 3), 
-             grid.params = list(alpha = 0.35)) +
+  geom_fruit(geom = geom_bar, 
+             mapping = aes(x = n, 
+                           col = "#5C5C5C"),
+             stat = "identity", fill = "#5C5C5C", 
+             col = NA, 
+             orientation = "y",
+             axis.params = list(axis = "x", 
+                                text.angle = -90,
+                                hjust = 0,
+                                text.size = 2.5), 
+             grid.params = list()) +
              # ,
              # offset = 0.085, pwidth = 0.55, alpha = 0.8) +
   #geom_tiplab(size = 0.8) +
   guides(fill ="none")
 
 tree3
+
+ggsave(tree3, filename = 'treeplot_temp.pdf', device = 'pdf', scale = 0.8)
 ```
 
 
