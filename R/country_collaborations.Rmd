@@ -167,7 +167,7 @@ net_matrix2 <- net_matrix2[-c(44 : 32), -c(44 : 32)]
 net_matrix2 <- net_matrix2[-c(30, 29, 25, 23), -c(30, 29, 25, 23)]
 net_matrix2 <- net_matrix2[-c(27), -c(27)]
 
-#pdf(here("R", "Countriy collabs_1.pdf"), width = 10, height = 10)
+#pdf(here("R", "Country collabs_1.pdf"), width = 10, height = 10)
 fig2 <- chordDiagram(net_matrix2,
                annotationTrack = "grid",
                preAllocateTracks = 1, 
@@ -210,7 +210,7 @@ fig2
 net_matrix3 <- net_matrix2
 diag(net_matrix3) <- 0 #get rid of collaboration with same country
 
-#pdf(here("R", "Countriy collabs_2.pdf"), width = 10, height = 10)
+#pdf(here("R", "Country collabs_2.pdf"), width = 10, height = 10)
 fig3 <- chordDiagram(net_matrix3,
                annotationTrack = "grid",
                preAllocateTracks = 1, 
