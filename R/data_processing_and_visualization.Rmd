@@ -6,7 +6,7 @@ output:
   html_document: default
   pdf_document: default
 editor_options: 
-  chunk_output_type: inline
+  chunk_output_type: console
 ---
 
 # Supplementary Material - pilot data processing and visualization
@@ -639,23 +639,22 @@ publ_year <- mdata %>%
   scale_x_continuous(name = "Year",
                      breaks = seq(2008, 2021, by = 2),
                      minor_breaks = NULL) +
-  scale_y_continuous(name = "Article count",
+  scale_y_continuous(name = "Number of published reviews",
                     breaks = seq(0, 50, by = 10),
                     minor_breaks = NULL
                     ) +
   ggtitle("Publication year") + 
   theme_ipsum(grid_col = "#F5F5F5") +
-  ylab("Article count") +
-  theme(plot.title = element_text(size = 15, hjust = 0.5),
-       axis.text.x = element_text(size = 9, margin = margin(t = 1, r = 0, l = 0)),
-       axis.text.y = element_text(size = 9, margin = margin(t = 0, r = 5, l = 5)),
-        axis.text.y.right = element_text(size = 6, margin = margin(t = 0, r = 5, l = 5)),
-        axis.title.x = element_text(size = 12, hjust = 0.5),
-        axis.title.y = element_text(size = 12, hjust = 0.5))
+  ylab("Number of published reviews") +
+  theme(plot.title = element_text(size = 26, hjust = 0.5),
+       axis.text.x = element_text(size = 16, margin = margin(t = 1, r = 0, l = 0)),
+       axis.text.y = element_text(size = 16, margin = margin(t = 0, r = 5, l = 5)),
+       axis.title.x = element_text(size = 20, hjust = 0.5),
+       axis.title.y = element_text(size = 20, hjust = 0.5))
         #axis.title.y.right = element_text(size = 16, margin = margin(t = 0, r = 10, l = 10)))
   
 publ_year
-#ggsave(here("plots","figure_area_publ_year.pdf"), width = 4, height = 3, units = "cm", scale = 2, device = cairo_pdf)
+ggsave(here("R","figure_area_publ_year.pdf"), width = 10, height = 10, units = "cm", scale = 2, device = cairo_pdf)
 
 #modified graph with breakdown by Review_type_claimed (needs more data points to be displayed properly)
 mspdata %>%
