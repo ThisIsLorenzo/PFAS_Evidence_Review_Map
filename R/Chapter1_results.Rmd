@@ -1,0 +1,1204 @@
+---
+title: "Chapter 1"
+author: "L. Ricolfi"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    code_folding: hide
+    toc: yes
+    toc_float: yes
+    toc_collapsed: yes
+    toc_depth: 2
+    number_sections: yes
+    theme: cerulean
+---
+
+# Intro
+
+**Project title:** PFAS exposure of humans, animals and environmental compartments: an evidence review map and bibliometric analysis
+
+In this document I provide the results of my Evidence Review Map (Chapter 1 of my thesis)
+The results are organized in 3 objectives.
+
+# Project's objectives
+
+-   **Objective 1.** 
+Mapping: What evidence on PFAS has been synthesized? I aim to reveal what areas in the realm of PFAS health-related and environmental research have been synthesized the most and where syntheses of evidence are lacking.
+
+-   **Objective 2.** 
+Critical appraisal: How robust are syntheses of PFAS evidence? I will examine the included syntheses for their reporting quality and potential biases, in order to assess reliability of reviews' conclusions, reveal syntheses that should be re-done, and highlight the aspects of review methodology that need to be improved.
+
+-   **Objective 3.** 
+Bibliometrics: How is synthesized PFAS evidence connected? I will examine which countries and institutions are mostly involved in secondary PFAS research and what do the networks between these institutions look like.
+
+```{r setup, include = TRUE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+```{r load packages}
+library(tidyverse)
+library(here)
+library(stringr)
+library(knitr)
+library(formatR)
+library(forcats)
+library(ggplot2)
+library(hrbrthemes) #for ggplot2
+library(patchwork) #for ggplot2
+library(bibliometrix)
+library(circlize)
+library(wesanderson)
+library(igraph)
+library(xtable)
+library(kableExtra)
+library(patchwork)
+library(bibtex)
+
+#Use a colorblind-friendly palette:
+cbp1 <- c("#999999",
+          "#E69F00",
+          "#56B4E9",
+          "#009E73",
+          "#F0E442",
+          "#0072B2",
+          "#D55E00",
+          "#CC79A7")
+```
+
+```{r load pilot data, message=FALSE}
+
+# Data from .csv file - main data sheet
+mdata <- read_csv(here("data","ReviewMap_PFAS_main.csv"), skip = 0)
+#dim(mdata) #175 rows 38 columns
+
+# Data from .csv file - Species_info sheet
+spdata <- read_csv(here("data","ReviewMap_PFAS_species.csv"), skip = 0) 
+#dim(spdata) #145 rows 5 columns
+
+# Data from .csv file - PFAS_types sheet:
+ptdata <- read_csv(here("data","ReviewMap_PFAS_types.csv"), skip = 0) 
+#dim(ptdata) #145 rows 5 columns
+# change to long format (one type per row - one or multiple rows per study):
+ptdata <- ptdata %>% separate_rows(PFAS_type, sep=', ')
+#dim(ptdata) #608 rows 5 columns
+
+# Data from .csv file - PFAS_info sheet:
+pidata <- read_csv(here("data","PFAS_info.csv"), skip = 0) 
+#dim(pidata) #35 rows 7 columns
+
+# Critical apprisal(AMSTAR2) from .csv file:
+qdata <- read_csv(here("data", "ReviewMap_PFAS_quality.csv"), skip = 0)
+#dim(qdata) #107 rows 36 columns
+
+bib2 <- read.csv(here("data", "biblio.csv"))
+```
+
+```{r merge data}
+
+# Remove columns ending with "checked" 
+# Remove "Timestamp" columns
+# Remove columns starting with "Initials"
+mdata <- 
+  mdata %>%
+  select(-ends_with("checked")) %>%
+  select(-("Timestamp")) %>%
+  select(-starts_with("Initials"))
+#dim(mdata) #175 rows 35 columns
+#remove last two rows because empty
+mdata <- 
+  mdata %>%
+  slice(1:174)
+#dim(mdata) #173 rows 35 columns
+spdata <- 
+  spdata %>%
+  select(-ends_with("checked"))
+#dim(spdata) #145 rows 5 columns
+ptdata <- 
+  ptdata %>%
+  select(-ends_with("checked")) %>%
+  select(-("Timestamp")) %>%
+  select(-starts_with("Initials"))
+#dim(ptdata) #608 rows 3 columns
+
+## Merge main data with species info
+mspdata <- left_join(mdata, spdata, by = "Study_ID")
+#dim(mspdata) #579 rows 38 columns
+#names(mspdata)
+#str(mspdata)
+#View(mspdata)
+
+# Merge PFAS types data with PFAS info and then with main data
+ptidata <- left_join(ptdata, pidata, by = "PFAS_type")
+#dim(ptidata) #174 rows 9 columns
+#names(ptidata)
+#str(ptidata)
+#View(ptidata)
+
+mpidata <- left_join(mdata, ptidata, by = "Study_ID")
+#dim(mpidata) #176 rows 43 columns
+#names(mpidata)
+#str(mpidata)
+#View(mpidata)
+
+```
+
+# Table of included reviews
+
+The following table is a list of all included reviews
+
+```{r simple table of included studies, eval = TRUE}
+#First, order the table by Study_ID
+mdata <- 
+  mdata[order(mdata$Study_ID),] %>% 
+  filter(Study_ID!="NA")
+
+knitr::kable(select(mdata, Study_ID,	Author_year,	Paper_title), caption = "Table of included studies") %>%
+  kable_paper(bootstrap_options = "striped", full_width = F) #%>% save_kable(file = "table1.html", self_contained = T)
+
+```
+
+# Objective 1
+**Mapping**: What evidence on PFAS has been synthesized?
+
+Here we aim to reveal what areas in the realm of PFAS health-related and environmental research have been synthesized the most and where syntheses of evidence are lacking.
+
+## PFAS focus
+
+The following graph answers the questions:
+- How many reviews are focused on PFAS and how many are not?
+- How many reviews review one type of PFAS and how many review multiple types?
+
+```{r PFAS focus one_many barplot, height = 2, width = 8}
+#str(mdata)
+t_PFASfocus <-
+  mdata %>%
+  count(PFAS_focus, PFAS_one_many) %>%
+  arrange(desc(n)) %>% 
+  filter(PFAS_focus != "NA") #filter out NA
+
+#Use a colorblind-friendly palette:
+cbp1 <- c("#999999",
+          "#E69F00",
+          "#56B4E9",
+          "#009E73",
+          "#F0E442",
+          "#0072B2",
+          "#D55E00",
+          "#CC79A7")
+
+PFAS_focus <-
+  ggplot(t_PFASfocus, aes(x = PFAS_focus, y = n)) +
+  theme_light() +
+  labs(title = expression("PFAS focus")) + #~bold(A.)~' Type and subject'
+  coord_flip() +
+  scale_fill_brewer() +
+  guides(fill=guide_legend(title="PFAS:")) + 
+  geom_col(aes(fill = fct_relevel(PFAS_one_many, c("Not specified", "Multiple", "One"))), width = 0.5) + 
+  scale_y_continuous(name = "Article count") +
+  scale_fill_manual(values=cbp1, breaks=c('One', 'Multiple', 'Not specified')) +
+  theme_light() +
+  theme(legend.position = "bottom",
+       legend.box.background = element_rect(colour = "black"), 
+       legend.title = element_text(size=10),
+       legend.text=element_text(size = 10), 
+       axis.title.x = element_text(size = 10),
+       axis.title.y = element_blank(),
+       legend.background = element_blank())
+
+PFAS_focus
+
+#ggsave(here("plots","figure_PFAS_focus.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
+
+```
+
+## PFAS types
+
+What types of PFAS are reviewed the most?
+
+```{r plot PFAS types barplot, height = 8, width = 8}
+
+#str(ptidata)
+t_PFAStype <- ptidata %>%
+  count(PFAS_type) %>%
+  arrange(desc(n)) %>%
+  filter(PFAS_type != "NA") #filter out NA
+
+t_PFAStype$PFAS_type <-
+  factor(t_PFAStype$PFAS_type, levels = t_PFAStype$PFAS_type[order(t_PFAStype$n, decreasing = FALSE)])
+
+PFAS_levels_order <-
+  t_PFAStype$PFAS_type[order(t_PFAStype$n, decreasing = FALSE)] #save for another plot
+
+# simple barplot with PFAS types
+ggplot(t_PFAStype, aes(x = PFAS_type, y = n)) +
+  geom_col(aes(fill = ""), width = 0.7) +
+  theme_light() +
+  labs(title = expression("PFAS types reviewed")) + #~bold(A.)~' Type and subject'
+  coord_flip()+
+  scale_y_continuous(name = "Article count") +
+  scale_fill_manual(values = c("#919191")) +
+  theme(legend.position = "none",
+        axis.title.x = element_text(size = 11),
+        axis.title.y = element_blank(),
+        axis.text.y = element_text(size = 7))
+
+
+#ggsave(here("plots","figure_PFAS_types.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
+
+```
+
+## Main review topics (MeSH terms)
+
+What are the top 10 MeSH headings reviewed?
+
+```{r plot main topics barplot prep, height = 4, width = 8}
+
+# change to long format (one species per row - one or multple rows per study):
+t_MESH <-
+  mdata %>%
+  select(MeSH_terms) %>%
+  separate_rows(MeSH_terms, sep = ";\\\n") %>%
+  separate_rows(MeSH_terms, sep = "; ")
+#bring to lower case and remove ending and trailing whitespace from character strings, single character vector:
+tmesh <- 
+  str_to_lower(trimws(t_MESH$MeSH_terms)) 
+#remove star character:
+tmesh <- 
+  sub("[\\*]", "", tmesh) 
+
+#separate terms before and after "/" into separate columns (headings and quantifiers, respectively)
+tmesh2 <- 
+  str_split_fixed(tmesh, " / ", n = 2)
+
+#create a MeSH dataframe with three columns: terms, headings, qualifiers
+t_MESH2 <- 
+  bind_cols(tmesh, tmesh2[,1], tmesh2[,2])
+
+colnames(t_MESH2) <- c("MeSH_terms", "MeSH_headings", "MeSH_qualifiers")
+
+```
+
+What are the MeSH qualifiers reviewed the most?
+
+```{r plot MeSH headings barplot, height = 4, width = 8}
+
+#count frequencies of headings
+MeSH_headings_counts <- t_MESH2 %>%
+  select(MeSH_headings) %>%
+  count(MeSH_headings) %>%
+  arrange(desc(n)) %>% 
+  filter(MeSH_headings != "NA") %>%
+  filter(MeSH_headings != "")
+#str(MeSH_headings_counts)
+
+MeSH_headings_counts$MeSH_headings <- 
+  factor(MeSH_headings_counts$MeSH_headings, levels = MeSH_headings_counts$MeSH_headings[order(MeSH_headings_counts$n, decreasing = FALSE)])
+
+MESH_headings_order <- 
+  MeSH_headings_counts$MeSH_headings[order(MeSH_headings_counts$n, decreasing = FALSE)] #save for the next plot
+
+# simple barplot with top 10 MESH headings
+ggplot(MeSH_headings_counts[1:10, ], aes(x = MeSH_headings, y = n)) +
+  geom_col(aes(fill = ""), width = 0.7) +
+  theme_light() +
+  labs(title = expression("Top 10 MeSH headings reviewed")) + #~bold(A.)~' Type and subject'
+  coord_flip() +
+  scale_y_continuous(name = "Article count") +
+  scale_fill_manual(values = c("#919191")) +
+  theme(legend.position = "none",
+        axis.title.x = element_text(size = 11),
+        axis.title.y = element_blank())
+
+#ggsave(here("plots","figure_MeSH_headings.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
+```
+
+What are the top 10 MeSH headings reviewed?
+```{r plot MeSH qualifiers barplot, height = 4, width = 8}
+
+#count frequencies of qualifiers
+MeSH_qualifiers_counts <- t_MESH2 %>%
+  select(MeSH_qualifiers) %>%
+  count(MeSH_qualifiers) %>%
+  arrange(desc(n)) %>%
+  filter(MeSH_qualifiers != "NA") %>%
+  filter(MeSH_qualifiers != "")
+#str(MeSH_qualifiers_counts)
+
+MeSH_qualifiers_counts$MeSH_qualifiers <- 
+  factor(MeSH_qualifiers_counts$MeSH_qualifiers, levels = MeSH_qualifiers_counts$MeSH_qualifiers[order(MeSH_qualifiers_counts$n, decreasing = FALSE)])
+
+MESH_qualifiers_order <- 
+  MeSH_qualifiers_counts$MeSH_qualifiers[order(MeSH_qualifiers_counts$n, decreasing = FALSE)] #save for the next plot
+
+# simple barplot with MESH qualifiers
+ggplot(MeSH_qualifiers_counts[, ], aes(x = MeSH_qualifiers, y = n)) +
+  geom_col(aes(fill = ""), width = 0.9, position = 'dodge') +
+  theme_light() +
+  labs(title = expression("MeSH qualifiers reviewed")) + #~bold(A.)~' Type and subject'
+  coord_flip() +
+  scale_y_continuous(name = "Article count") +
+  scale_fill_manual(values = c("#919191")) +
+  theme(legend.position = "none",
+        axis.title.x = element_text(size = 10),
+        axis.title.y = element_blank(),
+        axis.text = element_text(size = 7))
+#ggsave(here("plots","figure_MeSH_qualifiers.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
+```
+
+## Main review subjects
+
+What are the subjects reviwed the most?
+```{r plot main subjects barplot, height = 2, width = 8}
+
+#str(mdata)
+t_subject <- mdata %>%
+  count(Human_animal_environment) %>%
+  arrange(desc(n)) %>% 
+  filter(Human_animal_environment != "NA") %>%
+  filter(Human_animal_environment != "") #filter out NA
+
+t_subject$Human_animal_environment <-
+  factor(t_subject$Human_animal_environment, levels = unique(t_subject$Human_animal_environment[order(t_subject$n, decreasing = FALSE)]))
+
+subjects_levels_order <- 
+  t_subject$Human_animal_environment[order(t_subject$n, decreasing = FALSE)] #save for another plot
+
+# simple barplot with MESH_heading
+ggplot(t_subject, aes(x = Human_animal_environment, y = n)) +
+  geom_col(aes(fill = ""), width = 0.7) +
+  theme_light() +
+  labs(title = expression("Main subjects reviewed")) + #~bold(A.)~' Type and subject'
+  coord_flip()+
+  scale_y_continuous(name = "Article count") +
+  scale_fill_manual(values = c("#919191")) +
+  theme(legend.position = "none",
+        axis.title.x = element_text(size = 10),
+        axis.title.y = element_blank())
+
+#ggsave(here("plots","figure_subjects.pdf"), width = 4, height = 2, units = "cm", scale = 2, device = cairo_pdf)
+```
+
+## Combining MeSH qualifiers with main review subjects
+
+```{r plot MeSH qualifiers with main review subjects barplot, height = 4, width = 8}
+
+#str(mdata)
+#subset main dat by main subject
+#table(mdata$Human_animal_environment)
+
+# change to long format (one species per row - one or multple rows per study):
+t_MESHby <- mdata %>%
+  group_by(Human_animal_environment) %>%
+  select(MeSH_terms) %>% 
+  separate_rows(MeSH_terms, sep = ";\\\n") %>%
+  separate_rows(MeSH_terms, sep = "; ")
+#str(t_MESHby)
+
+tmeshby <- 
+  str_to_lower(trimws(t_MESHby$MeSH_terms)) #bring to lower case and remove ending and trailing whitespace from character strings, single character vector
+tmeshby <- 
+  sub("[\\*]", "", tmeshby) #remove star character
+
+#separate terms before and after "/" into separate columns (headings and quantifiers, respectively)
+tmeshby2 <- 
+  str_split_fixed(tmeshby, " / ", n = 2)
+
+#create a MeSH dataframe with three columns: terms, headings, qualifiers
+t_MESHby2 <-
+  bind_cols(t_MESHby$Human_animal_environment, tmeshby, tmeshby2[,1], tmeshby2[,2])
+
+colnames(t_MESHby2) <-
+  c("Subject", "MeSH_terms", "MeSH_headings", "MeSH_qualifiers")
+#str(t_MESHby2)
+
+t_topic_subject <-
+  t_MESHby2 %>%
+  count(MeSH_qualifiers, Subject) %>%
+  arrange(desc(n)) %>%
+  filter(MeSH_qualifiers != "NA") %>% 
+  filter(MeSH_qualifiers != "") #filter out NA
+
+t_topic_subject$Subject <-
+  factor(t_topic_subject$Subject, levels = subjects_levels_order) #use order from the previous graph
+
+t_topic_subject$MeSH_qualifiers <-
+  factor(t_topic_subject$MeSH_qualifiers, levels = MESH_qualifiers_order) #use order from the previous graph
+#str(t_topic_subject)
+
+ggplot(t_topic_subject, aes(x = MeSH_qualifiers, y = n)) +
+ theme_light() +
+ labs(title = expression("MeSH qualifiers and subjects reviewed")) + #~bold(A.)~' Type and subject'
+ coord_flip()  +
+ scale_fill_brewer() +
+ geom_col(aes(fill = fct_relevel(Subject, c("Mixed", 
+                                            "Plants", 
+                                            "Environment", 
+                                            "Animals", 
+                                            "Humans"))), width = 0.7) + 
+  scale_fill_manual(values=cbp1,
+                     breaks=c("Humans", 
+                              "Animals", 
+                              "Environment", 
+                              "Plants", 
+                              "Mixed"))+
+ scale_y_continuous(name = "Article count") +
+ theme_light() +
+ theme(legend.position = c(0.7, 0.5),
+       legend.box.background = element_rect(colour = "black"),
+       legend.title = element_blank(),
+       legend.text = element_text(size = 15),
+       axis.title.x = element_text(size = 13),
+       axis.title.y = element_text(size = 13),
+       legend.background = element_blank())
+
+#ggsave(here("plots","figure_MeSH_qualifiers_subjects.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
+
+```
+
+## PFAS focus by main review subject
+
+```{r plot PFAS focus by Human_animal_environment barplot, height = 2, width = 8}
+# PFAS_one_many vs. Human_animal_environment contingency table
+t1 <-
+  mdata %>%
+  count(Human_animal_environment, PFAS_one_many)
+
+ggplot(t1, aes(x = PFAS_one_many , y = n)) +
+ coord_flip()  +
+  theme_light() +
+ labs(title = expression("PFAS focus and subjects reviewed")) +
+ geom_col(aes(fill = fct_relevel(Human_animal_environment, c("Mixed", "Plants", "Environment", "Animals", "Humans"))),
+          width = 0.7) +
+  scale_fill_manual(values=cbp1,
+                    breaks=c("Humans", "Animals", "Environment", "Plants", "Mixed")) +
+ theme_light() +  
+ theme(legend.position = "bottom",
+       legend.box.background = element_rect(colour = "black"),
+       legend.title = element_blank(),
+       legend.text = element_text(size = 15),
+       axis.title.x = element_text(size = 13),
+       axis.title.y = element_blank(),
+       axis.text = element_text(size = 13),
+       legend.background = element_blank()) +
+ ylab("Article count") +
+ xlab("PFAS reviwed") +
+ guides(fill=guide_legend(title="Subject:"))
+
+#ggsave(here("plots","figure_PFAS_focus_subjects.pdf"), width = 4, height = 2, units = "cm", scale = 2, device = cairo_pdf)
+
+```
+
+## PFAS types by main review subject
+
+```{r plot PFAS types by Human_animal_environment barplot, height = 8, width = 8}
+
+#str(mpidata)
+t_PFAStype <-
+  mpidata %>%
+  count(PFAS_type, Human_animal_environment) %>%
+  arrange(desc(n)) %>%
+  filter(PFAS_type != "NA") #filter out NA
+#t_PFAStype$PFAS_type <- factor(t_PFAStype$PFAS_type, levels = unique(t_PFAStype$PFAS_type[order(t_PFAStype$n, decreasing = FALSE)]))
+t_PFAStype$PFAS_type <-
+  factor(t_PFAStype$PFAS_type, levels = PFAS_levels_order) #use order from the previous graph
+
+
+p_PFAStype <-
+  ggplot(t_PFAStype, aes(x = PFAS_type, y = n)) +
+  theme_light() +
+  labs(title = expression("PFAS type and main subjects reviewed")) + #~bold(A.)~' Type and subject'
+  coord_flip()  +
+  scale_fill_brewer() +
+  geom_col(aes(fill = fct_relevel(Human_animal_environment, c("Mixed",
+                                                              "Plants", 
+                                                              "Environment",
+                                                              "Animals",
+                                                              "Humans"))),
+           width = 0.7) +
+  scale_fill_manual(values=cbp1,
+                    breaks=c("Humans",
+                             "Animals",
+                             "Environment",
+                             "Plants", 
+                             "Mixed")) +
+  scale_y_continuous(name = "Article count") +
+  theme(legend.position = c(0.6, 0.5),
+       legend.box.background = element_rect(colour = "black"),
+       legend.title = element_blank(),
+       legend.text=element_text(size = 13),
+       title = element_text(size = 14),
+       axis.title.x = element_text(size = 15),
+       axis.title.y = element_blank(),
+       legend.background = element_blank())
+#theme(legend.position = "none", axis.title.x = element_text(size = 10), axis.title.y = element_blank())
+p_PFAStype
+
+#ggsave(here("plots","figure_PFAStype_subject.pdf"), width = 6, height = 8, units = "cm", scale = 2, device = cairo_pdf)
+
+```
+
+## Animal species reviewed
+
+**Work in progress**
+```{r species focus one_many barplot, height = 4, width = 8}
+#str(mspdata)
+t_spfocus <-
+  mspdata %>%
+  count(Species_scientific_name, Species_one_many) %>%
+  arrange(desc(n)) %>%
+  filter(Species_one_many != "NA")  #filter out NA
+
+ggplot(t_spfocus, aes(x = Species_scientific_name, y = n)) +
+ theme_light() +
+ labs(title = expression("Species focus")) + #~bold(A.)~' Type and subject'
+ coord_flip()  +
+ scale_fill_brewer() +
+ guides(fill=guide_legend(title="Species:")) + 
+ geom_col(aes(fill = Species_one_many), width = 0.7) + 
+ scale_y_continuous(name = "Article count") +
+ theme_light() +
+ theme(legend.position = "bottom",
+       legend.box.background = element_rect(colour = "black"),
+       legend.title = element_text(size=10),
+       legend.text=element_text(size = 10),
+       axis.title.x = element_text(size = 10),
+       axis.title.y = element_blank()) #+
+
+#ggsave(here("plots","figure_species_focus.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
+
+```
+
+## Species vs PFAS focus
+
+**Work in progress**
+```{r PFAS and species focus one_many dotplot, height = 2, width = 8}
+
+t2 <- mdata %>%
+  count(Species_one_many, PFAS_one_many) #make table of counts across two columns 
+
+t2$Species_one_many <- as.factor(t2$Species_one_many)
+
+levels(t2$Species_one_many) <- c("Many", "One") #reorder levels for Species_one_many
+
+t2 <- t2 %>%
+  filter(Species_one_many != "NA") #filter out NA
+
+# simple dot plot
+ggplot(data = t2, aes(Species_one_many, PFAS_one_many)) + geom_point(aes(size = n), colour = "darkgrey") +
+theme_classic() +
+  theme(axis.ticks.x=element_blank(),
+        axis.text.x=element_text(size = 17, angle = 90, hjust = -1),
+        axis.ticks.y=element_blank(),
+        axis.text.y=element_text(size = 17, hjust = 1.1),
+        axis.line=element_blank(),
+        text = element_text(size = 22),
+        legend.position = "bottom",
+        legend.box.background = element_rect(colour = "black"),
+        legend.text = element_text(size = 13) ,
+        legend.title = element_blank(),
+        plot.margin = unit(c(5,5,5,5), "mm")) +
+  scale_size_continuous(range = c(1, 12.5)) +
+  #theme(axis.title = element_blank()) +
+  scale_x_discrete(position = "top") +
+  xlab("Species") +
+  ylab("PFAS focus")
+ #+ labs(title = "Counts of reviews by subject and type")
+
+#ggsave(here("plots","figure_dotplot_PFAS_Species.pdf"), width = 4, height = 4, units = "cm", scale = 4, device = cairo_pdf)
+```
+
+## Time-trends
+
+What is the trend of number of publications?
+```{r area plots year, height = 2, width = 8}
+
+publ_year <- mdata %>%
+  #filter(Publication_year != 2022) %>% #remove 2022
+  count(Publication_year) %>%
+  ggplot(aes(x = Publication_year, y = n)) + 
+  geom_area(fill = '#69b3a2', alpha = 0.5) +
+  geom_line(color = '#69b3a2', size = 1) + 
+  #geom_point(size = 0.8, color = 'black') +
+  #theme_minimal() +
+  scale_x_continuous(name = "Year",
+                     breaks = seq(2008, 2021, by = 2),
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = "Number of published reviews",
+                    breaks = seq(0, 50, by = 10),
+                    minor_breaks = NULL
+                    ) +
+  ggtitle("Publication year") + 
+  theme_ipsum(grid_col = "#F5F5F5") +
+  ylab("Number of published reviews") +
+  theme(plot.title = element_text(size = 20, hjust = 0.5),
+       axis.text.x = element_text(size = 16, margin = margin(t = 1, r = 0, l = 0)),
+       axis.text.y = element_text(size = 16, margin = margin(t = 0, r = 5, l = 5)),
+       axis.title.x = element_text(size = 16, hjust = 0.5),
+       axis.title.y = element_text(size = 16, hjust = 0.5))
+        #axis.title.y.right = element_text(size = 16, margin = margin(t = 0, r = 10, l = 10)))
+  
+publ_year
+ggsave(here("R","figure_area_publ_year.pdf"), width = 10, height = 10, units = "cm", scale = 2, device = cairo_pdf)
+```
+
+
+# Objective 2
+**Critical appraisal**: How robust are syntheses of PFAS evidence?
+
+Here we will examine the included syntheses for their reporting quality and potential biases, in order to assess reliability of reviews' conclusions, reveal syntheses that should be re-done, and highlight the aspects of review methodology that need to be improved.
+
+
+The following table shows the AMSTAR2 questions and the lables for plotting
+
+```{r AMSTAR2 questions}
+questions_list <- qdata %>% select(starts_with("Q") & !ends_with("_comment")) %>% colnames()  #only select columns with assessment codes (data)
+
+questions <- tibble(questions = questions_list, label = c("question and criteria", "a priori protocol", "included study designs", "comprehensive search", "selection duplicated", "extraction duplicated", "list of excluded studies", "summary of included studies", "critical appraisal", "sources of funding", "quantitative synthesis", "risk of bias", "effect of bias", "variability investigated", "publication bias", "conflict of interest"))
+#str(questions)
+
+knitr::kable(questions, caption = "Table. List of AMSTAR2 questions with labels for plotting")
+```
+
+## Summary plot
+
+AMSTAR2 assessment results as percentages of each answer score per question.
+
+```{r plot AMSTAR2 summary}
+# prepare data 
+dim(qdata) #some empty rows to be removed
+
+#studies <- qdata$Author_year #normally would use this
+
+#only select columns with assessment codes (drop comments and empty rows)
+qtable <- 
+  qdata %>%
+  filter(Study_ID!="NA") %>%
+  select(starts_with("Q") & !ends_with("_Comment"))  
+
+#simiplify column names to Q+number format
+names(qtable) <- 
+  gsub("\\..*", "", names(qtable)) 
+
+#simplify all the answers to short strings (version for a single column: gsub(" =.*", "", qtable$Q1)):
+qtable <- 
+  apply(qtable, 2, function(y) as.character(gsub(" =.*", "", y)))
+
+#save studies in a new vector
+studies <- 
+  qdata$Study_ID[!is.na(qdata$Study_ID)]
+
+#convert to long format data frame with Study_ID
+qtable_long <-
+  data.frame(study = studies,
+             question = rep(colnames(qtable),each = length(studies)),
+             score = as.vector(qtable), stringsAsFactors = TRUE) #make long format table
+
+rownames(qtable_long) <- NULL
+qtable_long$question <- 
+  factor(qtable_long$question, levels(qtable_long$question)[rev(c(1,9:16,2:8))]) #setting the order of levels - by Q-number
+
+#add a column with verbal expression of scores:   
+qtable_long$score_word <- qtable_long$score
+levels(qtable_long$score_word) <- c("No", "Partially", "Yes", "Not Applicable")
+
+
+summaryplot <-
+  ggplot(data = qtable_long) +
+  geom_bar(mapping = aes(x = question, fill = fct_relevel(score_word, c("Not Applicable", "Partially", "No", "Yes"))), width = 0.7, position = "fill", color = "black") +
+  coord_flip(ylim = c(0, 1)) +
+  guides(fill = guide_legend(reverse = F)) +
+  scale_fill_manual("Risk of Bias",
+                        values=cbp1,
+                        breaks=c("Yes", "No", "Partially", "Not Applicable")) +
+  scale_y_continuous(labels = scales::percent, expand = c(0.02,0)) +
+  scale_x_discrete(expand = c(0.02,0)) +
+  theme(axis.title.x = element_blank(),
+            axis.title.y = element_blank(),
+            axis.ticks.y = element_blank(),
+            axis.text.x = element_text(size = 14, color = "black", hjust=0.5),
+            axis.text.y = element_text(size = 14, color = "black", hjust=0),
+            axis.line.x = element_line(colour = "black", size = 0.5, linetype = "solid"),
+            legend.position = "bottom",
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            panel.background = element_blank(),
+            legend.background = element_rect(linetype = "solid", colour = "grey"),
+            legend.title = element_blank(),
+            legend.key.size = unit(0.75, "cm"),
+            legend.text = element_text(size = 14))
+
+## display plot
+summaryplot
+
+## save plot
+#ggsave(here("plots","figure_AMSTAR2_summary_v01.pdf"), width = 10, height = 8, units = "cm", scale = 2, device = cairo_pdf)
+
+```
+
+## Individual scores plot
+
+AMSTAR2 assessment results as a score per article per question.
+
+```{r AMSTAR2 scores}
+## data prep
+dim(qdata) #some empty rows to be removed
+
+#save studies in a new vector
+studies <- qdata$Study_ID[!is.na(qdata$Study_ID)]
+#studies <- qdata$Author_year #normally would use this
+
+#only select columns with assessment codes (drop comments and empty rows)
+qtable <- qdata %>%
+  filter(Study_ID!="NA") %>%
+  select(starts_with("Q") & !ends_with("_comment")) 
+
+#simiplify column names to Q+number format
+names(qtable) <- gsub("\\..*", "", names(qtable)) 
+
+#simplify all the answers to short strings (version for a single column: gsub(" =.*", "", qtable$Q1)):
+qtable <- apply(qtable, 2, function(y) as.character(gsub(" =.*", "", y)))
+
+## prepare data - change scores to verbal expressions: 
+qtable <- gsub("N/A", "Not Applicable", qtable)
+qtable <- gsub("0.5", "Partially", qtable)
+qtable <- gsub("1", "Yes", qtable)
+qtable <- gsub("0", "No", qtable)
+
+
+#convert to long format data frame with Study_ID
+qtable_long <- data.frame(study = as.factor(studies),
+                     question = rep(colnames(qtable), each = length(studies)),
+                     measurement = as.vector(qtable), stringsAsFactors=FALSE)
+
+rownames(qtable_long) = NULL
+qtable_long$question <- as.factor(qtable_long$question)
+qtable_long$question <- factor(qtable_long$question, levels(qtable_long$question)[c(1,9:16,2:8)]) #setting the order of levels - by Q-number
+qtable_long$study <- factor(qtable_long$study, levels = unique(studies)[rev(order(unique(qtable_long$study)))]) #Re-order by study name (alphabetically)
+
+##Make scoreplot      
+scoresplot <-
+  ggplot(data = qtable_long, aes(y = study, x = question)) +
+  geom_tile(color="black", fill="white", size = 1) +
+  geom_point(aes(color=as.factor(measurement)), size=3) +
+  #geom_text(aes(label = measurement), size = 8) +
+  scale_color_manual(values=cbp1,
+                     breaks=c("Yes", "No", "Partially", "Not Applicable"),
+                     guide = guide_legend(override.aes = list(size = 6,
+                                                               alpha = 1))) +
+  theme_minimal() +
+  coord_equal() +
+        theme(axis.title.x = element_text(size = 14, color = "black", face = "italic"),
+              axis.title.y = element_blank(),
+              axis.ticks.y = element_blank(),
+              axis.text.y = element_text(size = 12, color = "black"),
+              axis.text.x = element_text(size = 10, color = "black", angle = 90, ),
+              legend.position = "bottom",
+              legend.background = element_rect(linetype = "solid", colour = "black"),
+              legend.title = element_blank(),
+              legend.key.size = unit(1, "cm"),
+              legend.text = element_text(size = 14),
+              panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank(),
+              panel.background = element_blank()
+              #plot.margin = unit(c(1,1,1,0), "cm") #set margins for saving into pdf file
+      ) +
+  coord_flip()
+  
+scoresplot
+  
+## save plot
+#ggsave(here("plots","figure_AMSTAR2_scores_v01.pdf"), width = 16, height = 12, units = "cm", scale = 2, device = cairo_pdf)
+```
+
+```{r plot combine AMSTAR2, eval = FALSE, include = FALSE}
+#Make a figure with two plots in one column and save to a pdf file
+
+## combine plots
+finalplot <- summaryplot + scoresplot + plot_layout(ncol = 1)
+finalplot
+## save combined figure
+#ggsave(here("plots","figure_AMSTAR2_2plots_v01.pdf"), width = 10, height = 16, units = "cm", scale = 2, device = cairo_pdf)
+
+```
+
+## COI statement
+
+Whether Conflict Of Interests statement is provided for individual reviews.
+
+```{r COI_statement barplot, height = 2, width = 8}
+
+t_COI_statement <-
+  mdata %>%
+  count(COI_statement) %>%
+  arrange(desc(n)) %>%
+  filter(COI_statement != "NA") #filter out NA
+
+p1 <-
+  ggplot(t_COI_statement, aes(x = COI_statement, y = n)) +
+  theme_light() +
+  theme(legend.position = "none",
+        axis.title.x = element_blank()) +
+  labs(title = expression("COI statement availability")) + #~bold(A.)~' Type and subject'
+  coord_flip() +
+  geom_col(aes(fill = COI_statement), width = 0.7) +
+  scale_y_continuous(name = "Article count")
+  
+p1
+
+```
+
+## COI present
+
+Whether potential Conflict Of Interests is acknowledged for individual reviews.
+
+```{r COI_present barplot, height = 2, width = 8}
+
+t_COI_present <- 
+  mdata %>% 
+  count(COI_present) %>% 
+  arrange(desc(n)) %>% 
+  filter(COI_present != "NA") #filter out NA
+
+p2 <- 
+  ggplot(t_COI_present, aes(x = COI_present, y = n)) +
+  theme_light() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank()) +
+  labs(title = expression("Conflict of Interest")) + #~bold(A.)~' Type and subject'
+  coord_flip()  +
+  geom_col(aes(fill = COI_present), width = 0.7) + 
+  scale_y_continuous(name = "Article count")
+p2
+```
+
+## Funding statement
+
+Whether funding statement is provided for individual reviews.
+
+```{r Funding_statement barplot, height = 2, width = 8}
+
+t_Funding_statement <- mdata %>% 
+  count(Funding_statement) %>% 
+  arrange(desc(n)) %>% 
+  filter(Funding_statement != "NA") #filter out NA
+
+p3 <- 
+  ggplot(t_Funding_statement, aes(x = Funding_statement, y = n)) +
+  theme_light() +
+  theme(legend.position = "none", axis.title.y = element_blank()) +
+  labs(title = expression("Funding statement availability")) + #~bold(A.)~' Type and subject'
+  coord_flip()  +
+  geom_col(aes(fill = Funding_statement), width = 0.7) + 
+  scale_y_continuous(name = "Article count")
+
+p3
+```
+
+## Non-profit funding acknowledged
+
+Whether funding from non-profit (NGO, government, universities, etc.) is acknowledged for individual reviews.
+
+```{r t_Nonprofit_funding barplot, height = 2, width = 8}
+mdata <- 
+  mdata %>% 
+  rename(Nonprofit_funding = "Non-profit_funding") 
+
+t_Nonprofit_funding <- 
+  mdata %>% 
+  count(Nonprofit_funding) %>% 
+  arrange(desc(n)) %>% 
+  filter(Nonprofit_funding != "NA") #filter out NA
+
+p4 <- 
+  ggplot(t_Nonprofit_funding, aes(x = Nonprofit_funding, y = n)) +
+  theme_light() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank()) +
+  labs(title = expression("Non-profit funding")) + #~bold(A.)~' Type and subject'
+  coord_flip()  +
+  geom_col(aes(fill = Nonprofit_funding), width = 0.7) + 
+  scale_y_continuous(name = "Article count")
+p4
+```
+
+## Industry funding acknowledged
+
+Whether funding from industry (including government-industry collaborations) is acknowledged for individual reviews.
+
+```{r Industry_funding barplot, height = 2, width = 8}
+
+t_Funding_industry <- mdata %>% 
+  count(Industry_funding) %>% 
+  arrange(desc(n)) %>% 
+  filter(Industry_funding != "NA") #filter out NA
+
+p5 <- 
+  ggplot(t_Funding_industry, aes(x = Industry_funding, y = n)) +
+  theme_light() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank()) +
+  labs(title = expression("Funding from industry")) + #~bold(A.)~' Type and subject'
+  coord_flip()  +
+  geom_col(aes(fill = Industry_funding), width = 0.7) + 
+  scale_y_continuous(name = "Article count")
+p5
+```
+
+## Data availability
+
+Whether extracted data is made available for individual reviews.
+
+```{r Raw_data barplot, height = 2, width = 8}
+#str(mdata)
+t_Raw_data <- 
+  mdata %>% 
+  count(Raw_data) %>% 
+  arrange(desc(n)) %>% 
+  filter(Raw_data != "NA") #filter out NA
+
+p6 <- ggplot(t_Raw_data, aes(x = Raw_data, y = n)) +
+ theme_light() +
+ theme(legend.position = "none",
+       axis.title.y = element_blank()) +
+ labs(title = expression("Data availability")) + #~bold(A.)~' Type and subject'
+ coord_flip()  +
+ geom_col(aes(fill = Raw_data), width = 0.7) + 
+ scale_y_continuous(name = "Article count")
+
+#ggsave(here("plots","figure_data_availability.pdf"), width = 4, height = 3, units = "cm", scale = 2, device = cairo_pdf)
+p6
+```
+
+## Code availability
+
+Whether code for analyses is made available for individual reviews.
+
+```{r Analysis_code barplot, height = 2, width = 8}
+
+t_Analysis_code <- 
+  mdata %>% 
+  count(Analysis_code) %>% 
+  arrange(desc(n)) %>% 
+  filter(Analysis_code != "NA") #filter out NA
+
+p7 <- ggplot(t_Analysis_code, aes(x = Analysis_code, y = n)) +
+ theme_light() +
+ theme(legend.position = "none",
+       axis.title.y = element_blank()) +
+ labs(title = expression("Analysis code availability")) + #~bold(A.)~' Type and subject'
+ coord_flip()  +
+ geom_col(aes(fill = Analysis_code), width = 0.7) + 
+ scale_y_continuous(name = "Article count")
+p7
+```
+
+# Objective 3
+**Bibliometrics**: How is synthesized PFAS evidence connected?
+
+## Circular plot 1
+
+The following plot shows the network of collaborations among and within countries
+```{r, echo = FALSE, results = 'hide'}
+NetMatrix2 <- biblioNetwork(bib2, 
+                            analysis = "collaboration",
+                            network = "countries", 
+                            sep = ";")
+
+net_matrix2 <- as.matrix(NetMatrix2)
+
+#net_matrix2 <- net_matrix2[rownames(NetMatrix2), countries]
+#diag(net_matrix2) <- 0 #get rid of collaboration with same country
+
+#net_matrix2
+
+# getting rid of lower triangle (as this is duplication of info)
+net_matrix2[lower.tri(net_matrix2)] <- 0 
+#colnames(net_matrix2) - change to title case:
+colnames(net_matrix2) <- str_to_title(colnames(net_matrix2))
+#rownames(net_matrix2) - change to title case:
+rownames(net_matrix2) <- str_to_title(rownames(net_matrix2))
+#Fix "Usa" to "USA" :
+colnames(net_matrix2)[colnames(net_matrix2) == "Usa"] <- "USA"
+rownames(net_matrix2)[rownames(net_matrix2) == "Usa"] <- "USA"
+#change "UNITED KINGDOM" to "UK" for easier plotting:
+colnames(net_matrix2)[colnames(net_matrix2) == "United Kingdom"] <- "UK"
+rownames(net_matrix2)[rownames(net_matrix2) == "United Kingdom"] <- "UK"
+
+circos.clear()
+
+my.cols2 <- c(USA = "#00FFFF",
+              China = "#89CFF0",
+              Spain = "#7393B3", 
+              Denmark = "#088F8F", 
+              Italy = "#9FE2BF",
+              France = "#EADDCA",
+              Sweden = "#E1C16E",
+              Canada = "#CD7F32", 
+              Norway = "#A52A2A",
+              UK = "#DAA06D", 
+              Korea = "#800020", 
+              Greece = "#E97451", 
+              Germany = "#F0E68C",
+              Australia = "#808000", 
+              Brazil = "#FFAC1C", 
+              Finland = "#E3963E",
+              Austria = "#FBCEB1", 
+              Belgium = "#FFC000", 
+              Malaysia = "#F4BB44",
+              Netherlands = "#FFE5B4", 
+              Poland = "#FF4433",
+              Switzerland = "#FA8072",
+              Romania = "#FFF5EE",
+              Slovenia = "#9F2B68",
+              Uganda = "#DE3163",
+              Cyprus = "#811331",
+              Hong_Kong = "#DC143C",
+              Japan = "#AA336A", 
+              Czech_Republic = "#C9A9A6", 
+              Ghana = "#FF69B4",
+              Hungary = "#673147", 
+              India = "#E30B5C", 
+              Israel = "#D8BFD8", 
+              Kenya = "#DA70D6",
+              Luxembourg = "#770737",
+              Mexico = "#E0B0FF",
+              Monaco = "#CCCCFF", 
+              Portugal = "#A95C68", 
+              Saudi_Arabia = "#51414F", 
+              Singapore = "#BDB5D5", 
+              Slovakia = "#FAF9F6",
+              South_Africa = "#EEDC82", 
+              Tanzania = "#DAA520", 
+              Zimbabwe = "#F0E68C")
+
+colnames(net_matrix2)[colnames(net_matrix2) == "Hong Kong"] <- "Hong_Kong"
+rownames(net_matrix2)[rownames(net_matrix2) == "Hong Kong"] <- "Hong_Kong"
+colnames(net_matrix2)[colnames(net_matrix2) == "Czech Republic"] <- "Czech_Republic"
+rownames(net_matrix2)[rownames(net_matrix2) == "Czech Republic"] <- "Czech_Republic"
+colnames(net_matrix2)[colnames(net_matrix2) == "Saudi Arabia"] <- "Saudi_Arabia"
+rownames(net_matrix2)[rownames(net_matrix2) == "Saudi Arabia"] <- "Saudi_Arabia"
+colnames(net_matrix2)[colnames(net_matrix2) == "South Africa"] <- "South_Africa"
+rownames(net_matrix2)[rownames(net_matrix2) == "South Africa"] <- "South_Africa"
+
+
+
+fig1 <- chordDiagram(net_matrix2,
+               annotationTrack = "grid",
+               preAllocateTracks = 1, 
+               grid.col = my.cols2
+  )
+
+
+circos.trackPlotRegion(track.index = 1, 
+                       panel.fun = function(x, y) {
+  xlim = get.cell.meta.data("xlim")
+  ylim = get.cell.meta.data("ylim")
+  sector.name = get.cell.meta.data("sector.index")
+  circos.text(mean(xlim),
+              ylim[1] + 0.1, 
+              sector.name, 
+              facing = "clockwise", 
+              niceFacing = TRUE,
+              adj = c(0, 0.5),
+              cex = 0.6)
+  #circos.axis(h = FALSE, 
+              #major.at = NULL, 
+              #labels.cex = 0.6,
+              #minor.ticks = FALSE,
+             # major.tick.length = NULL, 
+              #sector.index = sector.name,
+              #track.index = 2,
+              #labels.pos.adjust = TRUE)
+},
+bg.border = NA)
+
+fig1
+```
+
+## Circular plot 2
+
+The following plot is the same of the previous one but with less countries - it only shows the most active countries
+
+```{r, echo = FALSE, results = 'hide'}
+net_matrix2 <- net_matrix2[-c(44 : 32), -c(44 : 32)]
+net_matrix2 <- net_matrix2[-c(30, 29, 25, 23), -c(30, 29, 25, 23)]
+net_matrix2 <- net_matrix2[-c(27), -c(27)]
+
+#pdf(here("R", "Country collabs_1.pdf"), width = 10, height = 10)
+fig2 <- chordDiagram(net_matrix2,
+               annotationTrack = "grid",
+               preAllocateTracks = 1, 
+               grid.col = my.cols2
+  )
+
+
+circos.trackPlotRegion(track.index = 1, 
+                       panel.fun = function(x, y) {
+  xlim = get.cell.meta.data("xlim")
+  ylim = get.cell.meta.data("ylim")
+  sector.name = get.cell.meta.data("sector.index")
+  circos.text(mean(xlim),
+              ylim[1] + 0.1, 
+              sector.name, 
+              facing = "clockwise", 
+              niceFacing = TRUE,
+              adj = c(0, 0.5),
+              cex = 0.6)
+  #circos.axis(h = FALSE, 
+              #major.at = NULL, 
+              #labels.cex = 0.6,
+              #minor.ticks = FALSE,
+             # major.tick.length = NULL, 
+              #sector.index = sector.name,
+              #track.index = 2,
+              #labels.pos.adjust = TRUE)
+},
+bg.border = NA)
+#title("Country collaborations", font.main = 1, cex.main = 1.8)
+
+#dev.off()
+
+fig2
+```
+
+## Circular plot 3
+
+The following plot shows the network of collaborations among in countries - collaboration within the same country removed
+
+```{r}
+net_matrix3 <- net_matrix2
+diag(net_matrix3) <- 0 #get rid of collaboration with same country
+
+fig3 <- chordDiagram(net_matrix3,
+               annotationTrack = "grid",
+               preAllocateTracks = 1, 
+               grid.col = my.cols2
+  )
+
+
+circos.trackPlotRegion(track.index = 1, 
+                       panel.fun = function(x, y) {
+  xlim = get.cell.meta.data("xlim")
+  ylim = get.cell.meta.data("ylim")
+  sector.name = get.cell.meta.data("sector.index")
+  circos.text(mean(xlim),
+              ylim[1] + 0.1, 
+              sector.name, 
+              facing = "clockwise", 
+              niceFacing = TRUE,
+              adj = c(0, 0.5),
+              cex = 0.6)
+  #circos.axis(h = FALSE, 
+              #major.at = NULL, 
+              #labels.cex = 0.6,
+              #minor.ticks = FALSE,
+             # major.tick.length = NULL, 
+              #sector.index = sector.name,
+              #track.index = 2,
+              #labels.pos.adjust = TRUE)
+},
+bg.border = NA)
+#title("Country collaborations", font.main = 1, cex.main = 3, adj = 0.5, line = -1)
+
+fig3
+```
