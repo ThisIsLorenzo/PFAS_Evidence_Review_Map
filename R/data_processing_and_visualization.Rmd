@@ -1,7 +1,7 @@
 ---
 title: "Code_pilot"
-author: "M.Lagisz"
-date: "23/09/2021"
+author: "L. Ricolfi"
+date: "25/11/2022"
 output:
   html_document: default
   pdf_document: default
@@ -9,29 +9,27 @@ editor_options:
   chunk_output_type: console
 ---
 
-# Supplementary Material - pilot data processing and visualization
+In this Rmarkdown document I provide the workflow and code for the 3 objects of my Evidence Review Map and Bibliometric analysis (Chapter 1 of my thesis)
 
-## PFAS exposure of humans, animals and the environment: protocol of an evidence review map and bibliometric analysis
+# Information on the project and its objectives
 
-In this Rmarkdown document we provide preliminary workflow and code for:
+Project title: PFAS exposure of humans, animals and environmental compartments: an evidence review map and bibliometric analysis
 
--   **Objective 1. Mapping: What evidence on PFAS has been synthesized?** We aim to reveal what areas in the realm of PFAS health-related and environmental research have been synthesized the most and where syntheses of evidence are lacking.
+-   **Objective 1. Mapping: What evidence on PFAS has been synthesized?** I aim to reveal what areas in the realm of PFAS health-related and environmental research have been synthesized the most and where syntheses of evidence are lacking.
 
--   **Objective 2. Critical appraisal: How robust are syntheses of PFAS evidence?** We will examine the included syntheses for their reporting quality and potential biases, in order to assess reliability of reviews' conclusions, reveal syntheses that should be re-done, and highlight the aspects of review methodology that need to be improved.
+-   **Objective 2. Critical appraisal: How robust are syntheses of PFAS evidence?** I will examine the included syntheses for their reporting quality and potential biases, in order to assess reliability of reviews' conclusions, reveal syntheses that should be re-done, and highlight the aspects of review methodology that need to be improved.
 
--   **Objective 3. Bibliometrics: How is synthesized PFAS evidence connected?** We will examine which countries and institutions are mostly involved in secondary PFAS research and what do the networks between these institutions look like.
+-   **Objective 3. Bibliometrics: How is synthesized PFAS evidence connected?** I will examine which countries and institutions are mostly involved in secondary PFAS research and what do the networks between these institutions look like.
 
--   **Cross-Objective Insights:** We will investigate how review type, indicators of review quality or transparency are related other review properties, such as publication date, main review topic and subject, etc.
+**Note:** The code and all created outputs are based on a pilot set of data extracted from only 8 papers that fulfilled our inclusion criteria during the piloting stage.
 
-**Note:** The code and all created outputs are based on a pilot set of data extracted from only 8 papers that fulfilled our inclusion criteria during the piloting stage. The code will need to be adjusted and expanded for the final data set (e.g., additional data cleaning steps or adjustments to the plot styling and contents). These changes will be documented via tracking on GitHub.
+## Setup
 
-R code processing messages and warnings are suppressed from the output document.
-
-### Setup
-
-Set global code chunk parameters and load packages.
+Set global code chunk parameters, load packages, and set a colorblind-friendly palette.
 
 ```{r setup, include = TRUE}
+
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 library(tidyverse)
 library(here)
@@ -57,35 +55,30 @@ cbp1 <- c("#999999",
           "#0072B2",
           "#D55E00",
           "#CC79A7")
-
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
-
 ```
 
 ## Load pilot data
 
 Manually extracted pilot data is stored in four separate **.csv** files representing different aspects of the data (extracted via structured predefined Google Forms - one per table). Additional fixed table stores pre-extracted data on PFAS types included in this map.
 
-Bibliographic data records are exported from Scopus (including cited references field) in .bib format and locally saved as **scopus.bib**. the pilot version of this file only includes bibliographic information of 'systeamtic review family'-like reviews included in Objectives 1 and 2. In the actual work bibliographic information will be expanded to all reviews on PFAS exposure in humans, animals and the environment.
-
-The study identity (authors, title) has been obscured in the pilot data extraction file. It will be public in the final data extraction files.
+Bibliographic data records are exported from Scopus (including cited references field) in .bib format and locally saved as **scopus.bib** and **scopus2.bib**.
 
 ```{r load pilot data}
 
 # Data from .csv file - main data sheet
 mdata <- read_csv(here("data","ReviewMap_PFAS_main.csv"), skip = 0)
-#dim(mdata) #176 rows 38 columns
+#dim(mdata) #175 rows 38 columns
 
 # Data from .csv file - Species_info sheet
 spdata <- read_csv(here("data","ReviewMap_PFAS_species.csv"), skip = 0) 
-#dim(spdata) #428 rows 4 columns
+#dim(spdata) #145 rows 5 columns
 
 # Data from .csv file - PFAS_types sheet:
 ptdata <- read_csv(here("data","ReviewMap_PFAS_types.csv"), skip = 0) 
-#dim(ptdata) #175 rows 5 columns
-# change to long format (one type per row - one or multple rows per study):
+#dim(ptdata) #145 rows 5 columns
+# change to long format (one type per row - one or multiple rows per study):
 ptdata <- ptdata %>% separate_rows(PFAS_type, sep=', ')
-#dim(ptdata) #817 rows 3 columns
+#dim(ptdata) #608 rows 5 columns
 
 # Data from .csv file - PFAS_info sheet:
 pidata <- read_csv(here("data","PFAS_info.csv"), skip = 0) 
@@ -93,18 +86,20 @@ pidata <- read_csv(here("data","PFAS_info.csv"), skip = 0)
 
 # Critical apprisal(AMSTAR2) from .csv file:
 qdata <- read_csv(here("data", "ReviewMap_PFAS_quality.csv"), skip = 0)
-#dim(qdata) #140 rows 36 columns
+#dim(qdata) #107 rows 36 columns
 
 #Bibliometric data of included papers (with references) dwonloaded from Scopus in .bib format:
 bib_sco <- convert2df(here("data","scopus.bib"), dbsource = "scopus", format = "bibtex")
-#dim(bib_sco) #8 rows 33 columns
+#dim(bib_sco) #167 rows 33 columns
 
 #Extra four studies founded searching on Scopus using the DOIs:
 bib_sco2 <- convert2df(here("data","scopus2.bib"), dbsource = "scopus", format = "bibtex")
+#dim(bib_sco2) #4 rows 32 columns
 
 #Merging the two .bib files:
 bib_sco3 <- 
   bind_rows(bib_sco, bib_sco2)
+#dim(bib_sco3) #171 rows 33 columns
 ```
 
 ## Merge data stored across tables
@@ -113,30 +108,30 @@ The data stored across multiple flat spreadsheets needs merged for some of the a
 
 ```{r merge data}
 
-## Prepare - remove columns starting with "Checked" 
-# (info on data checking - these fields will be present in the final extraction sheet), 
-# also remove any other redundand columns:
+# Remove columns ending with "checked" 
+# Remove "Timestamp" columns
+# Remove columns starting with "Initials"
 mdata <- 
   mdata %>%
   select(-ends_with("checked")) %>%
   select(-("Timestamp")) %>%
   select(-starts_with("Initials"))
-#dim(mdata) #176 rows 35 columns
+#dim(mdata) #175 rows 35 columns
 #remove last two rows because empty
 mdata <- 
   mdata %>%
   slice(1:174)
-#dim(mdata) #174 rows 35 columns
+#dim(mdata) #173 rows 35 columns
 spdata <- 
   spdata %>%
   select(-ends_with("checked"))
-#dim(spdata) #428 rows 4 columns
+#dim(spdata) #145 rows 5 columns
 ptdata <- 
   ptdata %>%
   select(-ends_with("checked")) %>%
   select(-("Timestamp")) %>%
   select(-starts_with("Initials"))
-#dim(ptdata) #174 rows 3 columns
+#dim(ptdata) #608 rows 3 columns
 
 ## Merge main data with species info
 mspdata <- left_join(mdata, spdata, by = "Study_ID")
@@ -172,7 +167,9 @@ knitr::kable(select(mdata, Study_ID,	Author_year,	Paper_title), caption = "Table
 
 ```
 
-------------------------------------------------------------------------
+## ------------------------------------------------------------------------
+
+## ------------------------------------------------------------------------
 
 ## Objective 1. Mapping: What evidence on PFAS has been synthesized?
 
@@ -547,17 +544,6 @@ p_PFAStype
 
 ```
 
-
-```{r}
-
-```
-
-
-
-
-
-
-
 ### How many species and which ones
 
 ```{r species focus one_many barplot, height = 4, width = 8}
@@ -673,11 +659,9 @@ mspdata %>%
 
 ```
 
-------------------------------------------------------------------------
-------------------------------------------------------------------------
-------------------------------------------------------------------------
-------------------------------------------------------------------------
-------------------------------------------------------------------------
+## ------------------------------------------------------------------------
+
+## ------------------------------------------------------------------------
 
 ## Objective 2. Critical appraisal: How robust are syntheses of PFAS evidence?
 
@@ -1033,23 +1017,26 @@ p7 <- ggplot(t_Analysis_code, aes(x = Analysis_code, y = n)) +
 ```
 
 ### Plots combined - COI
-```{r plots combined}
+
+```{r, plots combined 1}
 (p1+p2)
 ```
+
 ### Plots combined - Funding
-```{r plots combined}
+
+```{r, plots combined 2}
 (p3)/(p4+p5)
 ```
+
 ### Plots combined - Data and Code availability
-```{r plots combined}
+
+```{r, plots combined 3}
 (p6+p7)
 ```
 
-------------------------------------------------------------------------
-------------------------------------------------------------------------
-------------------------------------------------------------------------
-------------------------------------------------------------------------
-------------------------------------------------------------------------
+## ------------------------------------------------------------------------
+
+## ------------------------------------------------------------------------
 
 ## Objective 3. Bibliometrics: How is synthesized PFAS evidence connected?
 
@@ -1164,7 +1151,7 @@ NetMatrix_authors_plot <-
 
 Links between countries, based on the institutional affiliations of the review authors.
 
-```{r country collaboration network}
+```{r country collaboration network 1}
 
 #pdf(file="./plots/figure_country_collaboration_network.pdf",width = 4, height = 4, pointsize = 12, family = "Helvetica", fonts = c("Helvetica"))
 #par(mfrow=c(1,1), mar=c(2,3,2,3))
@@ -1193,7 +1180,8 @@ NetMatrix_country_plot <-
 #dev.off()
 
 ```
-```{r country collaboration network}
+
+```{r country collaboration network 2}
 NetMatrix_country_plot2 <- 
   networkPlot(NetMatrix_country,
               n = dim(NetMatrix_country)[1], 
@@ -1230,7 +1218,7 @@ cbind(CR$Cited[1:10]) #ten most cited authors
 
 ### Article (References) co-citation analysis
 
-```{r bibliometrix co-citation network, eval = TRUE, warning = FALSE}
+```{r bibliometrix co-citation network 1, eval = TRUE, warning = FALSE}
 
 # classical article coupling network: Citation network
 NetMatrix_cocitation <- 
@@ -1240,7 +1228,7 @@ NetMatrix_cocitation <-
                 sep = "; ")
 
 NetMatrix_cocitation_plot <- 
-  networkPlot(NetMatrix_coupling, 
+  networkPlot(NetMatrix_cocitation, 
               n = 30, 
               Title = "Co-citation Network", 
               type = "fruchterman", 
@@ -1256,7 +1244,7 @@ NetMatrix_cocitation_plot <-
 
 Currently not enough papers to create this network plot.
 
-```{r bibliometrix co-citation network, eval = TRUE, warning = FALSE}
+```{r bibliometrix co-citation network 2, eval = TRUE, warning = FALSE}
 
 histResults <- 
   histNetwork(bib_sco, 
