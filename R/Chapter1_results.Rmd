@@ -22,13 +22,13 @@ The results are organized in 3 objectives.
 
 # Project's objectives
 
--   **Objective 1.** 
+-   **Objective 1** 
 Mapping: What evidence on PFAS has been synthesized? I aim to reveal what areas in the realm of PFAS health-related and environmental research have been synthesized the most and where syntheses of evidence are lacking.
 
--   **Objective 2.** 
+-   **Objective 2** 
 Critical appraisal: How robust are syntheses of PFAS evidence? I will examine the included syntheses for their reporting quality and potential biases, in order to assess reliability of reviews' conclusions, reveal syntheses that should be re-done, and highlight the aspects of review methodology that need to be improved.
 
--   **Objective 3.** 
+-   **Objective 3** 
 Bibliometrics: How is synthesized PFAS evidence connected? I will examine which countries and institutions are mostly involved in secondary PFAS research and what do the networks between these institutions look like.
 
 ```{r setup, include = TRUE}
