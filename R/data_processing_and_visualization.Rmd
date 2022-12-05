@@ -1321,3 +1321,97 @@ heatmap(t2, Colv = NA, Rowv = NA, scale="column", col=heat.colors(12, rev=TRUE, 
 #heatmap(t2, Colv = NA, Rowv = NA, scale="column", RowSideColors = rc, ColSideColors = cc, margins = c(15, 25)) #heatmap
 
 ```
+
+
+
+
+
+
+
+
+
+
+
+# Tries
+
+Subject & Reporting guidelines
+```{r}
+library(webr)
+
+colnames(mdata)[which(names(mdata) == "Human_animal_environment")] <- "Subject"
+
+pd = mdata %>% 
+  group_by(Subject, Reporting_guideline) %>% 
+  drop_na(N_studies) %>% 
+  filter(Subject != "Plants") %>% # Rremove plants subject
+  summarise(n = sum(N_studies))
+
+PieDonut(pd,  aes(Subject, Reporting_guideline, count = n),
+         labelposition = 0,
+         r0 = 0.5,
+         r1 = 0.95,
+         title = "Reporting guidelines",
+         titlesize = 5,
+         pieLabelSize = 3,
+         donutLabelSize = 2.5
+         )
+```
+
+Subject & COI statement
+
+```{r}
+pd = mdata %>% 
+  group_by(Subject, COI_statement) %>% 
+  drop_na(N_studies) %>% 
+  filter(Subject != "Plants") %>% # Rremove plants subject
+  summarise(n = sum(N_studies))
+
+PieDonut(pd,  aes(Subject, COI_statement, count = n),
+         labelposition = 0,
+         r0 = 0.5,
+         r1 = 0.95,
+         title = "COI statement",
+         titlesize = 5,
+         pieLabelSize = 3,
+         donutLabelSize = 3
+         )
+```
+
+Subject & Funding statement
+```{r}
+pd = mdata %>% 
+  group_by(Subject, Funding_statement) %>% 
+  drop_na(N_studies) %>% 
+  filter(Subject != "Plants") %>% # Rremove plants subject
+  summarise(n = sum(N_studies))
+
+PieDonut(pd,  aes(Subject, Funding_statement, count = n),
+         labelposition = 0,
+         r0 = 0.5,
+         r1 = 0.95,
+         title = "Funding statement",
+         titlesize = 5,
+         pieLabelSize = 3,
+         donutLabelSize = 3
+         )
+```
+
+Subject & Industry funding
+```{r}
+pd = mdata %>% 
+  group_by(Subject, Industry_funding) %>% 
+  drop_na(N_studies, Industry_funding) %>% 
+  filter(Subject != "Plants") %>% # Rremove plants subject
+  summarise(n = sum(N_studies))
+
+PieDonut(pd,  aes(Subject, Industry_funding, count = n),
+         labelposition = 0,
+         r0 = 0.5,
+         r1 = 0.95,
+         title = "Industry funding",
+         titlesize = 5,
+         pieLabelSize = 3,
+         donutLabelSize = 3
+         )
+```
+
