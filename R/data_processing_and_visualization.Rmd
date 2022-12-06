@@ -25,36 +25,27 @@ Project title: PFAS exposure of humans, animals and environmental compartments: 
 
 ## Setup
 
-Set global code chunk parameters, load packages, and set a colorblind-friendly palette.
+Set global code chunk parameters and load packages.
 
 ```{r setup, include = TRUE}
 
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+knitr::opts_chunk$set(echo = TRUE, 
+                      message = FALSE, 
+                      warning = FALSE)
 
-library(tidyverse)
-library(here)
-library(stringr)
-library(knitr)
-library(formatR)
-library(forcats)
-library(ggplot2)
-library(hrbrthemes) #for ggplot2
-library(patchwork) #for ggplot2
-library(bibliometrix)
-library(igraph)
-library(xtable)
-library(kableExtra)
-library(patchwork)
-
-#Use a colorblind-friendly palette:
-cbp1 <- c("#999999",
-          "#E69F00",
-          "#56B4E9",
-          "#009E73",
-          "#F0E442",
-          "#0072B2",
-          "#D55E00",
-          "#CC79A7")
+pacman::p_load(tidyverse,
+               here,
+               stringr,
+               knitr,
+               formatR,
+               forcats,
+               ggplot2,
+               hrbrthemes,#for ggplot2
+               patchwork, #for ggplot2
+               bibliometrix,
+               igraph,
+               xtable,
+               kableExtra)
 ```
 
 ## Load pilot data
@@ -63,8 +54,25 @@ Manually extracted pilot data is stored in four separate **.csv** files represen
 
 Bibliographic data records are exported from Scopus (including cited references field) in .bib format and locally saved as **scopus.bib** and **scopus2.bib**.
 
-```{r load pilot data}
+```{r load bibliometric data, eval=FALSE}
+#Bibliometric data of included papers (with references) dwonloaded from Scopus in .bib format:
+bib_sco <- convert2df(here("data","scopus.bib"), dbsource = "scopus", format = "bibtex")
+#dim(bib_sco) #167 rows 33 columns
 
+#Extra four studies founded searching on Scopus using the DOIs:
+bib_sco2 <- convert2df(here("data","scopus2.bib"), dbsource = "scopus", format = "bibtex")
+#dim(bib_sco2) #4 rows 32 columns
+
+#Merging the two .bib files:
+bib_data <- 
+  bind_rows(bib_sco, bib_sco2)
+#dim(bib_sco3) #171 rows 33 columns
+
+#Save the combined bibliometric data
+write.csv(bib_data, file = "~/PhD/GitHub/PFAS_Systematic_MetaReview_Map/data/bib_data.csv")
+```
+
+```{r load all data}
 # Data from .csv file - main data sheet
 mdata <- read_csv(here("data","ReviewMap_PFAS_main.csv"), skip = 0)
 #dim(mdata) #175 rows 38 columns
@@ -88,18 +96,15 @@ pidata <- read_csv(here("data","PFAS_info.csv"), skip = 0)
 qdata <- read_csv(here("data", "ReviewMap_PFAS_quality.csv"), skip = 0)
 #dim(qdata) #107 rows 36 columns
 
-#Bibliometric data of included papers (with references) dwonloaded from Scopus in .bib format:
-bib_sco <- convert2df(here("data","scopus.bib"), dbsource = "scopus", format = "bibtex")
-#dim(bib_sco) #167 rows 33 columns
+#Combined bibliometric data
+bib_data <- read_csv(here("data", "bib_data.csv"), skip = 0)
+```
 
-#Extra four studies founded searching on Scopus using the DOIs:
-bib_sco2 <- convert2df(here("data","scopus2.bib"), dbsource = "scopus", format = "bibtex")
-#dim(bib_sco2) #4 rows 32 columns
 
-#Merging the two .bib files:
-bib_sco3 <- 
-  bind_rows(bib_sco, bib_sco2)
-#dim(bib_sco3) #171 rows 33 columns
+
+
+
+```{r load data}
 ```
 
 ## Merge data stored across tables
@@ -1337,13 +1342,13 @@ heatmap(t2, Colv = NA, Rowv = NA, scale="column", col=heat.colors(12, rev=TRUE, 
 Subject & Reporting guidelines
 ```{r}
 library(webr)
+library(ggpubr)
 
 colnames(mdata)[which(names(mdata) == "Human_animal_environment")] <- "Subject"
 
 pd1 = mdata %>% 
   group_by(Subject, Reporting_guideline) %>% 
   drop_na(N_studies) %>% 
-  filter(Subject != "Plants") %>% # Rremove plants subject
   summarise(n = sum(N_studies))
 
 PieDonut1 <-  PieDonut(pd1,  aes(Subject, Reporting_guideline, count = n),
@@ -1353,7 +1358,9 @@ PieDonut1 <-  PieDonut(pd1,  aes(Subject, Reporting_guideline, count = n),
          title = "Reporting guidelines",
          titlesize = 5,
          pieLabelSize = 3,
-         donutLabelSize = 2.5
+         donutLabelSize = 2.5,
+         explode = c(1,2),
+         explodeDonut = TRUE
          )
 ```
 
@@ -1363,7 +1370,6 @@ Subject & COI statement
 pd2 = mdata %>% 
   group_by(Subject, COI_statement) %>% 
   drop_na(N_studies) %>% 
-  filter(Subject != "Plants") %>% # Rremove plants subject
   summarise(n = sum(N_studies))
 
 PieDonut2 <-  PieDonut(pd2,  aes(Subject, COI_statement, count = n),
@@ -1373,7 +1379,9 @@ PieDonut2 <-  PieDonut(pd2,  aes(Subject, COI_statement, count = n),
          title = "COI statement",
          titlesize = 5,
          pieLabelSize = 3,
-         donutLabelSize = 3
+         donutLabelSize = 3,
+         explode = c(1,2),
+         explodeDonut=TRUE
          )
 ```
 
@@ -1395,7 +1403,11 @@ PieDonut3 <-  PieDonut(pd3,  aes(Subject, COI_present, count = n),
          donutLabelSize = 3
          )
 
-(PieDonut2 / PieDonut3)
+(PieDonut2 | PieDonut3)
+
+ggarrange(
+  PieDonut2, PieDonut3, ncol = 2, nrow = 1
+)
 ```
 
 Subject & Funding statement
