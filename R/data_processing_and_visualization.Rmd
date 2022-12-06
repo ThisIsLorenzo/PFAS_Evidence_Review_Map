@@ -100,13 +100,6 @@ qdata <- read_csv(here("data", "ReviewMap_PFAS_quality.csv"), skip = 0)
 bib_data <- read_csv(here("data", "bib_data.csv"), skip = 0)
 ```
 
-
-
-
-
-```{r load data}
-```
-
 ## Merge data stored across tables
 
 The data stored across multiple flat spreadsheets needs merged for some of the analyses.
@@ -172,9 +165,7 @@ knitr::kable(select(mdata, Study_ID,	Author_year,	Paper_title), caption = "Table
 
 ```
 
-## ------------------------------------------------------------------------
-
-## ------------------------------------------------------------------------
+# -----------------------------------------------------------------------
 
 ## Objective 1. Mapping: What evidence on PFAS has been synthesized?
 
@@ -191,30 +182,30 @@ t_PFASfocus <-
   filter(PFAS_focus != "NA") #filter out NA
 
 #Use a colorblind-friendly palette:
-cbp1 <- c("#999999",
+cbp1 <- c("#56B4E9",
           "#E69F00",
-          "#56B4E9",
-          "#009E73",
-          "#F0E442",
-          "#0072B2",
-          "#D55E00",
-          "#CC79A7")
+          "#999999")
 
 PFAS_focus <-
-  ggplot(t_PFASfocus, aes(x = PFAS_focus, y = n)) +
+  ggplot(t_PFASfocus, aes(x = PFAS_focus, 
+                          y = n)) +
   theme_light() +
-  labs(title = expression("PFAS focus")) + #~bold(A.)~' Type and subject'
+  labs(title = expression("Is the review focused on PFAS?")) + #~bold(A.)~' Type and subject'
   coord_flip() +
   scale_fill_brewer() +
-  guides(fill=guide_legend(title="PFAS:")) + 
-  geom_col(aes(fill = fct_relevel(PFAS_one_many, c("Not specified", "Multiple", "One"))), width = 0.5) + 
+  guides(fill=guide_legend(title="How many PFAS types:")) + 
+  geom_col(aes(fill = fct_relevel(PFAS_one_many, c("Not specified",
+                                                   "Multiple",
+                                                   "One"))), width = 0.5) + 
   scale_y_continuous(name = "Article count") +
-  scale_fill_manual(values=cbp1, breaks=c('One', 'Multiple', 'Not specified')) +
+  scale_fill_manual(values=cbp1, breaks=c('One', 
+                                          'Multiple',
+                                          'Not specified')) +
   theme_light() +
   theme(legend.position = "bottom",
        legend.box.background = element_rect(colour = "black"), 
        legend.title = element_text(size=10),
-       legend.text=element_text(size = 10), 
+       legend.text = element_text(size = 10), 
        axis.title.x = element_text(size = 10),
        axis.title.y = element_blank(),
        legend.background = element_blank())
@@ -242,7 +233,8 @@ PFAS_levels_order <-
   t_PFAStype$PFAS_type[order(t_PFAStype$n, decreasing = FALSE)] #save for another plot
 
 # simple barplot with PFAS types
-ggplot(t_PFAStype, aes(x = PFAS_type, y = n)) +
+PFAS_types <- ggplot(t_PFAStype, aes(x = PFAS_type,
+                       y = n)) +
   geom_col(aes(fill = ""), width = 0.7) +
   theme_light() +
   labs(title = expression("PFAS types reviewed")) + #~bold(A.)~' Type and subject'
@@ -254,6 +246,7 @@ ggplot(t_PFAStype, aes(x = PFAS_type, y = n)) +
         axis.title.y = element_blank(),
         axis.text.y = element_text(size = 7))
 
+PFAS_types
 
 #ggsave(here("plots","figure_PFAS_types.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
 
@@ -318,8 +311,9 @@ ggplot(MeSH_headings_counts[1:10, ], aes(x = MeSH_headings, y = n)) +
   scale_y_continuous(name = "Article count") +
   scale_fill_manual(values = c("#919191")) +
   theme(legend.position = "none",
-        axis.title.x = element_text(size = 11),
-        axis.title.y = element_blank())
+        axis.title.x = element_text(size = 13),
+        axis.title.y = element_blank(),
+        axis.text = element_text(size = 10))
 
 #ggsave(here("plots","figure_MeSH_headings.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
 ```
@@ -342,19 +336,21 @@ MESH_qualifiers_order <-
   MeSH_qualifiers_counts$MeSH_qualifiers[order(MeSH_qualifiers_counts$n, decreasing = FALSE)] #save for the next plot
 
 # simple barplot with MESH qualifiers
-ggplot(MeSH_qualifiers_counts[, ], aes(x = MeSH_qualifiers, y = n)) +
-  geom_col(aes(fill = ""), width = 0.9, position = 'dodge') +
-  geom_text(aes(label = n),
-            position = position_dodge2(width = 2), vjust= 0.5) +
+ggplot(MeSH_qualifiers_counts[, ], aes(x = MeSH_qualifiers,
+                                       y = n)) +
+  geom_col(aes(fill = ""), 
+           width = 0.9,
+           position = 'dodge') +
   theme_light() +
   labs(title = expression("MeSH qualifiers reviewed")) + #~bold(A.)~' Type and subject'
   coord_flip() +
-  scale_y_continuous(name = "Article count") +
+  scale_y_continuous(name = "Article count",
+                     expand = c(0,0)) +
   scale_fill_manual(values = c("#919191")) +
   theme(legend.position = "none",
-        axis.title.x = element_text(size = 10),
+        axis.title.x = element_text(size = 13),
         axis.title.y = element_blank(),
-        axis.text = element_text(size = 7))
+        axis.text = element_text(size = 10))
 #ggsave(here("plots","figure_MeSH_qualifiers.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
 ```
 
@@ -381,11 +377,13 @@ ggplot(t_subject, aes(x = Human_animal_environment, y = n)) +
   theme_light() +
   labs(title = expression("Main subjects reviewed")) + #~bold(A.)~' Type and subject'
   coord_flip()+
-  scale_y_continuous(name = "Article count") +
+  scale_y_continuous(name = "Article count",
+                     expand = c(0,0)) +
   scale_fill_manual(values = c("#919191")) +
   theme(legend.position = "none",
         axis.title.x = element_text(size = 10),
-        axis.title.y = element_blank())
+        axis.title.y = element_blank(),
+        axis.text = element_text(size = 10))
 
 #ggsave(here("plots","figure_subjects.pdf"), width = 4, height = 2, units = "cm", scale = 2, device = cairo_pdf)
 ```
@@ -417,10 +415,16 @@ tmeshby2 <-
 
 #create a MeSH dataframe with three columns: terms, headings, qualifiers
 t_MESHby2 <-
-  bind_cols(t_MESHby$Human_animal_environment, tmeshby, tmeshby2[,1], tmeshby2[,2])
+  bind_cols(t_MESHby$Human_animal_environment,
+            tmeshby, 
+            tmeshby2[,1], 
+            tmeshby2[,2])
 
 colnames(t_MESHby2) <-
-  c("Subject", "MeSH_terms", "MeSH_headings", "MeSH_qualifiers")
+  c("Subject", 
+    "MeSH_terms", 
+    "MeSH_headings", 
+    "MeSH_qualifiers")
 #str(t_MESHby2)
 
 t_topic_subject <-
@@ -431,13 +435,26 @@ t_topic_subject <-
   filter(MeSH_qualifiers != "") #filter out NA
 
 t_topic_subject$Subject <-
-  factor(t_topic_subject$Subject, levels = subjects_levels_order) #use order from the previous graph
+  factor(t_topic_subject$Subject, 
+         levels = subjects_levels_order) #use order from the previous graph
 
 t_topic_subject$MeSH_qualifiers <-
-  factor(t_topic_subject$MeSH_qualifiers, levels = MESH_qualifiers_order) #use order from the previous graph
+  factor(t_topic_subject$MeSH_qualifiers, 
+         levels = MESH_qualifiers_order) #use order from the previous graph
 #str(t_topic_subject)
 
-ggplot(t_topic_subject, aes(x = MeSH_qualifiers, y = n)) +
+#Set palette
+cbp2 <- c("#56B4E9",
+          "#E69F00",
+          "#F0E442",
+          "#009E73",
+          "#999999",
+          "#0072B2",
+          "#D55E00",
+          "#CC79A7")
+
+ggplot(t_topic_subject, aes(x = MeSH_qualifiers, 
+                            y = n)) +
  theme_light() +
  labs(title = expression("MeSH qualifiers and subjects reviewed")) + #~bold(A.)~' Type and subject'
  coord_flip()  +
@@ -447,20 +464,22 @@ ggplot(t_topic_subject, aes(x = MeSH_qualifiers, y = n)) +
                                             "Environment", 
                                             "Animals", 
                                             "Humans"))), width = 0.7) + 
-  scale_fill_manual(values=cbp1,
+  scale_fill_manual(values=cbp2,
                      breaks=c("Humans", 
                               "Animals", 
                               "Environment", 
                               "Plants", 
-                              "Mixed"))+
- scale_y_continuous(name = "Article count") +
+                              "Mixed")) +
+  scale_y_continuous(name = "Article count",
+                     expand = c(0,0)) +
  theme_light() +
  theme(legend.position = c(0.7, 0.5),
        legend.box.background = element_rect(colour = "black"),
        legend.title = element_blank(),
        legend.text = element_text(size = 13),
        axis.title.x = element_text(size = 15),
-       axis.title.y = element_text(size = 15),
+       axis.title.y = element_blank(),
+       axis.text = element_text(size = 10),
        legend.background = element_blank())
 
 #ggsave(here("plots","figure_MeSH_qualifiers_subjects.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
@@ -479,10 +498,18 @@ ggplot(t1, aes(x = PFAS_one_many , y = n)) +
  coord_flip()  +
   theme_light() +
  labs(title = expression("PFAS focus and subjects reviewed")) +
- geom_col(aes(fill = fct_relevel(Human_animal_environment, c("Mixed", "Plants", "Environment", "Animals", "Humans"))),
+ geom_col(aes(fill = fct_relevel(Human_animal_environment, c("Mixed",
+                                                             "Plants",
+                                                             "Environment",
+                                                             "Animals", 
+                                                             "Humans"))),
           width = 0.7) +
-  scale_fill_manual(values=cbp1,
-                    breaks=c("Humans", "Animals", "Environment", "Plants", "Mixed")) +
+  scale_fill_manual(values=cbp2,
+                    breaks=c("Humans", 
+                             "Animals",
+                             "Environment", 
+                             "Plants", 
+                             "Mixed")) +
  theme_light() +  
  theme(legend.position = "bottom",
        legend.box.background = element_rect(colour = "black"),
@@ -493,7 +520,8 @@ ggplot(t1, aes(x = PFAS_one_many , y = n)) +
        axis.text = element_text(size = 18),
        legend.background = element_blank()) +
  ylab("Article count") +
- xlab("PFAS reviwed") +
+  scale_y_continuous(name = "Article count",
+                     expand = c(0,0)) +
  guides(fill=guide_legend(title="Subject:"))
 
 #ggsave(here("plots","figure_PFAS_focus_subjects.pdf"), width = 4, height = 2, units = "cm", scale = 2, device = cairo_pdf)
@@ -522,18 +550,18 @@ p_PFAStype <-
   coord_flip()  +
   scale_fill_brewer() +
   geom_col(aes(fill = fct_relevel(Human_animal_environment, c("Mixed",
-                                                              "Plants", 
+                                                              "Plants",
                                                               "Environment",
                                                               "Animals",
-                                                              "Humans"))),
-           width = 0.7) +
-  scale_fill_manual(values=cbp1,
+                                                              "Humans"))), width = 0.7) +
+  scale_fill_manual(values=cbp2,
                     breaks=c("Humans",
                              "Animals",
                              "Environment",
                              "Plants", 
                              "Mixed")) +
-  scale_y_continuous(name = "Article count") +
+  scale_y_continuous(name = "Article count",
+                     expand = c(0,0)) +
   theme(legend.position = c(0.6, 0.5),
        legend.box.background = element_rect(colour = "black"),
        legend.title = element_blank(),
@@ -549,19 +577,22 @@ p_PFAStype
 
 ```
 
-### How many species and which ones
+### Taxonomic classes reviewed
 
 ```{r species focus one_many barplot, height = 4, width = 8}
 #str(mspdata)
 t_spfocus <-
   mspdata %>%
-  count(Species_scientific_name, Species_one_many) %>%
+  count(Class_scientific_name,
+        Species_one_many) %>%
   arrange(desc(n)) %>%
-  filter(Species_one_many != "NA")  #filter out NA
+  filter(Species_one_many != "NA",
+         Class_scientific_name != "NA")  #filter out NA
 
-ggplot(t_spfocus, aes(x = Species_scientific_name, y = n)) +
+ggplot(t_spfocus, aes(x = Class_scientific_name,
+                      y = n)) +
  theme_light() +
- labs(title = expression("Species focus")) + #~bold(A.)~' Type and subject'
+ labs(title = expression("Taxonomic classes focus")) + #~bold(A.)~' Type and subject'
  coord_flip()  +
  scale_fill_brewer() +
  guides(fill=guide_legend(title="Species:")) + 
@@ -573,7 +604,7 @@ ggplot(t_spfocus, aes(x = Species_scientific_name, y = n)) +
        legend.title = element_text(size=10),
        legend.text=element_text(size = 10),
        axis.title.x = element_text(size = 10),
-       axis.title.y = element_blank()) #+
+       axis.title.y = element_blank())
 
 #ggsave(here("plots","figure_species_focus.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
 
@@ -582,22 +613,28 @@ ggplot(t_spfocus, aes(x = Species_scientific_name, y = n)) +
 ```{r PFAS and species focus one_many dotplot, height = 2, width = 8}
 
 t2 <- mdata %>%
-  count(Species_one_many, PFAS_one_many) #make table of counts across two columns 
+  count(Species_one_many, 
+        PFAS_one_many) #make table of counts across two columns 
 
 t2$Species_one_many <- as.factor(t2$Species_one_many)
 
-levels(t2$Species_one_many) <- c("Many", "One") #reorder levels for Species_one_many
+levels(t2$Species_one_many) <- c("Many", 
+                                 "One") #reorder levels for Species_one_many
 
 t2 <- t2 %>%
   filter(Species_one_many != "NA") #filter out NA
 
 # simple dot plot
-ggplot(data = t2, aes(Species_one_many, PFAS_one_many)) + geom_point(aes(size = n), colour = "darkgrey") +
+ggplot(data = t2, aes(Species_one_many, 
+                      PFAS_one_many)) + geom_point(aes(size = n), colour = "darkgrey") +
 theme_classic() +
   theme(axis.ticks.x=element_blank(),
-        axis.text.x=element_text(size = 20, angle = 90, hjust = -1),
+        axis.text.x=element_text(size = 20,
+                                 angle = 90,
+                                 hjust = -1),
         axis.ticks.y=element_blank(),
-        axis.text.y=element_text(size = 20, hjust = 1.1),
+        axis.text.y=element_text(size = 20,
+                                 hjust = 1.1),
         axis.line=element_blank(),
         text = element_text(size = 22),
         legend.position = "bottom",
@@ -622,9 +659,12 @@ theme_classic() +
 publ_year <- mdata %>%
   filter(Publication_year != 2022) %>% #remove 2022
   count(Publication_year) %>%
-  ggplot(aes(x = Publication_year, y = n)) + 
-  geom_area(fill = '#69b3a2', alpha = 0.5) +
-  geom_line(color = '#69b3a2', size = 1) + 
+  ggplot(aes(x = Publication_year,
+             y = n)) + 
+  geom_area(fill = '#69b3a2', 
+            alpha = 0.5) +
+  geom_line(color = '#69b3a2', 
+            size = 1) + 
   #geom_point(size = 0.8, color = 'black') +
   #theme_minimal() +
   scale_x_continuous(name = "Year",
@@ -637,15 +677,29 @@ publ_year <- mdata %>%
   ggtitle("Publication year") + 
   theme_ipsum(grid_col = "#F5F5F5") +
   ylab("Number of published reviews") +
-  theme(plot.title = element_text(size = 26, hjust = 0.5),
-       axis.text.x = element_text(size = 16, margin = margin(t = 1, r = 0, l = 0)),
-       axis.text.y = element_text(size = 16, margin = margin(t = 0, r = 5, l = 5)),
-       axis.title.x = element_text(size = 20, hjust = 0.5),
-       axis.title.y = element_text(size = 20, hjust = 0.5))
+  theme(plot.title = element_text(size = 26,
+                                  hjust = 0.5),
+       axis.text.x = element_text(size = 16,
+                                  margin = margin(t = 1, 
+                                                  r = 0,
+                                                  l = 0)),
+       axis.text.y = element_text(size = 16,
+                                  margin = margin(t = 0, 
+                                                  r = 5, 
+                                                  l = 5)),
+       axis.title.x = element_text(size = 20,
+                                   hjust = 0.5),
+       axis.title.y = element_text(size = 20,
+                                   hjust = 0.5))
         #axis.title.y.right = element_text(size = 16, margin = margin(t = 0, r = 10, l = 10)))
   
 publ_year
-ggsave(here("R","figure_area_publ_year.pdf"), width = 10, height = 10, units = "cm", scale = 2, device = cairo_pdf)
+# ggsave(here("R","figure_area_publ_year.pdf"),
+#        width = 10, 
+#        height = 10, 
+#        units = "cm", 
+#        scale = 2,
+#        device = cairo_pdf)
 
 #modified graph with breakdown by Review_type_claimed (needs more data points to be displayed properly)
 mspdata %>%
@@ -664,9 +718,7 @@ mspdata %>%
 
 ```
 
-## ------------------------------------------------------------------------
-
-## ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
 
 ## Objective 2. Critical appraisal: How robust are syntheses of PFAS evidence?
 
@@ -1039,9 +1091,7 @@ p7 <- ggplot(t_Analysis_code, aes(x = Analysis_code, y = n)) +
 (p6+p7)
 ```
 
-## ------------------------------------------------------------------------
-
-## ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
 
 ## Objective 3. Bibliometrics: How is synthesized PFAS evidence connected?
 
@@ -1327,19 +1377,10 @@ heatmap(t2, Colv = NA, Rowv = NA, scale="column", col=heat.colors(12, rev=TRUE, 
 
 ```
 
-
-
-
-
-
-
-
-
-
-
 # Tries
 
 Subject & Reporting guidelines
+
 ```{r}
 library(webr)
 library(ggpubr)
@@ -1386,6 +1427,7 @@ PieDonut2 <-  PieDonut(pd2,  aes(Subject, COI_statement, count = n),
 ```
 
 Subject & COI present
+
 ```{r}
 pd3 = mdata %>% 
   group_by(Subject, COI_present) %>% 
@@ -1411,6 +1453,7 @@ ggarrange(
 ```
 
 Subject & Funding statement
+
 ```{r}
 pd4 = mdata %>% 
   group_by(Subject, Funding_statement) %>% 
@@ -1430,6 +1473,7 @@ PieDonut4 <-  PieDonut(pd4,  aes(Subject, Funding_statement, count = n),
 ```
 
 Subject & Industry funding
+
 ```{r}
 pd5 = mdata %>% 
   group_by(Subject, Industry_funding) %>% 
@@ -1448,4 +1492,3 @@ PieDonut5 <-  PieDonut(pd5,  aes(Subject, Industry_funding, count = n),
 )
          
 ```
-
