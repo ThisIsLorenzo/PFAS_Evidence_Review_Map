@@ -6,27 +6,28 @@ output: html_document
 ---
 https://github.com/elmacartney/Nongen_map_of_reviews/blob/main/R/Main_Figures.Rmd#L140
 ```{r setup, include = TRUE}
-
-library(tidyverse)
-library(here)
-library(stringr)
-library(knitr)
-library(formatR)
-library(forcats)
-library(ggplot2)
-library(hrbrthemes) #for ggplot2
-library(patchwork) #for ggplot2
-library(bibliometrix)
-library(igraph)
-library(xtable)
-library(kableExtra)
-library(patchwork)
-library(rotl)
-library(ggtree)
-library(ggnewscale)
-library(ggtreeExtra)
-
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+pacman::p_load(tidyverse,
+               here,
+               stringr,
+               knitr,
+               formatR,
+               forcats,
+               ggplot2,
+               hrbrthemes,#for ggplot2
+               patchwork, #for ggplot2
+               bibliometrix,
+               igraph,
+               xtable,
+               kableExtra,
+               rotl,
+               patchwork,
+               ggtree,
+               ggnewscale,
+               ggtreeExtra)
+
+
 
 # Data from .csv file - Species_info sheet
 spdata <- read_csv(here("data","ReviewMap_PFAS_species.csv"), skip = 0)
@@ -40,29 +41,43 @@ length(unique(spdata$Species_common_name)) # 104
 
 # Make a table of how many words each name has:
 table((lengths(gregexpr("\\W+", spdata$Species_common_name)) + 1)) 
+#  2  3  4 
+# 99 39  7 
 table((lengths(gregexpr("\\W+", spdata$Species_scientific_name)) + 1)) 
+#   2   3 
+# 143   2
 
 taxa <- tnrs_match_names(unique(spdata$Species_scientific_name))
-#Warning message: Peregrine falcon are not matched
 table(taxa$approximate_match) #1 approximate matches
-table(taxa$flags)
+table(taxa$flags) # flags 5 names with problems (infraspecific , major_rank_conflict, sibling_higher )
 
-#mytree <- tol_induced_subtree(ott_ids = taxa$ott_id, label_format= "name") #this will fail with: Error: HTTP failure: 400 - [/v3/tree_of_life/induced_subtree] Error: node_id 'ott4937072' was not found!list(ott4937072 = "pruned_ott_id")
+
+
+mytree <- tol_induced_subtree(ott_ids = taxa$ott_id, label_format= "name") #this will fail with: Error: HTTP failure: 400 - [/v3/tree_of_life/induced_subtree] Error: node_id 'ott4937072' was not found!list(ott4937072 = "pruned_ott_id")
 
 taxa[taxa[["ott_id"]] == "4937072", ] #Xenopus (genus in Nucletmycea)  - "major_rank_conflict"
 spdata$Species_scientific_name[spdata$Species_scientific_name == "Xenopus"] <- "Xenopus laevis"
+spdata$Species_scientific_name[spdata$Species_scientific_name == "enhydra lutris nereis"] <- "Enhydra lutris"
+spdata$Species_scientific_name[spdata$Species_scientific_name == "enhydra lutris nereis"] <- "Enhydra lutris"
+
 
 taxa <- tnrs_match_names(unique(spdata$Species_scientific_name))
 table(taxa$approximate_match)
 table(taxa$flags)
-mytree <- tol_induced_subtree(ott_ids = taxa$ott_id, label_format= "name")
+mytree <- tol_induced_subtree(ott_ids = taxa$ott_id, label_format= "name") #HTTP failure: 400 [/v3/tree_of_life/induced_subtree] Error: node_id 'ott4937072' was not found!list(ott4937072 = "pruned_ott_id")
 
 ## Tree tip labels need some cleaning:
 mytree$tip.label <- gsub("\\(.*", "", mytree$tip.label) #remove comments
 mytree$tip.label <- gsub("_"," ", mytree$tip.label) #get rid of the underscores
 mytree$tip.label <- trimws(mytree$tip.label) #getting rid of the trailing whitespace
 
-sort(intersect(as.character(mytree$tip.label), unique(spdata$Species_scientific_name))) # 78 names are matching
+sort(intersect(as.character(mytree$tip.label), unique(spdata$Species_scientific_name))) # 77 names are matching. 27 are not matching.
+
+
+
+
+
+
 
 plot(mytree, show.tip.label = T, cex = 0.8, no.margin = TRUE)
 str(mytree)
@@ -94,7 +109,7 @@ tree2 <-
 tree3 <- tree2 +
   new_scale_fill() +
   geom_fruit(geom = geom_bar, 
-             mapping = aes(x = n, 
+             mapping = aes(x = log10(n+0.5), 
                            col = "#5C5C5C"),
              stat = "identity", fill = "#5C5C5C", 
              col = NA, 
@@ -102,7 +117,7 @@ tree3 <- tree2 +
              axis.params = list(axis = "x", 
                                 text.angle = -90,
                                 hjust = 0,
-                                text.size = 2.5), 
+                                text.size = 1.5), 
              grid.params = list()) +
              # ,
              # offset = 0.085, pwidth = 0.55, alpha = 0.8) +
@@ -111,7 +126,7 @@ tree3 <- tree2 +
 
 tree3
 
-ggsave(tree3, filename = 'treeplot_temp.pdf', device = 'pdf', scale = 0.8)
+#ggsave(tree3, filename = 'treeplot_temp.pdf', device = 'pdf', scale = 0.8)
 ```
 
 

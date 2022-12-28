@@ -40,7 +40,7 @@ library(bibtex)
 
 #write.csv(bib2, here("data", "biblio.csv"), row.names = FALSE)
 
-bib2 <- read.csv(here("data", "biblio.csv"))
+bib2 <- read.csv(here("data", "bib_data.csv"))
 
 ```
 ### Making the plot without getting rid of collabs with the same country
