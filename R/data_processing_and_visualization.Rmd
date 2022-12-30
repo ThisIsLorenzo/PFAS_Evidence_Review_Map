@@ -49,7 +49,7 @@ pacman::p_load(tidyverse,
                rotl)
 ```
 
-## Load pilot data
+## Load  data
 
 Manually extracted pilot data is stored in four separate **.csv** files representing different aspects of the data (extracted via structured predefined Google Forms - one per table). Additional fixed table stores pre-extracted data on PFAS types included in this map.
 
@@ -81,26 +81,31 @@ write.csv(bib_data, file = "~/PhD/GitHub/PFAS_Systematic_MetaReview_Map/data/bib
 ```{r load all data}
 # Data from .csv file - main data sheet
 mdata <- read_csv(here("data","ReviewMap_PFAS_main.csv"), skip = 0)
-#dim(mdata) #175 rows 38 columns
-
-# Data from .csv file - Species_info sheet
-spdata <- read_csv(here("data","ReviewMap_PFAS_species.csv"), skip = 0) 
-#dim(spdata) #145 rows 5 columns
+#dim(mdata) #109 rows 38 columns
 
 # Data from .csv file - PFAS_types sheet:
 ptdata <- read_csv(here("data","ReviewMap_PFAS_types.csv"), skip = 0) 
-#dim(ptdata) #145 rows 5 columns
+#dim(ptdata) #109 rows 5 columns
 # change to long format (one type per row - one or multiple rows per study):
 ptdata <- ptdata %>% separate_rows(PFAS_type, sep=', ')
-#dim(ptdata) #608 rows 5 columns
+#dim(ptdata) #617 rows 5 columns
+
+# Critical apprisal(AMSTAR2) from .csv file:
+qdata <- read_csv(here("data", "ReviewMap_PFAS_quality.csv"), skip = 0)
+#dim(qdata) #109 rows 36 columns
 
 # Data from .csv file - PFAS_info sheet:
 pidata <- read_csv(here("data","PFAS_info.csv"), skip = 0) 
 #dim(pidata) #35 rows 7 columns
 
-# Critical apprisal(AMSTAR2) from .csv file:
-qdata <- read_csv(here("data", "ReviewMap_PFAS_quality.csv"), skip = 0)
-#dim(qdata) #107 rows 36 columns
+# Data from .csv file - Species_info sheet
+spdata <- read_csv(here("data","ReviewMap_PFAS_species.csv"), skip = 0) 
+#dim(spdata) #145 rows 5 columns
+#unique(spdata$Study_ID)
+
+#  Data from .csv file - main data sheet for bibliometric analysis:
+mdata_biblio <- read_csv(here("data","ReviewMap_PFAS_main_Biblio_Analysis.csv"), skip = 0)
+#dim(mdata) #175 rows 38 columns
 
 #Combined bibliometric data
 bib_data <- read_csv(here("data", "bib_data.csv"), skip = 0)
@@ -159,17 +164,39 @@ mpidata <- left_join(mdata, ptidata, by = "Study_ID")
 
 ```
 
-## Make a simple summary table of included papers
+## Make a simple summary table of included papers (mapping + appraisal)
 
 ```{r simple table of included studies}
 #First, order the table by Study_ID
 mdata <- 
   mdata[order(mdata$Study_ID),]
-
-knitr::kable(select(mdata, Study_ID,	Author_year,	Paper_title), caption = "Table of included studies") %>%
-  kable_paper(bootstrap_options = "striped", full_width = F) #%>% save_kable(file = "table1.html", self_contained = T)
+#create two new columns in mdata table called 'First_author' and 'Publication_year', containing the first and second elements of the 'Author_year' column, respectively.
+mdata2 <- mdata %>% 
+  separate(Author_year, c("First_author", "Publication_year"), sep = "_")
+#make the table
+knitr::kable(select(mdata2,	First_author,
+                    Publication_year,
+                    Paper_title), caption = "Table of included reviews") %>%
+  kable_paper(bootstrap_options = "striped", full_width = F) #%>% 
+  #save_kable(here("R_data", "table1.html"), self_contained = T)
 
 ```
+
+Make the same table for all reviews included in bibliometric analysis
+```{r}
+mdata_biblio <- 
+  mdata_biblio[order(mdata_biblio$Study_ID),]
+
+mdata_biblio <- mdata_biblio %>% 
+  separate(Author_year, c("First_author", "Publication_year"), sep = "_")
+#make the table
+knitr::kable(select(mdata_biblio,	First_author,
+                    Publication_year,
+                    Paper_title), caption = "Table of included reviews") %>%
+  kable_paper(bootstrap_options = "striped", full_width = F) #%>% 
+  #save_kable(here("R_data", "tableS1.html"), self_contained = T)
+```
+
 
 # -----------------------------------------------------------------------
 
@@ -227,15 +254,15 @@ count(mdata, PFAS_focus)
 # A tibble: 2 × 2
 #   PFAS_focus     n
 #   <chr>      <int>
-# 1 No            90
-# 2 Yes           83
+# 1 No            52
+# 2 Yes           57
 count(mdata, PFAS_one_many)
 # A tibble: 3 × 2
 #   PFAS_one_many     n
 #   <chr>         <int>
-# 1 Multiple        102
-# 2 Not specified    45
-# 3 One              26
+# 1 Multiple         74
+# 2 Not specified    17
+# 3 One              18
 ```
 
 
@@ -611,7 +638,7 @@ ggplot(t_topic_subject, aes(x = MeSH_qualifiers,
 
 ```
 
-```{r}
+```{r, eval=FALSE}
 view(t_topic_subject)
 ```
 
@@ -781,24 +808,20 @@ publ_year
 
 ```{r}
 count(mdata, Publication_year)
-# A tibble: 15 × 2
+# A tibble: 11 × 2
 #    Publication_year     n
 #               <dbl> <int>
-#  1             2008     2
-#  2             2009     2
-#  3             2011     4
-#  4             2012     1
-#  5             2013     9
-#  6             2014     9
-#  7             2015     5
-#  8             2016    10
-#  9             2017    18
-# 10             2018    14
-# 11             2019    16
-# 12             2020    22
-# 13             2021    48
-# 14             2022    12
-# 15               NA     1
+#  1             2011     1
+#  2             2013     6
+#  3             2014     5
+#  4             2015     3
+#  5             2016     6
+#  6             2017     8
+#  7             2018    11
+#  8             2019    11
+#  9             2020    15
+# 10             2021    33
+# 11             2022    10
 ```
 
 
