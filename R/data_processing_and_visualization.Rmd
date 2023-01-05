@@ -219,7 +219,7 @@ cbp1 <- c("#56B4E9",
           "#E69F00",
           "#999999")
 
-PFAS_focus <-
+p_PFAS_focus <-
   ggplot(t_PFASfocus, aes(x = PFAS_focus, 
                           y = n)) +
   theme_light() +
@@ -243,9 +243,9 @@ PFAS_focus <-
        axis.title.y = element_blank(),
        legend.background = element_blank())
 
-PFAS_focus
-
-#ggsave(here("plots","figure_PFAS_focus.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
+# ggsave(here("R_data", "plot_pfas_focus.png"),
+#        width = 8,
+#        height = 6,)
 
 ```
 
@@ -296,9 +296,9 @@ PFAS_types <- ggplot(t_PFAStype, aes(x = PFAS_type,
         axis.title.y = element_blank(),
         axis.text.y = element_text(size = 7))
 
-PFAS_types
-
-#ggsave(here("plots","figure_PFAS_types.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
+# ggsave(here("R_data", "plot_pfas_types.png"),
+#        width = 8,
+#        height = 6,)
 ```
 
 ```{r, eval=FALSE}
@@ -422,7 +422,7 @@ MESH_headings_order <-
   MeSH_headings_counts$MeSH_headings[order(MeSH_headings_counts$n, decreasing = FALSE)] #save for the next plot
 
 # simple barplot with top 10 MESH headings
-ggplot(MeSH_headings_counts[1:10, ], aes(x = MeSH_headings, y = n)) +
+p_mesh_headings <- ggplot(MeSH_headings_counts[1:10, ], aes(x = MeSH_headings, y = n)) +
   geom_col(aes(fill = ""), width = 0.7) +
   theme_light() +
   labs(title = expression("Top 10 MeSH headings reviewed")) + #~bold(A.)~' Type and subject'
@@ -434,7 +434,9 @@ ggplot(MeSH_headings_counts[1:10, ], aes(x = MeSH_headings, y = n)) +
         axis.title.y = element_blank(),
         axis.text = element_text(size = 10))
 
-#ggsave(here("plots","figure_MeSH_headings.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
+# ggsave(here("R_data", "plot_mesh_headings.png"),
+#        width = 8,
+#        height = 6)
 ```
 
 ```{r plot MeSH qualifiers barplot, height = 4, width = 8}
@@ -455,7 +457,7 @@ MESH_qualifiers_order <-
   MeSH_qualifiers_counts$MeSH_qualifiers[order(MeSH_qualifiers_counts$n, decreasing = FALSE)] #save for the next plot
 
 # simple barplot with MESH qualifiers
-ggplot(MeSH_qualifiers_counts[, ], aes(x = MeSH_qualifiers,
+p_mesh_qualifiers <- ggplot(MeSH_qualifiers_counts[, ], aes(x = MeSH_qualifiers,
                                        y = n)) +
   geom_col(aes(fill = ""), 
            width = 0.9,
@@ -470,7 +472,10 @@ ggplot(MeSH_qualifiers_counts[, ], aes(x = MeSH_qualifiers,
         axis.title.x = element_text(size = 13),
         axis.title.y = element_blank(),
         axis.text = element_text(size = 10))
-#ggsave(here("plots","figure_MeSH_qualifiers.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
+
+# ggsave(here("R_data", "plot_mesh_qualifiers.png"),
+#        width = 8,
+#        height = 6)
 ```
 
 ```{r, eval=FALSE}
@@ -511,7 +516,7 @@ subjects_levels_order <-
   t_subject$Human_animal_environment[order(t_subject$n, decreasing = FALSE)] #save for another plot
 
 # simple barplot with MESH_heading
-ggplot(t_subject, aes(x = Human_animal_environment, y = n)) +
+p_subj <- ggplot(t_subject, aes(x = Human_animal_environment, y = n)) +
   geom_col(aes(fill = ""), width = 0.7) +
   theme_light() +
   labs(title = expression("Main subjects reviewed")) + #~bold(A.)~' Type and subject'
@@ -524,7 +529,9 @@ ggplot(t_subject, aes(x = Human_animal_environment, y = n)) +
         axis.title.y = element_blank(),
         axis.text = element_text(size = 10))
 
-#ggsave(here("plots","figure_subjects.pdf"), width = 4, height = 2, units = "cm", scale = 2, device = cairo_pdf)
+# ggsave(here("R_data", "plot_subjects.png"),
+#        width = 8,
+#        height = 6,)
 ```
 
 ```{r}
@@ -605,10 +612,10 @@ cbp2 <- c("#56B4E9",
           "#D55E00",
           "#CC79A7")
 
-ggplot(t_topic_subject, aes(x = MeSH_qualifiers, 
+p_mesh_subject <- ggplot(t_topic_subject, aes(x = MeSH_qualifiers, 
                             y = n)) +
  theme_light() +
- labs(title = expression("MeSH qualifiers and subjects reviewed")) + #~bold(A.)~' Type and subject'
+ labs(title = expression("MeSH qualifiers and subjects reviewed")) +
  coord_flip()  +
  scale_fill_brewer() +
  geom_col(aes(fill = fct_relevel(Subject, c("Mixed", 
@@ -634,7 +641,9 @@ ggplot(t_topic_subject, aes(x = MeSH_qualifiers,
        axis.text = element_text(size = 8),
        legend.background = element_blank())
 
-#ggsave(here("plots","figure_MeSH_qualifiers_subjects.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
+# ggsave(here("R_data", "plot_mesh_subjects.png"),
+#        width = 8,
+#        height = 6,)
 
 ```
 
@@ -651,7 +660,7 @@ t1 <-
   mdata %>%
   count(Human_animal_environment, PFAS_one_many)
 
-ggplot(t1, aes(x = PFAS_one_many ,
+pp1 <- ggplot(t1, aes(x = PFAS_one_many ,
                y = n)) +
  coord_flip()  +
   theme_light() +
@@ -682,6 +691,8 @@ ggplot(t1, aes(x = PFAS_one_many ,
   scale_y_continuous(name = "Article count",
                      expand = c(0,0)) +
  guides(fill=guide_legend(title="Subject:")) 
+
+pp1
 
 #ggsave(here("plots","figure_PFAS_focus_subjects.pdf"), width = 4, height = 2, units = "cm", scale = 2, device = cairo_pdf)
 
@@ -730,11 +741,14 @@ p_PFAStype <-
        axis.title.x = element_text(size = 15),
        axis.title.y = element_blank(),
        legend.background = element_blank())
-#theme(legend.position = "none", axis.title.x = element_text(size = 10), axis.title.y = element_blank())
-p_PFAStype
 
-#ggsave(here("plots","figure_PFAStype_subject.pdf"), width = 6, height = 8, units = "cm", scale = 2, device = cairo_pdf)
+# ggsave(here("R_data", "plot_pfas_subjects.png"),
+#        width = 8,
+#        height = 6)
+```
 
+```{r, eval = FALSE}
+view(t_PFAStype)
 ```
 
 ### Species tree
@@ -747,62 +761,120 @@ Species tree in "species_tree.Rmd"
 
 publ_year <- mdata %>%
   count(Publication_year) %>%
+  mutate(cumulative = cumsum(n)) %>% 
   ggplot(aes(x = Publication_year,
-             y = n)) + 
-  geom_area(fill = '#69b3a2', 
+             y = cumulative)) + 
+  geom_area(fill = '#ADADAD', 
             alpha = 0.5) +
-  geom_line(color = '#69b3a2', 
+  geom_line(color = '#5C5C5C', 
             size = 1) + 
   #geom_point(size = 0.8, color = 'black') +
   #theme_minimal() +
   scale_x_continuous(name = "Year",
-                     breaks = seq(2008, 2022, by = 2),
+                     breaks = seq(2011, 2022, by = 1),
                      minor_breaks = NULL) +
-  scale_y_continuous(name = "Number of published reviews",
-                    breaks = seq(0, 50, by = 10),
+  scale_y_continuous(name = "Number of published systematic reviews",
+                    breaks = seq(0, 110, by = 10),
                     minor_breaks = NULL
                     ) +
-  ggtitle("Publication year") + 
-  theme_ipsum(grid_col = "#F5F5F5") +
-  ylab("Number of published reviews") +
-  theme(plot.title = element_text(size = 26,
+  ggtitle("Time trend") + 
+  theme_ipsum(grid_col = "#EBEBEB") +
+  theme(plot.title = element_text(size = 14,
                                   hjust = 0.5),
-       axis.text.x = element_text(size = 16,
+       axis.text.x = element_text(size = 11,
                                   margin = margin(t = 1, 
                                                   r = 0,
-                                                  l = 0)),
-       axis.text.y = element_text(size = 16,
+                                                  l = 0),
+                                  angle = 45),
+       axis.text.y = element_text(size = 11,
                                   margin = margin(t = 0, 
                                                   r = 5, 
                                                   l = 5)),
-       axis.title.x = element_text(size = 20,
+       axis.title.x = element_text(size = 12,
                                    hjust = 0.5),
-       axis.title.y = element_text(size = 20,
+       axis.title.y = element_text(size = 12,
                                    hjust = 0.5))
-        #axis.title.y.right = element_text(size = 16, margin = margin(t = 0, r = 10, l = 10)))
-  
-publ_year
-# ggsave(here("R","figure_area_publ_year.pdf"),
-#        width = 10, 
-#        height = 10, 
-#        units = "cm", 
-#        scale = 2,
-#        device = cairo_pdf)
+
+# ggsave(here("R_data", "time_trend.png"),
+#        width = 8,
+#        height = 6)
 
 #modified graph with breakdown by Review_type_claimed (needs more data points to be displayed properly)
-# mspdata %>%
-#   count(Publication_year, 
-#         Review_type_claimed) %>%
-#   ggplot(aes(x = Publication_year,
-#              y = n,
-#              fill = Review_type_claimed,
-#              text = Review_type_claimed)) +
-#   geom_line(color = 'black')
-#   
-  
+mdata %>%
+  count(Publication_year,
+        Review_type_claimed) %>%
+  mutate(cumulative = cumsum(n)) %>% 
+  ggplot(aes(x = Publication_year,
+             y = cumulative,
+             color = Review_type_claimed)) +
+  geom_line(size = 1) + 
+  #geom_point(size = 0.8, color = 'black') +
+  #theme_minimal() +
+  scale_x_continuous(name = "Year",
+                     breaks = seq(2011, 2022, by = 1),
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = "Number of published systematic reviews",
+                    breaks = seq(0, 110, by = 10),
+                    minor_breaks = NULL
+                    ) +
+  ggtitle("Time trend") + 
+  theme_ipsum(grid_col = "#EBEBEB") +
+  theme(plot.title = element_text(size = 14,
+                                  hjust = 0.5),
+       axis.text.x = element_text(size = 11,
+                                  margin = margin(t = 1, 
+                                                  r = 0,
+                                                  l = 0),
+                                  angle = 45),
+       axis.text.y = element_text(size = 11,
+                                  margin = margin(t = 0, 
+                                                  r = 5, 
+                                                  l = 5)),
+       axis.title.x = element_text(size = 12,
+                                   hjust = 0.5),
+       axis.title.y = element_text(size = 12,
+                                   hjust = 0.5))
 
 #modified graph with breakdown by Species_higher_taxon (needs more data points to be displayed properly)
-#mspdata %>% count(Publication_year, Species_common_name) %>% ggplot(aes(x = Publication_year, y = n, fill = Species_common_name, text = Species_common_name)) + geom_area() + theme(legend.position = "right")
+
+mdata_classes <- left_join(mdata, spdata, by = "Study_ID") %>%
+  filter(!is.na(Class_scientific_name)) %>% 
+  group_by(Class_scientific_name)
+
+mdata_classes %>%
+  count(Publication_year,
+        Class_scientific_name) %>%
+  mutate(cumulative = cumsum(n)) %>% 
+  ggplot(aes(x = Publication_year,
+             y = cumulative,
+             color = Class_scientific_name)) +
+  geom_line(size = 1) + 
+  #geom_point(size = 0.8, color = 'black') +
+  #theme_minimal() +
+  scale_x_continuous(name = "Year",
+                     breaks = seq(2011, 2022, by = 1),
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = "Number of published systematic reviews",
+                    breaks = seq(0, 65, by = 5),
+                    minor_breaks = NULL
+                    ) +
+  ggtitle("Time trend") + 
+  theme_ipsum(grid_col = "#EBEBEB") +
+  theme(plot.title = element_text(size = 14,
+                                  hjust = 0.5),
+       axis.text.x = element_text(size = 11,
+                                  margin = margin(t = 1, 
+                                                  r = 0,
+                                                  l = 0),
+                                  angle = 45),
+       axis.text.y = element_text(size = 11,
+                                  margin = margin(t = 0, 
+                                                  r = 5, 
+                                                  l = 5)),
+       axis.title.x = element_text(size = 12,
+                                   hjust = 0.5),
+       axis.title.y = element_text(size = 12,
+                                   hjust = 0.5))
 
 ```
 
@@ -841,7 +913,8 @@ questions_list <- qdata %>% select(starts_with("Q") & !ends_with("_comment")) %>
 questions <- tibble(questions = questions_list, label = c("question and criteria", "a priori protocol", "included study designs", "comprehensive search", "selection duplicated", "extraction duplicated", "list of excluded studies", "summary of included studies", "critical appraisal", "sources of funding", "quantitative synthesis", "risk of bias", "effect of bias", "variability investigated", "publication bias", "conflict of interest"))
 #str(questions)
 
-knitr::kable(questions, caption = "Table. List of AMSTAR2 questions with  labels for plotting")
+knitr::kable(questions, caption = "Table. List of AMSTAR2 questions with labels for plotting") %>%
+  kable_paper(bootstrap_options = "striped", full_width = F)
 ```
 
 ## Summary plot for pilot AMSTAR2 data
@@ -1026,18 +1099,23 @@ t_COI_statement <-
   filter(COI_statement != "NA") #filter out NA
 
 p1 <-
-  ggplot(t_COI_statement, aes(x = COI_statement, y = n)) +
-  labs(title = expression("COI statement availability")) + #~bold(A.)~' Type and subject'
+  ggplot(t_COI_statement, aes(x = COI_statement,
+                              y = n)) +
   geom_col(aes(fill = fct_relevel(COI_statement,
-                                  c("No", "Yes")),
+                                  c("Yes", "No")),
                                   width = 0.7)) +
   scale_fill_manual(values = cbp1,
-                    breaks = c("No", "Yes")) +
+                    breaks = c("Yes", "No")) +
   scale_y_continuous(name = "Article count") +
-  theme(legend.position = "none",
-        axis.title.y = element_blank()) +
+  scale_x_discrete(name = NULL) +
+  guides(fill = FALSE) +
   theme_light() +
-  coord_flip()
+  coord_flip() +
+  geom_text(aes(label = n, x = COI_statement), 
+            y = max(t_COI_statement$n)/2,
+            hjust = 0, 
+            size = 3.5) + 
+  ggtitle(expression(bold("a)") ~ " Is the COI statement provided?"))
   
 p1
 
@@ -1056,14 +1134,23 @@ t_COI_present <-
   filter(COI_present != "NA") #filter out NA
 
 p2 <- 
-  ggplot(t_COI_present, aes(x = COI_present, y = n)) +
+  ggplot(t_COI_present, aes(x = COI_present,
+                            y = n)) +
+  geom_col(aes(fill = fct_relevel(COI_present,
+                                  c("No", "Yes")),
+               width = 0.7)) + 
+  scale_fill_manual(values = cbp1,
+                    breaks = c("Yes", "No")) +
+  scale_y_continuous(name = "Article count") +
+  scale_x_discrete(name = NULL) +
+  guides(fill = FALSE) +
+  coord_flip() +
   theme_light() +
-  theme(legend.position = "none",
-        axis.title.y = element_blank()) +
-  labs(title = expression("Conflict of Interest")) + #~bold(A.)~' Type and subject'
-  coord_flip()  +
-  geom_col(aes(fill = COI_present), width = 0.7) + 
-  scale_y_continuous(name = "Article count")
+  geom_text(aes(label = n, x = COI_present), 
+            y = max(t_COI_present$n)/2,
+            hjust = 0, 
+            size = 3.5) +
+  ggtitle(expression(bold("b)") ~ " Is potential COI acknowledge?"))
 p2
 ```
 
@@ -1079,13 +1166,24 @@ t_Funding_statement <- mdata %>%
   filter(Funding_statement != "NA") #filter out NA
 
 p3 <- 
-  ggplot(t_Funding_statement, aes(x = Funding_statement, y = n)) +
+  ggplot(t_Funding_statement, aes(x = Funding_statement, 
+                                  y = n)) +
+  geom_col(aes(fill = fct_relevel(Funding_statement,
+                                  c("Yes", "No")), width = 0.7)) + 
+  scale_fill_manual(values = cbp1,
+                    breaks = c("Yes", "No")) +
+  scale_y_continuous(name = "Article count") +
+  scale_x_discrete(name = NULL) +
+  guides(fill = FALSE) +
+  theme(legend.position = "none", 
+        axis.title.y = element_blank()) +
   theme_light() +
-  theme(legend.position = "none", axis.title.y = element_blank()) +
-  labs(title = expression("Funding statement availability")) + #~bold(A.)~' Type and subject'
-  coord_flip()  +
-  geom_col(aes(fill = Funding_statement), width = 0.7) + 
-  scale_y_continuous(name = "Article count")
+  coord_flip() +
+  geom_text(aes(label = n, x = Funding_statement), 
+            y = max(t_Funding_statement$n)/2,
+            hjust = 0, 
+            size = 3.5) +
+  ggtitle(expression(bold("a)") ~ " Is the funding statement provided?"))
 
 p3
 ```
@@ -1095,9 +1193,6 @@ p3
 Whether funding from non-profit (NGO, government, universities, etc.) is acknowledged for individual reviews.
 
 ```{r t_Nonprofit_funding barplot, height = 2, width = 8}
-mdata <- 
-  mdata %>% 
-  rename(Nonprofit_funding = "Non-profit_funding") 
 
 t_Nonprofit_funding <- 
   mdata %>% 
@@ -1106,14 +1201,26 @@ t_Nonprofit_funding <-
   filter(Nonprofit_funding != "NA") #filter out NA
 
 p4 <- 
-  ggplot(t_Nonprofit_funding, aes(x = Nonprofit_funding, y = n)) +
-  theme_light() +
+  ggplot(t_Nonprofit_funding, aes(x = Nonprofit_funding,
+                                  y = n)) +
   theme(legend.position = "none",
         axis.title.y = element_blank()) +
-  labs(title = expression("Non-profit funding")) + #~bold(A.)~' Type and subject'
-  coord_flip()  +
-  geom_col(aes(fill = Nonprofit_funding), width = 0.7) + 
-  scale_y_continuous(name = "Article count")
+  geom_col(aes(fill = fct_relevel(Nonprofit_funding,
+                                  c("Yes", "No")), width = 0.7)) + 
+  scale_fill_manual(values = cbp1,
+                    breaks = c("Yes", "No")) + 
+  scale_y_continuous(name = "Article count") +
+  scale_x_discrete(name = NULL) +
+  guides(fill = FALSE) +
+  theme_light() +
+  coord_flip() +
+  geom_text(aes(label = n, x = Nonprofit_funding), 
+            y = max(t_Nonprofit_funding$n)/2,
+            hjust = 0,
+            size = 3.5) +
+  ggtitle(expression(bold("b)") ~ " Fundings from non-profit sector"))
+
+p4
 
 ```
 
@@ -1129,14 +1236,26 @@ t_Funding_industry <- mdata %>%
   filter(Industry_funding != "NA") #filter out NA
 
 p5 <- 
-  ggplot(t_Funding_industry, aes(x = Industry_funding, y = n)) +
-  theme_light() +
+  ggplot(t_Funding_industry, aes(x = Industry_funding,
+                                 y = n)) +
   theme(legend.position = "none",
         axis.title.y = element_blank()) +
-  labs(title = expression("Funding from industry")) + #~bold(A.)~' Type and subject'
-  coord_flip()  +
-  geom_col(aes(fill = Industry_funding), width = 0.7) + 
-  scale_y_continuous(name = "Article count")
+  geom_col(aes(fill = fct_relevel(Industry_funding,
+                                  c("Yes", "No")), width = 0.7)) + 
+  scale_fill_manual(values = cbp1,
+                    breaks = c("Yes", "No")) + 
+  scale_y_continuous(name = "Article count") +
+  scale_x_discrete(name = NULL) +
+  guides(fill = FALSE) +
+  theme_light() +
+  coord_flip() +
+  geom_text(aes(label = n, x = Industry_funding),
+            y = max(t_Funding_industry$n)/2, 
+            hjust = 0, 
+            size = 3.5) +
+  ggtitle(expression(bold("c)") ~ " Fundings from industry sector"))
+
+p5
 ```
 
 ### Data availability
@@ -1151,14 +1270,26 @@ t_Raw_data <-
   arrange(desc(n)) %>% 
   filter(Raw_data != "NA") #filter out NA
 
-p6 <- ggplot(t_Raw_data, aes(x = Raw_data, y = n)) +
- theme_light() +
- theme(legend.position = "none",
+p6 <- ggplot(t_Raw_data, aes(x = Raw_data, 
+                             y = n)) +
+  theme(legend.position = "none",
        axis.title.y = element_blank()) +
- labs(title = expression("Data availability")) + #~bold(A.)~' Type and subject'
- coord_flip()  +
- geom_col(aes(fill = Raw_data), width = 0.7) + 
- scale_y_continuous(name = "Article count")
+  geom_col(aes(fill = fct_relevel(Raw_data,
+                                  c("Yes", "No")), width = 0.7)) + 
+  scale_fill_manual(values = cbp1,
+                    breaks = c("Yes", "No")) +
+  scale_y_continuous(name = "Article count") +
+  scale_x_discrete(name = NULL) +
+  guides(fill = FALSE) + 
+  theme_light() +
+  coord_flip() +
+  geom_text(aes(label = n, x = Raw_data),
+            y = max(t_Raw_data$n)/2,
+            hjust = 0, 
+            size = 3.5) +
+  ggtitle(expression(bold("a)") ~ " Are review's data available?"))
+
+p6
 
 #ggsave(here("plots","figure_data_availability.pdf"), width = 4, height = 3, units = "cm", scale = 2, device = cairo_pdf)
 
@@ -1176,33 +1307,52 @@ t_Analysis_code <-
   arrange(desc(n)) %>% 
   filter(Analysis_code != "NA") #filter out NA
 
-p7 <- ggplot(t_Analysis_code, aes(x = Analysis_code, y = n)) +
- theme_light() +
- theme(legend.position = "none",
+p7 <- ggplot(t_Analysis_code, aes(x = Analysis_code, 
+                                  y = n)) +
+  theme(legend.position = "none",
        axis.title.y = element_blank()) +
- labs(title = expression("Analysis code availability")) + #~bold(A.)~' Type and subject'
- coord_flip()  +
- geom_col(aes(fill = Analysis_code), width = 0.7) + 
- scale_y_continuous(name = "Article count")
-
+  geom_col(aes(fill = fct_relevel(Analysis_code,
+                                  c("Yes", "No")), width = 0.7)) + 
+  scale_fill_manual(values = cbp1,
+                    breaks = c("Yes", "No")) +
+  scale_y_continuous(name = "Article count") +
+  scale_x_discrete(name = NULL) +
+  guides(fill = FALSE) + 
+  theme_light() +
+  coord_flip() +
+  geom_text(aes(label = n, x = Analysis_code),
+            y = max(t_Analysis_code$n)/2,
+            hjust = 0, 
+            size = 3.5) +
+  ggtitle(expression(bold("b)") ~ " Is the review's analysis code available?"))
+p7
 ```
 
 ### Plots combined - COI
 
 ```{r, plots combined 1}
 (p1+p2)
+# ggsave(here("R_data", "plots_COI.png"),
+#        width = 8,
+#        height = 6,)
 ```
 
 ### Plots combined - Funding
 
 ```{r, plots combined 2}
 (p3)/(p4+p5)
+# ggsave(here("R_data", "plots_fundings.png"),
+#        width = 8,
+#        height = 6,)
 ```
 
 ### Plots combined - Data and Code availability
 
 ```{r, plots combined 3}
 (p6+p7)
+# ggsave(here("R_data", "plots_data&code.png"),
+#        width = 8,
+#        height = 6,)
 ```
 
 # ------------------------------------------------------------------------
