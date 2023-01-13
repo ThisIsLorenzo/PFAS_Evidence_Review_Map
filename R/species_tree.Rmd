@@ -53,7 +53,7 @@ table(taxa$flags) # flags 5 names with problems (infraspecific , major_rank_conf
 
 
 
-mytree <- tol_induced_subtree(ott_ids = taxa$ott_id, label_format= "name") #this will fail with: Error: HTTP failure: 400 - [/v3/tree_of_life/induced_subtree] Error: node_id 'ott4937072' was not found!list(ott4937072 = "pruned_ott_id")
+#mytree <- tol_induced_subtree(ott_ids = taxa$ott_id, label_format= "name") #this will fail with: Error: HTTP failure: 400 - [/v3/tree_of_life/induced_subtree] Error: node_id 'ott4937072' was not found!list(ott4937072 = "pruned_ott_id")
 
 taxa[taxa[["ott_id"]] == "4937072", ] #Xenopus (genus in Nucletmycea)  - "major_rank_conflict"
 spdata$Species_scientific_name[spdata$Species_scientific_name == "Xenopus"] <- "Xenopus laevis"
@@ -72,9 +72,6 @@ mytree$tip.label <- gsub("_"," ", mytree$tip.label) #get rid of the underscores
 mytree$tip.label <- trimws(mytree$tip.label) #getting rid of the trailing whitespace
 
 sort(intersect(as.character(mytree$tip.label), unique(spdata$Species_scientific_name))) # 77 names are matching. 27 are not matching.
-
-
-
 
 
 

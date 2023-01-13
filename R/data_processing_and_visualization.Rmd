@@ -234,7 +234,6 @@ p_PFAS_focus <-
   scale_fill_manual(values=cbp1, breaks=c('One', 
                                           'Multiple',
                                           'Not specified')) +
-  theme_light() +
   theme(legend.position = "bottom",
        legend.box.background = element_rect(colour = "black"), 
        legend.title = element_text(size=10),
@@ -242,6 +241,14 @@ p_PFAS_focus <-
        axis.title.x = element_text(size = 10),
        axis.title.y = element_blank(),
        legend.background = element_blank())
+
+# t_PFASfocus_label <- t_PFASfocus %>%
+#   group_by(PFAS_focus, PFAS_one_many) %>%
+#   summarize(n = sum(n)) %>%
+#   mutate(label = paste(PFAS_one_many, n, sep = ": ")) %>% 
+#   arrange(PFAS_focus, PFAS_one_many)
+# 
+# p_PFAS_focus + geom_text(data = t_PFASfocus_label, aes(label = label, fill = PFAS_one_many), position = position_stack(vjust = 0.5))
 
 # ggsave(here("R_data", "plot_pfas_focus.png"),
 #        width = 8,
@@ -917,7 +924,7 @@ knitr::kable(questions, caption = "Table. List of AMSTAR2 questions with labels 
   kable_paper(bootstrap_options = "striped", full_width = F)
 ```
 
-## Summary plot for pilot AMSTAR2 data
+## Summary plot - AMSTAR2
 
 AMSTAR2 assessment results as percentages of each answer score per question.
 
@@ -963,16 +970,19 @@ levels(qtable_long$score_word) <- c("No", "Partially", "Yes", "Not Applicable")
 summaryplot <-
   ggplot(data = qtable_long) +
   geom_bar(mapping = aes(x = question, fill = fct_relevel(score_word, c("Not Applicable", 
-                                                                        "Partially", 
                                                                         "No", 
+                                                                        "Partially", 
                                                                         "Yes"))), width = 0.7, position = "fill", color = "black") +
   coord_flip(ylim = c(0, 1)) +
   guides(fill = guide_legend(reverse = F)) +
   scale_fill_manual("Risk of Bias",
-                        values=cbp2,
+                        values=c("Yes" = "#00FC00",
+                                 "Partially" = "orange",
+                                 "No" = "red",
+                                 "Not Applicable" = "grey"),
                         breaks=c("Yes",
-                                 "No",
-                                 "Partially", 
+                                 "Partially",
+                                 "No", 
                                  "Not Applicable")) +
   scale_y_continuous(labels = scales::percent, expand = c(0.02,0)) +
   scale_x_discrete(expand = c(0.02,0)) +
@@ -995,7 +1005,7 @@ summaryplot <-
 summaryplot
 
 # save plot
-#ggsave(here("plots","figure_AMSTAR2_summary_v01.pdf"), width = 10, height = 8, units = "cm", scale = 2, device = cairo_pdf)
+#ggsave(here("R_data","AMSTAR2_summary.png"), width = 10, height = 8, units = "cm", scale = 2)
 
 ```
 
@@ -1112,8 +1122,7 @@ p1 <-
   theme_light() +
   coord_flip() +
   geom_text(aes(label = n, x = COI_statement), 
-            y = max(t_COI_statement$n)/2,
-            hjust = 0, 
+            position = position_stack(vjust = 0.5), 
             size = 3.5) + 
   ggtitle(expression(bold("a)") ~ " Is the COI statement provided?"))
   
@@ -1147,8 +1156,7 @@ p2 <-
   coord_flip() +
   theme_light() +
   geom_text(aes(label = n, x = COI_present), 
-            y = max(t_COI_present$n)/2,
-            hjust = 0, 
+            position = position_stack(vjust = 0.5),
             size = 3.5) +
   ggtitle(expression(bold("b)") ~ " Is potential COI acknowledge?"))
 p2
@@ -1180,8 +1188,7 @@ p3 <-
   theme_light() +
   coord_flip() +
   geom_text(aes(label = n, x = Funding_statement), 
-            y = max(t_Funding_statement$n)/2,
-            hjust = 0, 
+            position = position_stack(vjust = 0.5), 
             size = 3.5) +
   ggtitle(expression(bold("a)") ~ " Is the funding statement provided?"))
 
@@ -1196,16 +1203,16 @@ Whether funding from non-profit (NGO, government, universities, etc.) is acknowl
 
 t_Nonprofit_funding <- 
   mdata %>% 
-  count(Nonprofit_funding) %>% 
+  count(Non_profit_funding) %>% 
   arrange(desc(n)) %>% 
-  filter(Nonprofit_funding != "NA") #filter out NA
+  filter(Non_profit_funding != "NA") #filter out NA
 
 p4 <- 
-  ggplot(t_Nonprofit_funding, aes(x = Nonprofit_funding,
+  ggplot(t_Nonprofit_funding, aes(x = Non_profit_funding,
                                   y = n)) +
   theme(legend.position = "none",
         axis.title.y = element_blank()) +
-  geom_col(aes(fill = fct_relevel(Nonprofit_funding,
+  geom_col(aes(fill = fct_relevel(Non_profit_funding,
                                   c("Yes", "No")), width = 0.7)) + 
   scale_fill_manual(values = cbp1,
                     breaks = c("Yes", "No")) + 
@@ -1214,9 +1221,8 @@ p4 <-
   guides(fill = FALSE) +
   theme_light() +
   coord_flip() +
-  geom_text(aes(label = n, x = Nonprofit_funding), 
-            y = max(t_Nonprofit_funding$n)/2,
-            hjust = 0,
+  geom_text(aes(label = n, x = Non_profit_funding), 
+            position = position_stack(vjust = 0.5),
             size = 3.5) +
   ggtitle(expression(bold("b)") ~ " Fundings from non-profit sector"))
 
@@ -1250,8 +1256,7 @@ p5 <-
   theme_light() +
   coord_flip() +
   geom_text(aes(label = n, x = Industry_funding),
-            y = max(t_Funding_industry$n)/2, 
-            hjust = 0, 
+            position = position_stack(vjust = 0.5),
             size = 3.5) +
   ggtitle(expression(bold("c)") ~ " Fundings from industry sector"))
 
@@ -1284,8 +1289,7 @@ p6 <- ggplot(t_Raw_data, aes(x = Raw_data,
   theme_light() +
   coord_flip() +
   geom_text(aes(label = n, x = Raw_data),
-            y = max(t_Raw_data$n)/2,
-            hjust = 0, 
+            position = position_stack(vjust = 0.5),
             size = 3.5) +
   ggtitle(expression(bold("a)") ~ " Are review's data available?"))
 
@@ -1321,8 +1325,7 @@ p7 <- ggplot(t_Analysis_code, aes(x = Analysis_code,
   theme_light() +
   coord_flip() +
   geom_text(aes(label = n, x = Analysis_code),
-            y = max(t_Analysis_code$n)/2,
-            hjust = 0, 
+            position = position_stack(vjust = 0.5), 
             size = 3.5) +
   ggtitle(expression(bold("b)") ~ " Is the review's analysis code available?"))
 p7

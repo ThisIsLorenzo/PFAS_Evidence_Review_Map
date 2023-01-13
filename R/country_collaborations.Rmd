@@ -210,7 +210,7 @@ fig2
 net_matrix3 <- net_matrix2
 diag(net_matrix3) <- 0 #get rid of collaboration with same country
 
-pdf(here("R", "Country collabs_2.pdf"), width = 21, height = 21)
+pdf(here("figs", "inter_countries_collab.pdf"), width = 21, height = 21)
 fig3 <- chordDiagram(net_matrix3,
                annotationTrack = "grid",
                preAllocateTracks = 1, 
@@ -243,8 +243,6 @@ bg.border = NA)
 #title("Country collaborations", font.main = 1, cex.main = 3, adj = 0.5, line = -1)
 
 dev.off()
-
-fig3
 ```
 
 
@@ -325,9 +323,5 @@ bg.border = NA)
 #dev.off()
 ```
 
-
-```{r setup, echo = FALSE, results = 'hide'}
-
-```
 
 
