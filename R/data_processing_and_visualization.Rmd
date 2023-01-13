@@ -235,7 +235,7 @@ p_PFAS_focus <-
   guides(fill = guide_legend(title="How many PFAS types:")) +
   theme_light() +
   coord_flip() +
-  geom_text(aes(label = ifelse(n>0,as.character(n),''), x = PFAS_focus), 
+  geom_text(aes(label = paste0(round((n/sum(n))*100,1),'%'), x = PFAS_focus), 
             position = position_stack(vjust = 0.5), 
             size = 3.5) +
   ggtitle(expression(bold("Is the review focused on PFAS?"))) +
@@ -247,6 +247,7 @@ p_PFAS_focus <-
        axis.title.y = element_blank(),
        legend.background = element_blank())
 
+p_PFAS_focus
 # t_PFASfocus_label <- t_PFASfocus %>%
 #   group_by(PFAS_focus, PFAS_one_many) %>%
 #   summarize(n = sum(n)) %>%
@@ -1126,7 +1127,7 @@ p1 <-
   guides(fill = FALSE) +
   theme_light() +
   coord_flip() +
-  geom_text(aes(label = n, x = COI_statement), 
+  geom_text(aes(label = paste0(round((n/sum(n))*100,1),'%'), x = COI_statement), 
             position = position_stack(vjust = 0.5), 
             size = 3.5) + 
   ggtitle(expression(bold("a)") ~ " Is the COI statement provided?"))
@@ -1160,7 +1161,7 @@ p2 <-
   guides(fill = FALSE) +
   coord_flip() +
   theme_light() +
-  geom_text(aes(label = n, x = COI_present), 
+  geom_text(aes(label = paste0(round((n/sum(n))*100,1),'%'), x = COI_present), 
             position = position_stack(vjust = 0.5),
             size = 3.5) +
   ggtitle(expression(bold("b)") ~ " Is potential COI acknowledge?"))
@@ -1192,7 +1193,7 @@ p3 <-
         axis.title.y = element_blank()) +
   theme_light() +
   coord_flip() +
-  geom_text(aes(label = n, x = Funding_statement), 
+  geom_text(aes(label = paste0(round((n/sum(n))*100,1),'%'), x = Funding_statement), 
             position = position_stack(vjust = 0.5), 
             size = 3.5) +
   ggtitle(expression(bold("a)") ~ " Is the funding statement provided?"))
@@ -1226,7 +1227,7 @@ p4 <-
   guides(fill = FALSE) +
   theme_light() +
   coord_flip() +
-  geom_text(aes(label = n, x = Non_profit_funding), 
+  geom_text(aes(label = paste0(round((n/sum(n))*100,1),'%'), x = Non_profit_funding), 
             position = position_stack(vjust = 0.5),
             size = 3.5) +
   ggtitle(expression(bold("b)") ~ " Fundings from non-profit sector"))
@@ -1260,7 +1261,7 @@ p5 <-
   guides(fill = FALSE) +
   theme_light() +
   coord_flip() +
-  geom_text(aes(label = n, x = Industry_funding),
+  geom_text(aes(label = paste0(round((n/sum(n))*100,1),'%'), x = Industry_funding),
             position = position_stack(vjust = 0.5),
             size = 3.5) +
   ggtitle(expression(bold("c)") ~ " Fundings from industry sector"))
@@ -1293,7 +1294,7 @@ p6 <- ggplot(t_Raw_data, aes(x = Raw_data,
   guides(fill = FALSE) + 
   theme_light() +
   coord_flip() +
-  geom_text(aes(label = n, x = Raw_data),
+  geom_text(aes(label = paste0(round((n/sum(n))*100,1),'%'), x = Raw_data),
             position = position_stack(vjust = 0.5),
             size = 3.5) +
   ggtitle(expression(bold("a)") ~ " Are review's data available?"))
@@ -1329,7 +1330,7 @@ p7 <- ggplot(t_Analysis_code, aes(x = Analysis_code,
   guides(fill = FALSE) + 
   theme_light() +
   coord_flip() +
-  geom_text(aes(label = n, x = Analysis_code),
+  geom_text(aes(label = paste0(round((n/sum(n))*100,1),'%'), x = Analysis_code),
             position = position_stack(vjust = 0.5), 
             size = 3.5) +
   ggtitle(expression(bold("b)") ~ " Is the review's analysis code available?"))
@@ -1342,7 +1343,7 @@ p7
 (p1+p2)
 # ggsave(here("R_data", "plots_COI.png"),
 #        width = 8,
-#        height = 6,)
+#        height = 6)
 ```
 
 ### Plots combined - Funding
@@ -1351,7 +1352,7 @@ p7
 (p3)/(p4+p5)
 # ggsave(here("R_data", "plots_fundings.png"),
 #        width = 8,
-#        height = 6,)
+#        height = 6)
 ```
 
 ### Plots combined - Data and Code availability
@@ -1360,7 +1361,7 @@ p7
 (p6+p7)
 # ggsave(here("R_data", "plots_data&code.png"),
 #        width = 8,
-#        height = 6,)
+#        height = 6)
 ```
 
 # ------------------------------------------------------------------------
