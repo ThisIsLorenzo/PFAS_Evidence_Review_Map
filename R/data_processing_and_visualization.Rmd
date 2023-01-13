@@ -218,22 +218,27 @@ t_PFASfocus <-
 cbp1 <- c("#56B4E9",
           "#E69F00",
           "#999999")
+          
 
-p_PFAS_focus <-
-  ggplot(t_PFASfocus, aes(x = PFAS_focus, 
+p_PFAS_focus <- 
+  ggplot(t_PFASfocus, aes(x = PFAS_focus,
                           y = n)) +
-  theme_light() +
-  labs(title = expression("Is the review focused on PFAS?")) + #~bold(A.)~' Type and subject'
-  coord_flip() +
-  scale_fill_brewer() +
-  guides(fill=guide_legend(title="How many PFAS types:")) + 
   geom_col(aes(fill = fct_relevel(PFAS_one_many, c("Not specified",
                                                    "Multiple",
-                                                   "One"))), width = 0.5) + 
+                                                   "One"))), width = 0.7) + 
+  scale_fill_manual(values = cbp1, 
+                    breaks=c('One', 
+                             'Multiple',
+                             'Not specified')) +
   scale_y_continuous(name = "Article count") +
-  scale_fill_manual(values=cbp1, breaks=c('One', 
-                                          'Multiple',
-                                          'Not specified')) +
+  scale_x_discrete(name = NULL) +
+  guides(fill = guide_legend(title="How many PFAS types:")) +
+  theme_light() +
+  coord_flip() +
+  geom_text(aes(label = ifelse(n>0,as.character(n),''), x = PFAS_focus), 
+            position = position_stack(vjust = 0.5), 
+            size = 3.5) +
+  ggtitle(expression(bold("Is the review focused on PFAS?"))) +
   theme(legend.position = "bottom",
        legend.box.background = element_rect(colour = "black"), 
        legend.title = element_text(size=10),
