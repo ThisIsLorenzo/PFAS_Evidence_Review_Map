@@ -135,9 +135,9 @@ S_137,Danio rerio,Zebrafish,na,Actinopterygii
 S_137,Drosophila melanogaster,Fruit fly,na,Insecta
 S_137,Gallus domesticus,Chicken,na,Aves
 S_137,Salmo salar,Atlantic salmon,na,Actinopterygii
-S_174,Mus musculus,CD1 mice,The authors did not report the scientific name,Mammal
-S_174,Rattus norvegicus,Sprague Dawley rat,The authors did not report the scientific name,Mammal
-S_174,Leporidae,Rabbit,The authors did not report the scientific name,Mammal
+S_174,Mus musculus,CD1 mice,The authors did not report the scientific name,Mammalia
+S_174,Rattus norvegicus,Sprague Dawley rat,The authors did not report the scientific name,Mammalia
+S_174,Leporidae,Rabbit,The authors did not report the scientific name,Mammalia
 S_174,Danio rerio,Zebrafish,The authors did not report the scientific name,Actinopterygii
 S_174,Gallus domesticus,Chicken,The authors did not report the scientific name,Aves
 S_174,Xenopus,Clawed frogs,The authors did not report the common name,Amphibian
