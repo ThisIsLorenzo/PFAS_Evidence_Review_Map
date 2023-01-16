@@ -780,9 +780,7 @@ publ_year <- mdata %>%
   geom_area(fill = '#ADADAD', 
             alpha = 0.5) +
   geom_line(color = '#5C5C5C', 
-            size = 1) + 
-  #geom_point(size = 0.8, color = 'black') +
-  #theme_minimal() +
+            size = 1) +
   scale_x_continuous(name = "Year",
                      breaks = seq(2011, 2022, by = 1),
                      minor_breaks = NULL) +
@@ -791,11 +789,10 @@ publ_year <- mdata %>%
                     minor_breaks = NULL
                     ) +
   ggtitle("Time trend") + 
-  theme_ipsum(grid_col = "#EBEBEB") +
   theme(plot.title = element_text(size = 14,
                                   hjust = 0.5),
        axis.text.x = element_text(size = 11,
-                                  margin = margin(t = 1, 
+                                  margin = margin(t = 0, 
                                                   r = 0,
                                                   l = 0),
                                   angle = 45),
@@ -808,12 +805,15 @@ publ_year <- mdata %>%
        axis.title.y = element_text(size = 12,
                                    hjust = 0.5))
 
-# ggsave(here("R_data", "time_trend.png"),
-#        width = 8,
-#        height = 6)
+publ_year
+ggsave(here("R_data", "time_trend.png"),
+       width = 8,
+       height = 6)
 
 #modified graph with breakdown by Review_type_claimed (needs more data points to be displayed properly)
+
 mdata %>%
+  separate_rows(Review_type_claimed, sep=";") %>% 
   count(Publication_year,
         Review_type_claimed) %>%
   mutate(cumulative = cumsum(n)) %>% 
@@ -827,7 +827,7 @@ mdata %>%
                      breaks = seq(2011, 2022, by = 1),
                      minor_breaks = NULL) +
   scale_y_continuous(name = "Number of published systematic reviews",
-                    breaks = seq(0, 110, by = 10),
+                    breaks = seq(0, 140, by = 10),
                     minor_breaks = NULL
                     ) +
   ggtitle("Time trend") + 
@@ -1089,6 +1089,124 @@ scoresplot
   
 ## save plot
 #ggsave(here("plots","figure_AMSTAR2_scores_v01.pdf"), width = 16, height = 12, units = "cm", scale = 2, device = cairo_pdf)
+```
+
+```{r}
+qtable_long %>% 
+  filter(question == "Q1") %>% 
+  summarize(yes_count = sum(measurement == "Yes"),
+            total_count = n()) %>%
+  mutate(percentage = (yes_count/total_count)*100)
+#          yes_count total_count percentage
+# 1        39         109   35.77982     
+qtable_long %>% 
+  filter(question == "Q1") %>% 
+  summarize(p_count = sum(measurement == "Partially"),
+            total_count = n()) %>%
+  mutate(percentage = (p_count/total_count)*100)
+#   p_count total_count percentage
+# 1      52         109   47.70642
+qtable_long %>% 
+  filter(question == "Q2") %>% 
+  summarize(no_count = sum(measurement == "No"),
+            total_count = n()) %>% 
+  mutate(percentage = (no_count/total_count)*100)
+#   no_count total_count percentage
+# 1       87         109   79.81651
+qtable_long %>% 
+  filter(question == "Q3") %>% 
+  summarize(yes_count = sum(measurement == "Yes"),
+            total_count = n()) %>%
+  mutate(percentage = (yes_count/total_count)*100)
+#   yes_count total_count percentage
+# 1        69         109   63.30275
+qtable_long %>% 
+  filter(question == "Q4") %>% 
+  summarize(no_count = sum(measurement == "No"),
+            total_count = n()) %>% 
+  mutate(percentage = (no_count/total_count)*100)
+#   no_count total_count percentage
+# 1       50         109   45.87156
+qtable_long %>% 
+  filter(question == "Q4") %>% 
+  summarize(p_count = sum(measurement == "Partially"),
+            total_count = n()) %>% 
+  mutate(percentage = (p_count/total_count)*100)
+#   p_count total_count percentage
+# 1      33         109   30.27523
+qtable_long %>% 
+  filter(question == "Q5") %>% 
+  summarize(no_count = sum(measurement == "No"),
+            total_count = n()) %>% 
+  mutate(percentage = (no_count/total_count)*100)
+#   no_count total_count percentage
+# 1       63         109   57.79817
+qtable_long %>% 
+  filter(question == "Q6") %>% 
+  summarize(no_count = sum(measurement == "No"),
+            total_count = n()) %>% 
+  mutate(percentage = (no_count/total_count)*100)
+#   no_count total_count percentage
+# 1       78         109   71.55963
+qtable_long %>% 
+  filter(question == "Q8") %>% 
+  summarize(yes_count = sum(measurement == "Yes"),
+            total_count = n()) %>%
+  mutate(percentage = (yes_count/total_count)*100)
+#   yes_count total_count percentage
+# 1        65         109   59.63303
+qtable_long %>% 
+  filter(question == "Q9") %>% 
+  summarize(no_count = sum(measurement == "No"),
+            total_count = n()) %>% 
+  mutate(percentage = (no_count/total_count)*100)
+#   no_count total_count percentage
+# 1       69         109   63.30275
+qtable_long %>% 
+  filter(question == "Q11") %>% 
+  filter(measurement != "Not Applicable") %>% 
+  summarize(no_count = sum(measurement == "Yes"),
+            total_count = n()) %>% 
+  mutate(percentage = (no_count/total_count)*100)
+#   no_count total_count percentage
+# 1       32          37   86.48649
+qtable_long %>% 
+  filter(question == "Q12") %>% 
+  filter(measurement != "Not Applicable") %>% 
+  summarize(no_count = sum(measurement == "Yes"),
+            total_count = n()) %>% 
+  mutate(percentage = (no_count/total_count)*100)
+#   no_count total_count percentage
+# 1       12          36   33.33333
+qtable_long %>% 
+  filter(question == "Q13") %>% 
+  summarize(no_count = sum(measurement == "No"),
+            total_count = n()) %>% 
+  mutate(percentage = (no_count/total_count)*100)
+#   no_count total_count percentage
+# 1       84         109   77.06422
+qtable_long %>% 
+  filter(question == "Q14") %>% 
+  summarize(no_count = sum(measurement == "No"),
+            total_count = n()) %>% 
+  mutate(percentage = (no_count/total_count)*100)
+#   no_count total_count percentage
+# 1       79         109   72.47706
+qtable_long %>% 
+  filter(question == "Q15") %>% 
+  filter(measurement != "Not Applicable") %>% 
+  summarize(no_count = sum(measurement == "No"),
+            total_count = n()) %>% 
+  mutate(percentage = (no_count/total_count)*100)
+#   no_count total_count percentage
+# 1       18          39   46.15385
+qtable_long %>% 
+  filter(question == "Q16") %>% 
+  summarize(yes_count = sum(measurement == "Yes"),
+            total_count = n()) %>% 
+  mutate(percentage = (yes_count/total_count)*100)
+#   yes_count total_count percentage
+# 1        87         109   79.81651
 ```
 
 ```{r plot combine AMSTAR2, eval = FALSE, include = FALSE}
