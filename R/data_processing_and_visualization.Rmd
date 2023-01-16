@@ -729,7 +729,6 @@ t_PFAStype$PFAS_type <-
 p_PFAStype <-
   ggplot(t_PFAStype, aes(x = PFAS_type,
                          y = n)) +
-  theme_light() +
   labs(title = expression("PFAS type and main subjects reviewed")) + #~bold(A.)~' Type and subject'
   coord_flip()  +
   scale_fill_brewer() +
@@ -805,17 +804,18 @@ publ_year <- mdata %>%
        axis.title.y = element_text(size = 12,
                                    hjust = 0.5))
 
-publ_year
-ggsave(here("R_data", "time_trend.png"),
-       width = 8,
-       height = 6)
+# ggsave(here("R_data", "time_trend.png"),
+#        width = 8,
+#        height = 6)
+```
 
-#modified graph with breakdown by Review_type_claimed (needs more data points to be displayed properly)
+Cumulative time-trends grouped by review type:
 
+```{r}
 mdata %>%
   separate_rows(Review_type_claimed, sep=";") %>% 
-  count(Publication_year,
-        Review_type_claimed) %>%
+  group_by(Review_type_claimed) %>% 
+  count(Publication_year) %>%
   mutate(cumulative = cumsum(n)) %>% 
   ggplot(aes(x = Publication_year,
              y = cumulative,
@@ -849,33 +849,51 @@ mdata %>%
                                    hjust = 0.5))
 
 #modified graph with breakdown by Species_higher_taxon (needs more data points to be displayed properly)
+```
 
-mdata_classes <- left_join(mdata, spdata, by = "Study_ID") %>%
-  filter(!is.na(Class_scientific_name)) %>% 
-  group_by(Class_scientific_name)
+Cumulative time-trends grouped by broad taxa:
 
-mdata_classes %>%
-  count(Publication_year,
-        Class_scientific_name) %>%
-  mutate(cumulative = cumsum(n)) %>% 
+```{r}
+
+
+spdata$Broad_taxa2 <- ifelse(spdata$Class_scientific_name == "Aves"|
+                              spdata$Class_scientific_name == "Mammalia" |
+                              spdata$Class_scientific_name == "Actinopterygii",
+                              spdata$Class_scientific_name, "Others")
+
+spdata$Broad_taxa2 <- ifelse(spdata$Broad_taxa2 == "Aves", "Birds",
+                      ifelse(spdata$Broad_taxa2 == "Mammalia", "Mammals",
+                      ifelse(spdata$Broad_taxa2 == "Actinopterygii", "Ray-finned fishes",
+                             spdata$Broad_taxa2)))
+
+tt_taxa <- left_join(mdata, spdata, by = "Study_ID") %>%
+  filter(!is.na(Broad_taxa2)) %>% 
+  group_by(Broad_taxa2) %>% 
+  count(Publication_year) %>%
+  mutate(cumulative = cumsum(n))
+
+time_trend_taxa <- tt_taxa %>%
   ggplot(aes(x = Publication_year,
              y = cumulative,
-             color = Class_scientific_name)) +
-  geom_line(size = 1) + 
-  #geom_point(size = 0.8, color = 'black') +
-  #theme_minimal() +
+             color = Broad_taxa2)) +
+  geom_line(size = 0.5) + 
+  geom_point(aes(color = Broad_taxa2), size = 3, shape = 21, fill = "white") +
+  geom_text(aes(label = n, x = Publication_year, y = cumulative), 
+            size = 3.5, 
+            hjust = 1.2,
+            vjust = -0.5) +
+  scale_color_ochre(palette = "olsen_seq") +
   scale_x_continuous(name = "Year",
                      breaks = seq(2011, 2022, by = 1),
                      minor_breaks = NULL) +
   scale_y_continuous(name = "Number of published systematic reviews",
-                    breaks = seq(0, 65, by = 5),
+                    breaks = seq(0, 65, by = 10),
                     minor_breaks = NULL
                     ) +
-  ggtitle("Time trend") + 
-  theme_ipsum(grid_col = "#EBEBEB") +
+  ggtitle("Time trend") +
   theme(plot.title = element_text(size = 14,
                                   hjust = 0.5),
-       axis.text.x = element_text(size = 11,
+       axis.text.x = element_text(size = 10,
                                   margin = margin(t = 1, 
                                                   r = 0,
                                                   l = 0),
@@ -887,8 +905,12 @@ mdata_classes %>%
        axis.title.x = element_text(size = 12,
                                    hjust = 0.5),
        axis.title.y = element_text(size = 12,
-                                   hjust = 0.5))
+                                   hjust = 0.5)) +
+  labs(color = "Broad taxa")
 
+ggsave(here("R_data", "time_trend_taxa.png"),
+       width = 8,
+       height = 6)
 ```
 
 ```{r}
