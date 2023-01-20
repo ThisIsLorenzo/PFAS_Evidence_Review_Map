@@ -119,8 +119,7 @@ mdata <-
   select(-("Timestamp")) %>% # Remove "Timestamp" columns
   select(-starts_with("Initials")) %>%  # Remove columns starting with "Initials"
   drop_na(Author_year) %>% #remove last two rows because empty
-  mutate(Journal = ifelse(Journal == "International journal of environmental research and public health", "International Journal of Environmental Research and Public Health", Journal)) %>% 
-  mutate(Journal = ifelse(Journal == "Environmental research", "Environmental Research", Journal)) # Fix one journal title
+  mutate(Journal = tolower(Journal)) #remove capital letters
 #dim(mdata) #109 rows 35 columns
 
 spdata <- 
@@ -165,29 +164,32 @@ mpidata <- left_join(mdata, ptidata, by = "Study_ID")
 # Summary table of included systematic reviews (SRs) (mapping + appraisal)
 
 ```{r simple table of included studies}
-#First, order the table by Study_ID
-mdata <- 
-  mdata[order(mdata$Study_ID),]
-#create two new columns in mdata table called 'First_author' and 'Publication_year', containing the first and second elements of the 'Author_year' column, respectively.
+
+mdata <- mdata[order(mdata$Study_ID),] #Order the table by Study_ID
+#Create two new columns )i.e., 'First_author' and 'Publication_year') containing the first and second elements of the 'Author_year' column, respectively.
+
 mdata2 <- mdata %>% 
   separate(Author_year, c("First_author", "Publication_year"), sep = "_")
-#make the table
+
+#Make the table
 knitr::kable(select(mdata2,	First_author,
                     Publication_year,
                     Paper_title), caption = "Table of included reviews") %>%
   kable_paper(bootstrap_options = "striped", full_width = F) #%>% 
-  #save_kable(here("R_data", "table1.html"), self_contained = T)
+ #save_kable(here("R_data", "table1.html"), self_contained = T)
 
 ```
 
-Make the same table for all reviews included in bibliometric analysis
+# Summary table of all included reviews (bibliometric analysis)
 ```{r}
+#TODO - this needs to be changed accordingly with the decision about what reviews to use for bibliometric analysis
+
 mdata_biblio <- 
   mdata_biblio[order(mdata_biblio$Study_ID),]
 
 mdata_biblio <- mdata_biblio %>% 
   separate(Author_year, c("First_author", "Publication_year"), sep = "_")
-#make the table
+
 knitr::kable(select(mdata_biblio,	First_author,
                     Publication_year,
                     Paper_title), caption = "Table of included reviews") %>%
@@ -195,32 +197,37 @@ knitr::kable(select(mdata_biblio,	First_author,
   #save_kable(here("R_data", "tableS1.html"), self_contained = T)
 ```
 
-
 # -----------------------------------------------------------------------
 
-# Time-trends
+# Objective 1. Mapping: What evidence on PFAS has been synthesized?
+
+Here we aim to reveal what areas in the realm of PFAS health-related and environmental research have been synthesized the most and where syntheses of evidence are lacking.
+
+## Time-trends
+
+### Overall
 
 ```{r area plots year, height = 2, width = 8}
 publ_year <- mdata %>% 
-  count(Publication_year) %>%
-  mutate(cumulative = cumsum(n)) %>% 
+  count(Publication_year) %>% #counting the number of rows for each unique value of the "Publication_year" variable
+  mutate(cumulative = cumsum(n)) %>% #add a new column to the output of the previous step, named "cumulative", which contains the cumulative sum of the "n" column
   ggplot(aes(x = Publication_year,
              y = cumulative)) + 
-  geom_line(size = 0.7) +
-  geom_point(size = 3, shape = 21, fill = "white") +
+  geom_line(size = 0.7) + #add a line chart
+  geom_point(size = 3, shape = 21, fill = "white") + #add a scatter plot
   geom_text(aes(label = n, x = Publication_year, y = cumulative), 
             size = 3.5, 
             hjust = 1.2,
-            vjust = -0.5) +
+            vjust = -0.5) + #add text labels to the ggplot object
   scale_x_continuous(name = "Year",
                      breaks = seq(2011, 2022, by = 1),
                      minor_breaks = NULL) +
   scale_y_continuous(name = "Number of published systematic reviews",
                     breaks = seq(0, 140, by = 10),
                     minor_breaks = NULL) +
-  ggtitle("Time trend") + 
+  ggtitle("Time trend") + #adds a title to the plot
   theme(plot.title = element_text(size = 14,
-                                  hjust = 0.5),
+                                  hjust = 0.5), 
        axis.text.x = element_text(size = 11,
                                   margin = margin(t = 5, 
                                                   r = 0,
@@ -233,26 +240,26 @@ publ_year <- mdata %>%
        axis.title.x = element_text(size = 12,
                                    hjust = 0.5),
        axis.title.y = element_text(size = 12,
-                                   hjust = 0.5))
+                                   hjust = 0.5)) #add theme elements
 publ_year
 # ggsave(here("R_data", "time_trend.png"),
 #        width = 8,
 #        height = 6)
 ```
 
-Cumulative time-trends grouped by review type:
+### Review type
 
 ```{r}
 mdata2 <- 
   mdata %>%
-  separate_rows(Review_type_claimed, sep=";")
+  separate_rows(Review_type_claimed, sep=";") #split the values in the "Review_type_claimed" column by ";" and create a new row for each value
 
 mdata2$review_type <- ifelse(mdata2$Review_type_claimed == "systematic review"|
                               mdata2$Review_type_claimed == "meta-analysis" ,
-                              mdata2$Review_type_claimed, "systematic review")
+                              mdata2$Review_type_claimed, "systematic review") #reduce the types of reviews in systematic and meta-analyses
 
 review_trend <- mdata2 %>% 
-  group_by(review_type) %>% 
+  group_by(review_type) %>% #group by type of review
   count(Publication_year) %>% 
   mutate(cumulative = cumsum(n))
 
@@ -298,7 +305,59 @@ trend_by_review
 #        height = 6)
 ```
 
-Cumulative time-trends grouped by broad taxa:
+### Review subject
+
+```{r}
+#TODO - Remove plants. Exclude the review? (S_070, Wang_2020)
+
+trend_subjects <- mdata %>% 
+  filter()
+  group_by(Human_animal_environment) %>% 
+  count(Publication_year) %>% 
+  mutate(cumulative = cumsum(n))
+
+t_pfas_subjects <-  trend_subjects %>%
+  ggplot(aes(x = Publication_year,
+             y = cumulative,
+             color = reorder(Human_animal_environment, -cumulative))) +
+  geom_line(size = 0.7) + 
+  geom_point(aes(color = reorder(Human_animal_environment, -cumulative)), size = 3, shape = 21, fill = "white") +
+  geom_text(aes(label = n, x = Publication_year, y = cumulative), 
+            size = 3.5, 
+            hjust = 1.2,
+            vjust = -0.5) +
+  scale_x_continuous(name = "Year",
+                     breaks = seq(2011, 2022, by = 1),
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = "Number of published systematic reviews",
+                    breaks = seq(0, 110, by = 10),
+                    minor_breaks = NULL
+                    ) +
+  ggtitle("Time trend") + 
+  theme(plot.title = element_text(size = 14,
+                                  hjust = 0.5),
+       axis.text.x = element_text(size = 11,
+                                  margin = margin(t = 5, 
+                                                  r = 0,
+                                                  l = 0),
+                                  angle = 45),
+       axis.text.y = element_text(size = 11,
+                                  margin = margin(t = 0, 
+                                                  r = 5, 
+                                                  l = 5)),
+       axis.title.x = element_text(size = 12,
+                                   hjust = 0.5),
+       axis.title.y = element_text(size = 12,
+                                   hjust = 0.5)) +
+  labs(color = "Review subject")
+
+t_pfas_subjects
+# ggsave(here("R_data", "time_trend_subjects.png"),
+#        width = 8,
+#        height = 6)
+```
+
+### Broad taxa
 
 ```{r}
 spdata$Broad_taxa2 <- ifelse(spdata$Class_scientific_name == "Aves"|
@@ -376,11 +435,263 @@ count(mdata, Publication_year)
 # 11             2022    10
 ```
 
-Cumulative time-trends grouped by top 10 journals:
+### PFAS focus Yes/No
 
 ```{r}
-mdata$Journal <- tolower(mdata$Journal)
+pfas_focus <- mdata %>% 
+  group_by(PFAS_focus) %>% 
+  count(Publication_year) %>% 
+  mutate(cumulative = cumsum(n))
 
+t_pfas_focus <-  pfas_focus %>%
+  ggplot(aes(x = Publication_year,
+             y = cumulative,
+             color = fct_relevel(PFAS_focus, c("Yes",
+                                                          "No")))) +
+  geom_line(size = 0.7) + 
+  geom_point(aes(color = PFAS_focus), size = 3, shape = 21, fill = "white") +
+  geom_text(aes(label = n, x = Publication_year, y = cumulative), 
+            size = 3.5, 
+            hjust = 1.2,
+            vjust = -0.5) +
+  scale_x_continuous(name = "Year",
+                     breaks = seq(2011, 2022, by = 1),
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = "Number of published systematic reviews",
+                    breaks = seq(0, 110, by = 10),
+                    minor_breaks = NULL
+                    ) +
+  ggtitle("Time trend") + 
+  theme(plot.title = element_text(size = 14,
+                                  hjust = 0.5),
+       axis.text.x = element_text(size = 11,
+                                  margin = margin(t = 5, 
+                                                  r = 0,
+                                                  l = 0),
+                                  angle = 45),
+       axis.text.y = element_text(size = 11,
+                                  margin = margin(t = 0, 
+                                                  r = 5, 
+                                                  l = 5)),
+       axis.title.x = element_text(size = 12,
+                                   hjust = 0.5),
+       axis.title.y = element_text(size = 12,
+                                   hjust = 0.5)) +
+  labs(color = "Focus on PFAS")
+
+t_pfas_focus
+# ggsave(here("R_data", "time_trend_pfas_focus.png"),
+#        width = 8,
+#        height = 6)
+```
+
+### PFAS focus One/Multiple
+
+```{r}
+pfas_focus2 <- mdata %>% 
+  group_by(PFAS_one_many) %>% 
+  count(Publication_year) %>% 
+  mutate(cumulative = cumsum(n))
+
+t_pfas_focus2 <-  pfas_focus2 %>%
+  ggplot(aes(x = Publication_year,
+             y = cumulative,
+             color = reorder(PFAS_one_many, -cumulative))) +
+  geom_line(size = 0.7) + 
+  geom_point(aes(color = PFAS_one_many), size = 3, shape = 21, fill = "white") +
+  geom_text(aes(label = n, x = Publication_year, y = cumulative), 
+            size = 3.5, 
+            hjust = 1.2,
+            vjust = -0.5) +
+  scale_x_continuous(name = "Year",
+                     breaks = seq(2011, 2022, by = 1),
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = "Number of published systematic reviews",
+                    breaks = seq(0, 110, by = 10),
+                    minor_breaks = NULL
+                    ) +
+  ggtitle("Time trend") + 
+  theme(plot.title = element_text(size = 14,
+                                  hjust = 0.5),
+       axis.text.x = element_text(size = 11,
+                                  margin = margin(t = 5, 
+                                                  r = 0,
+                                                  l = 0),
+                                  angle = 45),
+       axis.text.y = element_text(size = 11,
+                                  margin = margin(t = 0, 
+                                                  r = 5, 
+                                                  l = 5)),
+       axis.title.x = element_text(size = 12,
+                                   hjust = 0.5),
+       axis.title.y = element_text(size = 12,
+                                   hjust = 0.5)) +
+  labs(color = "Focus on PFAS")
+
+t_pfas_focus2
+# ggsave(here("R_data", "time_trend_pfas_focus2.png"),
+#        width = 8,
+#        height = 6)
+```
+
+### PFAS types
+
+```{r}
+trend_pfas_types <- mpidata %>% 
+  group_by(PFAS_type) %>% 
+  count(Publication_year) %>% 
+  mutate(cumulative = cumsum(n))
+
+t_pfas_types <-  trend_pfas_types %>%
+  ggplot(aes(x = Publication_year,
+             y = cumulative,
+             color = reorder(PFAS_type, -cumulative))) +
+  geom_line(size = 0.7) + 
+  geom_point(aes(color = reorder(PFAS_type, -cumulative)), size = 3, shape = 21, fill = "white") +
+  geom_text(aes(label = n, x = Publication_year, y = cumulative), 
+            size = 3.5, 
+            hjust = 1.2,
+            vjust = -0.5) +
+  scale_x_continuous(name = "Year",
+                     breaks = seq(2011, 2022, by = 1),
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = "Number of published systematic reviews",
+                    breaks = seq(0, 110, by = 10),
+                    minor_breaks = NULL
+                    ) +
+  ggtitle("Time trend") + 
+  theme(plot.title = element_text(size = 14,
+                                  hjust = 0.5),
+       axis.text.x = element_text(size = 11,
+                                  margin = margin(t = 5, 
+                                                  r = 0,
+                                                  l = 0),
+                                  angle = 45),
+       axis.text.y = element_text(size = 11,
+                                  margin = margin(t = 0, 
+                                                  r = 5, 
+                                                  l = 5)),
+       axis.title.x = element_text(size = 12,
+                                   hjust = 0.5),
+       axis.title.y = element_text(size = 12,
+                                   hjust = 0.5)) +
+  labs(color = "PFAS type")
+
+t_pfas_types
+# ggsave(here("R_data", "time_trend_pfas_types.png"),
+#        width = 8,
+#        height = 6)
+```
+
+### PFAS group
+
+```{r}
+trend_pfas_groups <- mpidata %>% 
+  drop_na(PFAS_group) %>%
+  distinct(Study_ID, Publication_year, PFAS_group) %>%
+  group_by(PFAS_group) %>% 
+  count(Publication_year) %>% 
+  mutate(cumulative = cumsum(n))
+
+t_pfas_group <-  trend_pfas_groups %>%
+  ggplot(aes(x = Publication_year,
+             y = cumulative,
+             color = reorder(PFAS_group, -cumulative))) +
+  geom_line(size = 0.7) + 
+  geom_point(aes(color = reorder(PFAS_group, -cumulative)), size = 3, shape = 21, fill = "white") +
+  geom_text(aes(label = n, x = Publication_year, y = cumulative), 
+            size = 3.5, 
+            hjust = 1.2,
+            vjust = -0.5) +
+  scale_x_continuous(name = "Year",
+                     breaks = seq(2011, 2022, by = 1),
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = "Number of published systematic reviews",
+                    breaks = seq(0, 90, by = 10),
+                    minor_breaks = NULL
+                    ) +
+  ggtitle("Time trend") + 
+  theme(plot.title = element_text(size = 14,
+                                  hjust = 0.5),
+       axis.text.x = element_text(size = 11,
+                                  margin = margin(t = 5, 
+                                                  r = 0,
+                                                  l = 0),
+                                  angle = 45),
+       axis.text.y = element_text(size = 11,
+                                  margin = margin(t = 0, 
+                                                  r = 5, 
+                                                  l = 5)),
+       axis.title.x = element_text(size = 12,
+                                   hjust = 0.5),
+       axis.title.y = element_text(size = 12,
+                                   hjust = 0.5)) +
+  labs(color = "PFAS group")
+
+t_pfas_group
+# ggsave(here("R_data", "time_trend_pfas_group.png"),
+#        width = 8,
+#        height = 6)
+```
+
+### PFAS group - semplified
+
+```{r}
+mpidata$PFAS_group2 <- ifelse(mpidata$PFAS_group == "Perfluoroalkane sulfonic acids (PFSA)" |
+                              mpidata$PFAS_group == "Perfluoroalkyl carboxylic acids (PFCA)" ,
+                              mpidata$PFAS_group, "Others")
+
+trend_pfas_groups2 <- mpidata %>% 
+  drop_na(PFAS_group2) %>%
+  distinct(Study_ID, Publication_year, PFAS_group2) %>%
+  group_by(PFAS_group2) %>% 
+  count(Publication_year) %>% 
+  mutate(cumulative = cumsum(n))
+  
+t_pfas_group2 <-  trend_pfas_groups2 %>%
+  ggplot(aes(x = Publication_year,
+             y = cumulative,
+             color = reorder(PFAS_group2, -cumulative))) +
+  geom_line(size = 0.7) + 
+  geom_point(aes(color = reorder(PFAS_group2, -cumulative)), size = 3, shape = 21, fill = "white") +
+  geom_text(aes(label = n, x = Publication_year, y = cumulative), 
+            size = 3.5, 
+            hjust = 1.2,
+            vjust = -0.5) +
+  scale_x_continuous(name = "Year",
+                     breaks = seq(2011, 2022, by = 1),
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = "Number of published systematic reviews",
+                    breaks = seq(0, 90, by = 10),
+                    minor_breaks = NULL
+                    ) +
+  ggtitle("Time trend") + 
+  theme(plot.title = element_text(size = 14,
+                                  hjust = 0.5),
+       axis.text.x = element_text(size = 11,
+                                  margin = margin(t = 5, 
+                                                  r = 0,
+                                                  l = 0),
+                                  angle = 45),
+       axis.text.y = element_text(size = 11,
+                                  margin = margin(t = 0, 
+                                                  r = 5, 
+                                                  l = 5)),
+       axis.title.x = element_text(size = 12,
+                                   hjust = 0.5),
+       axis.title.y = element_text(size = 12,
+                                   hjust = 0.5)) +
+  labs(color = "PFAS group")
+
+t_pfas_group2
+# ggsave(here("R_data", "time_trend_pfas_group_semplified.png"),
+#        width = 8,
+#        height = 6)
+```
+
+### Top 10 journals
+
+```{r}
 mdata %>% 
   group_by(Journal) %>%
   summarise(count = n()) %>%
@@ -405,10 +716,7 @@ top_journals <- mdata %>%
 time_trend_journals <- top_journals %>%
   ggplot(aes(x = Publication_year,
              y = cumulative,
-             color = fct_relevel(Journal, c("Mammals",
-                                                          "Birds",
-                                                          "Ray-finned fish",
-                                                          "Others")))) +
+             color = Journal)) +
   geom_line(size = 0.7) + 
   geom_point(aes(color = Journal), size = 3, shape = 21, fill = "white") +
   geom_text(aes(label = n, x = Publication_year, y = cumulative), 
@@ -438,12 +746,15 @@ time_trend_journals <- top_journals %>%
                                    hjust = 0.5),
        axis.title.y = element_text(size = 12,
                                    hjust = 0.5)) +
-  labs(color = "Broad taxa")
+  labs(color = "Journal")
 
 time_trend_journals
+# ggsave(here("R_data", "time_trend_journals.png"),
+#        width = 8,
+#        height = 6)
 ```
 
-Cumulative time-trends grouped by top 10 journals and others
+### Top 10 journals and Others
 
 ```{r}
 mdata_journals <- mdata %>% 
@@ -499,11 +810,221 @@ time_trend_top_journals <- mdata_journals %>%
   labs(color = "Journals")
 
 time_trend_top_journals
+# ggsave(here("R_data", "time_trend_journals2.png"),
+#        width = 8,
+#        height = 6)
 ```
 
-# Objective 1. Mapping: What evidence on PFAS has been synthesized?
+### Country first author
 
-Here we aim to reveal what areas in the realm of PFAS health-related and environmental research have been synthesized the most and where syntheses of evidence are lacking.
+```{r}
+country_trend <- mdata %>% 
+  group_by(Country_firstAuthor) %>% 
+  filter(Country_firstAuthor %in% c("USA",
+                                    "China",
+                                    "Italy",
+                                    "Spain",
+                                    "Denmark",
+                                    "Finland",
+                                    "Norway",
+                                    "Australia",
+                                    "Brazil",
+                                    "Canada",
+                                    "France",
+                                    "South Korea")) %>% #Reduce to countries with more than 1 published review
+  count(Publication_year) %>% 
+  mutate(cumulative = cumsum(n))
+
+trend_countries <- country_trend %>%
+  ggplot(aes(x = Publication_year,
+             y = cumulative,
+             color = reorder(Country_firstAuthor, -cumulative))) +
+  geom_line(size = 0.7) + 
+  geom_point(aes(color = Country_firstAuthor), size = 3, shape = 21, fill = "white") +
+  geom_text(aes(label = n, x = Publication_year, y = cumulative), 
+            size = 3.5, 
+            hjust = 1.2,
+            vjust = -0.5) +
+  scale_x_continuous(name = "Year",
+                     breaks = seq(2011, 2022, by = 1),
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = "Number of published systematic reviews",
+                    breaks = seq(0, 40, by = 10),
+                    minor_breaks = NULL
+                    ) +
+  ggtitle("Time trend") + 
+  theme(plot.title = element_text(size = 14,
+                                  hjust = 0.5),
+       axis.text.x = element_text(size = 11,
+                                  margin = margin(t = 5, 
+                                                  r = 0,
+                                                  l = 0),
+                                  angle = 45),
+       axis.text.y = element_text(size = 11,
+                                  margin = margin(t = 0, 
+                                                  r = 5, 
+                                                  l = 5)),
+       axis.title.x = element_text(size = 12,
+                                   hjust = 0.5),
+       axis.title.y = element_text(size = 12,
+                                   hjust = 0.5)) +
+  labs(color = "Country first author")
+
+trend_countries
+# ggsave(here("R_data", "time_trend_countries.png"),
+#        width = 8,
+#        height = 6)
+```
+
+### Reporting guidelines
+
+```{r}
+rep_guideline <- mdata %>% 
+  group_by(Reporting_guideline) %>% 
+  count(Publication_year) %>% 
+  mutate(cumulative = cumsum(n))
+
+t_guideline <-  rep_guideline %>%
+  ggplot(aes(x = Publication_year,
+             y = cumulative,
+             color = reorder(Reporting_guideline, -cumulative))) +
+  geom_line(size = 0.7) + 
+  geom_point(aes(color = Reporting_guideline), size = 3, shape = 21, fill = "white") +
+  geom_text(aes(label = n, x = Publication_year, y = cumulative), 
+            size = 3.5, 
+            hjust = 1.2,
+            vjust = -0.5) +
+  scale_x_continuous(name = "Year",
+                     breaks = seq(2011, 2022, by = 1),
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = "Number of published systematic reviews",
+                    breaks = seq(0, 110, by = 10),
+                    minor_breaks = NULL
+                    ) +
+  ggtitle("Time trend") + 
+  theme(plot.title = element_text(size = 14,
+                                  hjust = 0.5),
+       axis.text.x = element_text(size = 11,
+                                  margin = margin(t = 5, 
+                                                  r = 0,
+                                                  l = 0),
+                                  angle = 45),
+       axis.text.y = element_text(size = 11,
+                                  margin = margin(t = 0, 
+                                                  r = 5, 
+                                                  l = 5)),
+       axis.title.x = element_text(size = 12,
+                                   hjust = 0.5),
+       axis.title.y = element_text(size = 12,
+                                   hjust = 0.5)) +
+  labs(color = "Reporting guideline")
+
+t_guideline
+# ggsave(here("R_data", "time_trend_guideline.png"),
+#        width = 8,
+#        height = 6)
+```
+
+
+### COI statement
+
+```{r}
+coi_statement <- mdata %>% 
+  group_by(COI_statement) %>% 
+  count(Publication_year) %>% 
+  mutate(cumulative = cumsum(n))
+
+t_coi <-  coi_statement %>%
+  ggplot(aes(x = Publication_year,
+             y = cumulative,
+             color = reorder(COI_statement, -cumulative))) +
+  geom_line(size = 0.7) + 
+  geom_point(aes(color = COI_statement), size = 3, shape = 21, fill = "white") +
+  geom_text(aes(label = n, x = Publication_year, y = cumulative), 
+            size = 3.5, 
+            hjust = 1.2,
+            vjust = -0.5) +
+  scale_x_continuous(name = "Year",
+                     breaks = seq(2011, 2022, by = 1),
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = "Number of published systematic reviews",
+                    breaks = seq(0, 110, by = 10),
+                    minor_breaks = NULL
+                    ) +
+  ggtitle("Time trend") + 
+  theme(plot.title = element_text(size = 14,
+                                  hjust = 0.5),
+       axis.text.x = element_text(size = 11,
+                                  margin = margin(t = 5, 
+                                                  r = 0,
+                                                  l = 0),
+                                  angle = 45),
+       axis.text.y = element_text(size = 11,
+                                  margin = margin(t = 0, 
+                                                  r = 5, 
+                                                  l = 5)),
+       axis.title.x = element_text(size = 12,
+                                   hjust = 0.5),
+       axis.title.y = element_text(size = 12,
+                                   hjust = 0.5)) +
+  labs(color = "COI statement")
+
+t_coi
+# ggsave(here("R_data", "time_trend_coi_statement.png"),
+#        width = 8,
+#        height = 6)
+```
+
+
+### Funding statement
+
+```{r}
+funding_statement <- mdata %>% 
+  group_by(Funding_statement) %>% 
+  count(Publication_year) %>% 
+  mutate(cumulative = cumsum(n))
+
+t_funding <-  funding_statement %>%
+  ggplot(aes(x = Publication_year,
+             y = cumulative,
+             color = reorder(Funding_statement, -cumulative))) +
+  geom_line(size = 0.7) + 
+  geom_point(aes(color = Funding_statement), size = 3, shape = 21, fill = "white") +
+  geom_text(aes(label = n, x = Publication_year, y = cumulative), 
+            size = 3.5, 
+            hjust = 1.2,
+            vjust = -0.5) +
+  scale_x_continuous(name = "Year",
+                     breaks = seq(2011, 2022, by = 1),
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = "Number of published systematic reviews",
+                    breaks = seq(0, 110, by = 10),
+                    minor_breaks = NULL
+                    ) +
+  ggtitle("Time trend") + 
+  theme(plot.title = element_text(size = 14,
+                                  hjust = 0.5),
+       axis.text.x = element_text(size = 11,
+                                  margin = margin(t = 5, 
+                                                  r = 0,
+                                                  l = 0),
+                                  angle = 45),
+       axis.text.y = element_text(size = 11,
+                                  margin = margin(t = 0, 
+                                                  r = 5, 
+                                                  l = 5)),
+       axis.title.x = element_text(size = 12,
+                                   hjust = 0.5),
+       axis.title.y = element_text(size = 12,
+                                   hjust = 0.5)) +
+  labs(color = "Funding statement")
+
+t_funding
+# ggsave(here("R_data", "time_trend_funding_statement.png"),
+#        width = 8,
+#        height = 6)
+```
+
 
 ## Focus on PFAS, or POPs, and how many PFAS
 
@@ -551,55 +1072,6 @@ p_PFAS_focus <-
 p_PFAS_focus
 ```
 
-Time-trend of number of publications focused on PFAS vs not focused on PFAS
-
-```{r}
-pfas_focus <- mdata %>% 
-  group_by(PFAS_focus) %>% 
-  count(Publication_year) %>% 
-  mutate(cumulative = cumsum(n))
-
-t_pfas_focus <-  pfas_focus %>%
-  ggplot(aes(x = Publication_year,
-             y = cumulative,
-             color = fct_relevel(PFAS_focus, c("Yes",
-                                                          "No")))) +
-  geom_line(size = 0.7) + 
-  geom_point(aes(color = PFAS_focus), size = 3, shape = 21, fill = "white") +
-  geom_text(aes(label = n, x = Publication_year, y = cumulative), 
-            size = 3.5, 
-            hjust = 1.2,
-            vjust = -0.5) +
-  scale_x_continuous(name = "Year",
-                     breaks = seq(2011, 2022, by = 1),
-                     minor_breaks = NULL) +
-  scale_y_continuous(name = "Number of published systematic reviews",
-                    breaks = seq(0, 110, by = 10),
-                    minor_breaks = NULL
-                    ) +
-  ggtitle("Time trend") + 
-  theme(plot.title = element_text(size = 14,
-                                  hjust = 0.5),
-       axis.text.x = element_text(size = 11,
-                                  margin = margin(t = 5, 
-                                                  r = 0,
-                                                  l = 0),
-                                  angle = 45),
-       axis.text.y = element_text(size = 11,
-                                  margin = margin(t = 0, 
-                                                  r = 5, 
-                                                  l = 5)),
-       axis.title.x = element_text(size = 12,
-                                   hjust = 0.5),
-       axis.title.y = element_text(size = 12,
-                                   hjust = 0.5)) +
-  labs(color = "Focus on PFAS")
-
-t_pfas_focus
-# ggsave(here("R_data", "time_trend_pfas_focus.png"),
-#        width = 8,
-#        height = 6)
-```
 
 ```{r, eval=FALSE}
 count(mdata, PFAS_focus)
@@ -616,7 +1088,6 @@ count(mdata, PFAS_one_many)
 # 2 Not specified    17
 # 3 One              18
 ```
-
 
 ## PFAS types
 
@@ -671,162 +1142,6 @@ ptidata_counts
 #  9 PFHxA        27
 # 10 PFHpA        24
 ```
-
-Time-trend of number of publications investigating each PFAS type
-
-```{r}
-trend_pfas_types <- mpidata %>% 
-  group_by(PFAS_type) %>% 
-  count(Publication_year) %>% 
-  mutate(cumulative = cumsum(n))
-
-t_pfas_types <-  trend_pfas_types %>%
-  ggplot(aes(x = Publication_year,
-             y = cumulative,
-             color = reorder(PFAS_type, -cumulative))) +
-  geom_line(size = 0.7) + 
-  geom_point(aes(color = reorder(PFAS_type, -cumulative)), size = 3, shape = 21, fill = "white") +
-  geom_text(aes(label = n, x = Publication_year, y = cumulative), 
-            size = 3.5, 
-            hjust = 1.2,
-            vjust = -0.5) +
-  scale_x_continuous(name = "Year",
-                     breaks = seq(2011, 2022, by = 1),
-                     minor_breaks = NULL) +
-  scale_y_continuous(name = "Number of published systematic reviews",
-                    breaks = seq(0, 110, by = 10),
-                    minor_breaks = NULL
-                    ) +
-  ggtitle("Time trend") + 
-  theme(plot.title = element_text(size = 14,
-                                  hjust = 0.5),
-       axis.text.x = element_text(size = 11,
-                                  margin = margin(t = 5, 
-                                                  r = 0,
-                                                  l = 0),
-                                  angle = 45),
-       axis.text.y = element_text(size = 11,
-                                  margin = margin(t = 0, 
-                                                  r = 5, 
-                                                  l = 5)),
-       axis.title.x = element_text(size = 12,
-                                   hjust = 0.5),
-       axis.title.y = element_text(size = 12,
-                                   hjust = 0.5)) +
-  labs(color = "PFAS type")
-
-t_pfas_types
-# ggsave(here("R_data", "time_trend_pfas_types.png"),
-#        width = 8,
-#        height = 6)
-```
-
-Time-trend of number of publications by PFAS group
-
-```{r}
-trend_pfas_groups <- mpidata %>% 
-  drop_na(PFAS_group) %>%
-  distinct(Study_ID, Publication_year, PFAS_group) %>%
-  group_by(PFAS_group) %>% 
-  count(Publication_year) %>% 
-  mutate(cumulative = cumsum(n))
-
-t_pfas_group <-  trend_pfas_groups %>%
-  ggplot(aes(x = Publication_year,
-             y = cumulative,
-             color = reorder(PFAS_group, -cumulative))) +
-  geom_line(size = 0.7) + 
-  geom_point(aes(color = reorder(PFAS_group, -cumulative)), size = 3, shape = 21, fill = "white") +
-  geom_text(aes(label = n, x = Publication_year, y = cumulative), 
-            size = 3.5, 
-            hjust = 1.2,
-            vjust = -0.5) +
-  scale_x_continuous(name = "Year",
-                     breaks = seq(2011, 2022, by = 1),
-                     minor_breaks = NULL) +
-  scale_y_continuous(name = "Number of published systematic reviews",
-                    breaks = seq(0, 90, by = 10),
-                    minor_breaks = NULL
-                    ) +
-  ggtitle("Time trend") + 
-  theme(plot.title = element_text(size = 14,
-                                  hjust = 0.5),
-       axis.text.x = element_text(size = 11,
-                                  margin = margin(t = 5, 
-                                                  r = 0,
-                                                  l = 0),
-                                  angle = 45),
-       axis.text.y = element_text(size = 11,
-                                  margin = margin(t = 0, 
-                                                  r = 5, 
-                                                  l = 5)),
-       axis.title.x = element_text(size = 12,
-                                   hjust = 0.5),
-       axis.title.y = element_text(size = 12,
-                                   hjust = 0.5)) +
-  labs(color = "PFAS group")
-
-t_pfas_group
-# ggsave(here("R_data", "time_trend_pfas_group.png"),
-#        width = 8,
-#        height = 6)
-```
-
-Time-trend of number of publications by PFAS group - semplified
-
-```{r}
-mpidata$PFAS_group2 <- ifelse(mpidata$PFAS_group == "Perfluoroalkane sulfonic acids (PFSA)" |
-                              mpidata$PFAS_group == "Perfluoroalkyl carboxylic acids (PFCA)" ,
-                              mpidata$PFAS_group, "Others")
-
-trend_pfas_groups2 <- mpidata %>% 
-  drop_na(PFAS_group2) %>%
-  distinct(Study_ID, Publication_year, PFAS_group2) %>%
-  group_by(PFAS_group2) %>% 
-  count(Publication_year) %>% 
-  mutate(cumulative = cumsum(n))
-  
-t_pfas_group2 <-  trend_pfas_groups2 %>%
-  ggplot(aes(x = Publication_year,
-             y = cumulative,
-             color = reorder(PFAS_group2, -cumulative))) +
-  geom_line(size = 0.7) + 
-  geom_point(aes(color = reorder(PFAS_group2, -cumulative)), size = 3, shape = 21, fill = "white") +
-  geom_text(aes(label = n, x = Publication_year, y = cumulative), 
-            size = 3.5, 
-            hjust = 1.2,
-            vjust = -0.5) +
-  scale_x_continuous(name = "Year",
-                     breaks = seq(2011, 2022, by = 1),
-                     minor_breaks = NULL) +
-  scale_y_continuous(name = "Number of published systematic reviews",
-                    breaks = seq(0, 90, by = 10),
-                    minor_breaks = NULL
-                    ) +
-  ggtitle("Time trend") + 
-  theme(plot.title = element_text(size = 14,
-                                  hjust = 0.5),
-       axis.text.x = element_text(size = 11,
-                                  margin = margin(t = 5, 
-                                                  r = 0,
-                                                  l = 0),
-                                  angle = 45),
-       axis.text.y = element_text(size = 11,
-                                  margin = margin(t = 0, 
-                                                  r = 5, 
-                                                  l = 5)),
-       axis.title.x = element_text(size = 12,
-                                   hjust = 0.5),
-       axis.title.y = element_text(size = 12,
-                                   hjust = 0.5)) +
-  labs(color = "PFAS group")
-
-t_pfas_group2
-# ggsave(here("R_data", "time_trend_pfas_group_semplified.png"),
-#        width = 8,
-#        height = 6)
-```
-
 
 ```{r, circular barplot, eval = FALSE}
 # # Get the name and the y position of each label
@@ -1054,56 +1369,6 @@ count(mdata, Human_animal_environment)
 # 5 Plants                       3
 ```
 
-Time-trend of SRs publications on main review subjects
-
-```{r}
-trend_subjects <- mdata %>% 
-  group_by(Human_animal_environment) %>% 
-  count(Publication_year) %>% 
-  mutate(cumulative = cumsum(n))
-
-t_pfas_subjects <-  trend_subjects %>%
-  ggplot(aes(x = Publication_year,
-             y = cumulative,
-             color = reorder(Human_animal_environment, -cumulative))) +
-  geom_line(size = 0.7) + 
-  geom_point(aes(color = reorder(Human_animal_environment, -cumulative)), size = 3, shape = 21, fill = "white") +
-  geom_text(aes(label = n, x = Publication_year, y = cumulative), 
-            size = 3.5, 
-            hjust = 1.2,
-            vjust = -0.5) +
-  scale_x_continuous(name = "Year",
-                     breaks = seq(2011, 2022, by = 1),
-                     minor_breaks = NULL) +
-  scale_y_continuous(name = "Number of published systematic reviews",
-                    breaks = seq(0, 110, by = 10),
-                    minor_breaks = NULL
-                    ) +
-  ggtitle("Time trend") + 
-  theme(plot.title = element_text(size = 14,
-                                  hjust = 0.5),
-       axis.text.x = element_text(size = 11,
-                                  margin = margin(t = 5, 
-                                                  r = 0,
-                                                  l = 0),
-                                  angle = 45),
-       axis.text.y = element_text(size = 11,
-                                  margin = margin(t = 0, 
-                                                  r = 5, 
-                                                  l = 5)),
-       axis.title.x = element_text(size = 12,
-                                   hjust = 0.5),
-       axis.title.y = element_text(size = 12,
-                                   hjust = 0.5)) +
-  labs(color = "Review subject")
-
-t_pfas_subjects
-# ggsave(here("R_data", "time_trend_subjects.png"),
-#        width = 8,
-#        height = 6)
-```
-
-
 ## Combining MeSH qualifiers with main review subjects
 
 ```{r plot MeSH qualifiers with main review subjects barplot, height = 4, width = 8}
@@ -1312,11 +1577,11 @@ Species tree in "species_tree.Rmd"
 
 # ------------------------------------------------------------------------
 
-## Objective 2. Critical appraisal: How robust are syntheses of PFAS evidence?
+# Objective 2. Critical appraisal: How robust are syntheses of PFAS evidence?
 
 Here we will examine the included syntheses for their reporting quality and potential biases, in order to assess reliability of reviews' conclusions, reveal syntheses that should be re-done, and highlight the aspects of review methodology that need to be improved.
 
-## Make a table with AMSTAR2 questions
+## Table AMSTAR2 questions
 
 The questions were stored separately in the first row of the file, and were loaded separately. We display them in a table, alongside the short labels that can be used in the plots. Full description of the questions and coding rules (from an adapted AMSTAR2 checklist; Shea et al. 2017; Samarasinghe et al. 2019), are provided in the protocol.
 
@@ -1330,7 +1595,7 @@ knitr::kable(questions, caption = "Table. List of AMSTAR2 questions with labels 
   kable_paper(bootstrap_options = "striped", full_width = F)
 ```
 
-## Summary plot - AMSTAR2
+### Summary plot AMSTAR2
 
 AMSTAR2 assessment results as percentages of each answer score per question.
 
@@ -1416,7 +1681,7 @@ summaryplot
 ```
 
 
-## Individual scores plot for pilot AMSTAR2 data
+### Individual scores plot for AMSTAR2
 
 AMSTAR2 assessment results as a score per article per question.
 
@@ -1458,12 +1723,18 @@ qtable_long$study <- factor(qtable_long$study, levels = unique(studies)[rev(orde
 
 ##Make scoreplot      
 scoresplot <-
-  ggplot(data = qtable_long, aes(y = study, x = question)) +
-  geom_tile(color="black", fill="white", size = 1) +
+  ggplot(data = qtable_long, aes(y = study,
+                                 x = question)) +
+  geom_tile(color="black",
+            fill="white", 
+            size = 1) +
   geom_point(aes(color=as.factor(measurement)), size=3) +
   #geom_text(aes(label = measurement), size = 8) +
   scale_color_manual(values=cbp2,
-                     breaks=c("Yes", "No", "Partially", "Not Applicable"),
+                     breaks=c("Yes",
+                              "No",
+                              "Partially",
+                              "Not Applicable"),
                      guide = guide_legend(override.aes = list(size = 6,
                                                                alpha = 1))) +
   theme_minimal() +
@@ -1620,7 +1891,7 @@ finalplot
 
 ```
 
-### COI statement
+## COI statement
 
 Whether Conflict Of Interests statement is provided for individual reviews.
 
@@ -1654,7 +1925,7 @@ p1
 
 ```
 
-### COI present
+## COI present
 
 Whether potential Conflict Of Interests is acknowledged for individual reviews.
 
@@ -1686,7 +1957,7 @@ p2 <-
 p2
 ```
 
-### Funding statement
+## Funding statement
 
 Whether funding statement is provided for individual reviews.
 
@@ -1787,7 +2058,7 @@ p5 <-
 p5
 ```
 
-### Data availability
+## Data availability
 
 Whether extracted data is made available for individual reviews.
 
@@ -1823,7 +2094,7 @@ p6
 
 ```
 
-### Code availability
+## Code availability
 
 Whether code for analyses is made available for individual reviews.
 
@@ -1855,7 +2126,7 @@ p7 <- ggplot(t_Analysis_code, aes(x = Analysis_code,
 p7
 ```
 
-### Plots combined - COI
+# Plots combined - COI
 
 ```{r, plots combined 1}
 (p1+p2)
@@ -1864,7 +2135,7 @@ p7
 #        height = 6)
 ```
 
-### Plots combined - Funding
+# Plots combined - Funding
 
 ```{r, plots combined 2}
 (p3)/(p4+p5)
@@ -1873,7 +2144,7 @@ p7
 #        height = 6)
 ```
 
-### Plots combined - Data and Code availability
+# Plots combined - Data and Code availability
 
 ```{r, plots combined 3}
 (p6+p7)
