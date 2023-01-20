@@ -110,38 +110,37 @@ mdata_biblio <- read_csv(here("data","ReviewMap_PFAS_main_Biblio_Analysis.csv"),
 bib_data <- read_csv(here("data", "bib_data.csv"), skip = 0)
 ```
 
-# Merge data stored across tables
-
-The data stored across multiple flat spreadsheets needs merged for some of the analyses.
+Cleaning and tiding data
 
 ```{r merge data}
+mdata <- 
+  mdata %>%
+  select(-ends_with("checked")) %>% # Remove columns ending with "checked" 
+  select(-("Timestamp")) %>% # Remove "Timestamp" columns
+  select(-starts_with("Initials")) %>%  # Remove columns starting with "Initials"
+  drop_na(Author_year) %>% #remove last two rows because empty
+  mutate(Journal = ifelse(Journal == "International journal of environmental research and public health", "International Journal of Environmental Research and Public Health", Journal)) %>% 
+  mutate(Journal = ifelse(Journal == "Environmental research", "Environmental Research", Journal)) # Fix one journal title
+#dim(mdata) #109 rows 35 columns
 
-# Remove columns ending with "checked" 
-# Remove "Timestamp" columns
-# Remove columns starting with "Initials"
-mdata <- 
-  mdata %>%
-  select(-ends_with("checked")) %>%
-  select(-("Timestamp")) %>%
-  select(-starts_with("Initials"))
-#dim(mdata) #175 rows 35 columns
-#remove last two rows because empty
-mdata <- 
-  mdata %>%
-  drop_na(Author_year)
-#dim(mdata) #173 rows 35 columns
 spdata <- 
   spdata %>%
   select(-ends_with("checked"))
 #dim(spdata) #145 rows 5 columns
+
 ptdata <- 
   ptdata %>%
   select(-ends_with("checked")) %>%
   select(-("Timestamp")) %>%
   select(-starts_with("Initials"))
-#dim(ptdata) #608 rows 3 columns
+#dim(ptdata) #617 rows 3 columns
+```
 
-## Merge main data with species info
+# Merge data stored across tables
+
+The data stored across multiple flat spreadsheets needs merged for some of the analyses.
+```{r}
+#Merge main data with species info
 mspdata <- left_join(mdata, spdata, by = "Study_ID")
 #dim(mspdata) #579 rows 38 columns
 #names(mspdata)
@@ -155,15 +154,15 @@ ptidata <- left_join(ptdata, pidata, by = "PFAS_type")
 #str(ptidata)
 #View(ptidata)
 
+#Merge main data with PFAS data table
 mpidata <- left_join(mdata, ptidata, by = "Study_ID")
 #dim(mpidata) #176 rows 43 columns
 #names(mpidata)
 #str(mpidata)
 #View(mpidata)
-
 ```
 
-# Make a simple summary table of included papers (mapping + appraisal)
+# Summary table of included systematic reviews (SRs) (mapping + appraisal)
 
 ```{r simple table of included studies}
 #First, order the table by Study_ID
@@ -235,7 +234,7 @@ publ_year <- mdata %>%
                                    hjust = 0.5),
        axis.title.y = element_text(size = 12,
                                    hjust = 0.5))
-
+publ_year
 # ggsave(here("R_data", "time_trend.png"),
 #        width = 8,
 #        height = 6)
@@ -293,6 +292,7 @@ trend_by_review <- review_trend %>%
                                    hjust = 0.5)) +
   labs(color = "Review type")
 
+trend_by_review
 # ggsave(here("R_data", "time_trend_review_types.png"),
 #        width = 8,
 #        height = 6)
@@ -320,12 +320,9 @@ tt_taxa <- left_join(mdata, spdata, by = "Study_ID") %>%
 time_trend_taxa <- tt_taxa %>%
   ggplot(aes(x = Publication_year,
              y = cumulative,
-             color = fct_relevel(Broad_taxa2, c("Mammals",
-                                                          "Birds",
-                                                          "Ray-finned fish",
-                                                          "Others")))) +
+             color = reorder(Broad_taxa2, -cumulative))) +
   geom_line(size = 0.7) + 
-  geom_point(aes(color = Broad_taxa2), size = 3, shape = 21, fill = "white") +
+  geom_point(aes(color = reorder(Broad_taxa2, -cumulative)), size = 3, shape = 21, fill = "white") +
   geom_text(aes(label = n, x = Publication_year, y = cumulative), 
             size = 3.5, 
             hjust = 1.2,
@@ -355,6 +352,7 @@ time_trend_taxa <- tt_taxa %>%
                                    hjust = 0.5)) +
   labs(color = "Broad taxa")
 
+time_trend_taxa
 # ggsave(here("R_data", "time_trend_taxa.png"),
 #        width = 8,
 #        height = 6)
@@ -376,6 +374,131 @@ count(mdata, Publication_year)
 #  9             2020    15
 # 10             2021    33
 # 11             2022    10
+```
+
+Cumulative time-trends grouped by top 10 journals:
+
+```{r}
+mdata$Journal <- tolower(mdata$Journal)
+
+mdata %>% 
+  group_by(Journal) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count)) %>%
+  head(10)
+
+top_journals <- mdata %>% 
+  filter(!is.na(Journal) & Journal %in% c("environmental research",
+                                          "international journal of environmental research and public health",
+                                          "science of the total environment",
+                                          "environment international",
+                                          "environmental health perspectives",
+                                          "critical reviews in toxicology",
+                                          "chemosphere",
+                                          "environmental science and pollution research",
+                                          "journal of toxicology and environmental health",
+                                          "environmental science & technology")) %>%
+  group_by(Journal) %>% 
+  count(Publication_year) %>%
+  mutate(cumulative = cumsum(n))
+
+time_trend_journals <- top_journals %>%
+  ggplot(aes(x = Publication_year,
+             y = cumulative,
+             color = fct_relevel(Journal, c("Mammals",
+                                                          "Birds",
+                                                          "Ray-finned fish",
+                                                          "Others")))) +
+  geom_line(size = 0.7) + 
+  geom_point(aes(color = Journal), size = 3, shape = 21, fill = "white") +
+  geom_text(aes(label = n, x = Publication_year, y = cumulative), 
+            size = 3.5, 
+            hjust = 1.2,
+            vjust = -0.5) +
+  scale_x_continuous(name = "Year",
+                     breaks = seq(2011, 2022, by = 1),
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = "Number of published systematic reviews",
+                    breaks = seq(0, 80, by = 10),
+                    minor_breaks = NULL
+                    ) +
+  ggtitle("Time trend") +
+  theme(plot.title = element_text(size = 14,
+                                  hjust = 0.5),
+       axis.text.x = element_text(size = 10,
+                                  margin = margin(t = 8, 
+                                                  r = 0,
+                                                  l = 0),
+                                  angle = 45),
+       axis.text.y = element_text(size = 11,
+                                  margin = margin(t = 0, 
+                                                  r = 5, 
+                                                  l = 5)),
+       axis.title.x = element_text(size = 12,
+                                   hjust = 0.5),
+       axis.title.y = element_text(size = 12,
+                                   hjust = 0.5)) +
+  labs(color = "Broad taxa")
+
+time_trend_journals
+```
+
+Cumulative time-trends grouped by top 10 journals and others
+
+```{r}
+mdata_journals <- mdata %>% 
+  filter(!is.na(Journal)) %>% 
+  mutate(Journals = ifelse(Journal %in% c("environmental research",
+                                          "international journal of environmental research and public health",
+                                          "science of the total environment",
+                                          "environment international",
+                                          "environmental health perspectives",
+                                          "critical reviews in toxicology",
+                                          "chemosphere",
+                                          "environmental science and pollution research",
+                                          "journal of toxicology and environmental health",
+                                          "environmental science & technology"),
+                           "Top 10", "Others")) %>%
+  group_by(Journals) %>% 
+  count(Publication_year) %>%
+  mutate(cumulative = cumsum(n))
+
+time_trend_top_journals <- mdata_journals %>%
+  ggplot(aes(x = Publication_year,
+             y = cumulative,
+             color = Journals)) +
+  geom_line(size = 0.7) + 
+  geom_point(aes(color = Journals), size = 3, shape = 21, fill = "white") +
+  geom_text(aes(label = n, x = Publication_year, y = cumulative), 
+            size = 3.5, 
+            hjust = 1.2,
+            vjust = -0.5) +
+  scale_x_continuous(name = "Year",
+                     breaks = seq(2011, 2022, by = 1),
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = "Number of published systematic reviews",
+                    breaks = seq(0, 80, by = 10),
+                    minor_breaks = NULL
+                    ) +
+  ggtitle("Time trend") +
+  theme(plot.title = element_text(size = 14,
+                                  hjust = 0.5),
+       axis.text.x = element_text(size = 10,
+                                  margin = margin(t = 8, 
+                                                  r = 0,
+                                                  l = 0),
+                                  angle = 45),
+       axis.text.y = element_text(size = 11,
+                                  margin = margin(t = 0, 
+                                                  r = 5, 
+                                                  l = 5)),
+       axis.title.x = element_text(size = 12,
+                                   hjust = 0.5),
+       axis.title.y = element_text(size = 12,
+                                   hjust = 0.5)) +
+  labs(color = "Journals")
+
+time_trend_top_journals
 ```
 
 # Objective 1. Mapping: What evidence on PFAS has been synthesized?
@@ -428,7 +551,7 @@ p_PFAS_focus <-
 p_PFAS_focus
 ```
 
-Time-trend of SRs publications focused on PFAS vs not focused on PFAS
+Time-trend of number of publications focused on PFAS vs not focused on PFAS
 
 ```{r}
 pfas_focus <- mdata %>% 
@@ -472,6 +595,7 @@ t_pfas_focus <-  pfas_focus %>%
                                    hjust = 0.5)) +
   labs(color = "Focus on PFAS")
 
+t_pfas_focus
 # ggsave(here("R_data", "time_trend_pfas_focus.png"),
 #        width = 8,
 #        height = 6)
@@ -548,7 +672,7 @@ ptidata_counts
 # 10 PFHpA        24
 ```
 
-Time-trend of SRs publications investigating each PFAS type
+Time-trend of number of publications investigating each PFAS type
 
 ```{r}
 trend_pfas_types <- mpidata %>% 
@@ -559,9 +683,9 @@ trend_pfas_types <- mpidata %>%
 t_pfas_types <-  trend_pfas_types %>%
   ggplot(aes(x = Publication_year,
              y = cumulative,
-             color = PFAS_type)) +
+             color = reorder(PFAS_type, -cumulative))) +
   geom_line(size = 0.7) + 
-  geom_point(aes(color = PFAS_type), size = 3, shape = 21, fill = "white") +
+  geom_point(aes(color = reorder(PFAS_type, -cumulative)), size = 3, shape = 21, fill = "white") +
   geom_text(aes(label = n, x = Publication_year, y = cumulative), 
             size = 3.5, 
             hjust = 1.2,
@@ -591,58 +715,165 @@ t_pfas_types <-  trend_pfas_types %>%
                                    hjust = 0.5)) +
   labs(color = "PFAS type")
 
+t_pfas_types
 # ggsave(here("R_data", "time_trend_pfas_types.png"),
+#        width = 8,
+#        height = 6)
+```
+
+Time-trend of number of publications by PFAS group
+
+```{r}
+trend_pfas_groups <- mpidata %>% 
+  drop_na(PFAS_group) %>%
+  distinct(Study_ID, Publication_year, PFAS_group) %>%
+  group_by(PFAS_group) %>% 
+  count(Publication_year) %>% 
+  mutate(cumulative = cumsum(n))
+
+t_pfas_group <-  trend_pfas_groups %>%
+  ggplot(aes(x = Publication_year,
+             y = cumulative,
+             color = reorder(PFAS_group, -cumulative))) +
+  geom_line(size = 0.7) + 
+  geom_point(aes(color = reorder(PFAS_group, -cumulative)), size = 3, shape = 21, fill = "white") +
+  geom_text(aes(label = n, x = Publication_year, y = cumulative), 
+            size = 3.5, 
+            hjust = 1.2,
+            vjust = -0.5) +
+  scale_x_continuous(name = "Year",
+                     breaks = seq(2011, 2022, by = 1),
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = "Number of published systematic reviews",
+                    breaks = seq(0, 90, by = 10),
+                    minor_breaks = NULL
+                    ) +
+  ggtitle("Time trend") + 
+  theme(plot.title = element_text(size = 14,
+                                  hjust = 0.5),
+       axis.text.x = element_text(size = 11,
+                                  margin = margin(t = 5, 
+                                                  r = 0,
+                                                  l = 0),
+                                  angle = 45),
+       axis.text.y = element_text(size = 11,
+                                  margin = margin(t = 0, 
+                                                  r = 5, 
+                                                  l = 5)),
+       axis.title.x = element_text(size = 12,
+                                   hjust = 0.5),
+       axis.title.y = element_text(size = 12,
+                                   hjust = 0.5)) +
+  labs(color = "PFAS group")
+
+t_pfas_group
+# ggsave(here("R_data", "time_trend_pfas_group.png"),
+#        width = 8,
+#        height = 6)
+```
+
+Time-trend of number of publications by PFAS group - semplified
+
+```{r}
+mpidata$PFAS_group2 <- ifelse(mpidata$PFAS_group == "Perfluoroalkane sulfonic acids (PFSA)" |
+                              mpidata$PFAS_group == "Perfluoroalkyl carboxylic acids (PFCA)" ,
+                              mpidata$PFAS_group, "Others")
+
+trend_pfas_groups2 <- mpidata %>% 
+  drop_na(PFAS_group2) %>%
+  distinct(Study_ID, Publication_year, PFAS_group2) %>%
+  group_by(PFAS_group2) %>% 
+  count(Publication_year) %>% 
+  mutate(cumulative = cumsum(n))
+  
+t_pfas_group2 <-  trend_pfas_groups2 %>%
+  ggplot(aes(x = Publication_year,
+             y = cumulative,
+             color = reorder(PFAS_group2, -cumulative))) +
+  geom_line(size = 0.7) + 
+  geom_point(aes(color = reorder(PFAS_group2, -cumulative)), size = 3, shape = 21, fill = "white") +
+  geom_text(aes(label = n, x = Publication_year, y = cumulative), 
+            size = 3.5, 
+            hjust = 1.2,
+            vjust = -0.5) +
+  scale_x_continuous(name = "Year",
+                     breaks = seq(2011, 2022, by = 1),
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = "Number of published systematic reviews",
+                    breaks = seq(0, 90, by = 10),
+                    minor_breaks = NULL
+                    ) +
+  ggtitle("Time trend") + 
+  theme(plot.title = element_text(size = 14,
+                                  hjust = 0.5),
+       axis.text.x = element_text(size = 11,
+                                  margin = margin(t = 5, 
+                                                  r = 0,
+                                                  l = 0),
+                                  angle = 45),
+       axis.text.y = element_text(size = 11,
+                                  margin = margin(t = 0, 
+                                                  r = 5, 
+                                                  l = 5)),
+       axis.title.x = element_text(size = 12,
+                                   hjust = 0.5),
+       axis.title.y = element_text(size = 12,
+                                   hjust = 0.5)) +
+  labs(color = "PFAS group")
+
+t_pfas_group2
+# ggsave(here("R_data", "time_trend_pfas_group_semplified.png"),
 #        width = 8,
 #        height = 6)
 ```
 
 
 ```{r, circular barplot, eval = FALSE}
-# Get the name and the y position of each label
-label_data <- t_PFAStype %>% 
-  mutate(id = seq(1,29))
-# calculate the ANGLE of the labels
-number_of_bar <- nrow(label_data)
-angle <-  90 - 360 * (label_data$id-0.5) /number_of_bar
-# calculate the alignment of labels: right or left
-# If I am on the left part of the plot, my labels have currently an angle < -90
-label_data$hjust<-ifelse( angle < -90, 1, 0)
-# flip angle BY to make them readable
-label_data$angle<-ifelse(angle < -90, angle+180, angle)
-
-# Start the plot
-p <- ggplot(label_data, aes(x= as.factor(id), y=n)) +       # Note that id is a factor. If x is numeric, there is some space between the first bar
-
-# This add the bars with a blue color
-geom_bar(stat="identity", fill=alpha("skyblue", 0.8)) +
-# Limits of the plot = very important. The negative value controls the size of the inner circle, the positive one is useful to add size over each bar
-  ylim(-80,120) +
-  
-  # Custom the theme: no axis title and no cartesian grid
-  theme_minimal() +
-  theme(
-    axis.text = element_blank(),
-    axis.title = element_blank(),
-    panel.grid = element_blank(),
-    plot.margin = unit(rep(-1,4), "cm")      # Adjust the margin to make in sort labels are not truncated!
-  ) +
-  
-  # This makes the coordinate polar instead of cartesian.
-  coord_polar(start = 0) +
-  
-  # Add the labels, using the label_data dataframe that we have created before
-  geom_text(data=label_data, aes(x=id,
-                                y=n,
-                                label=PFAS_type,
-                                hjust=hjust),
-            color="black",
-            fontface="plain",
-            alpha=0.8,
-            size=3.5,
-            angle= label_data$angle,
-            inherit.aes = FALSE )
- 
-p
+# # Get the name and the y position of each label
+# label_data <- t_PFAStype %>% 
+#   mutate(id = seq(1,29))
+# # calculate the ANGLE of the labels
+# number_of_bar <- nrow(label_data)
+# angle <-  90 - 360 * (label_data$id-0.5) /number_of_bar
+# # calculate the alignment of labels: right or left
+# # If I am on the left part of the plot, my labels have currently an angle < -90
+# label_data$hjust<-ifelse( angle < -90, 1, 0)
+# # flip angle BY to make them readable
+# label_data$angle<-ifelse(angle < -90, angle+180, angle)
+# 
+# # Start the plot
+# p <- ggplot(label_data, aes(x= as.factor(id), y=n)) +       # Note that id is a factor. If x is numeric, there is some space between the first bar
+# 
+# # This add the bars with a blue color
+# geom_bar(stat="identity", fill=alpha("skyblue", 0.8)) +
+# # Limits of the plot = very important. The negative value controls the size of the inner circle, the positive one is useful to add size over each bar
+#   ylim(-80,120) +
+#   
+#   # Custom the theme: no axis title and no cartesian grid
+#   theme_minimal() +
+#   theme(
+#     axis.text = element_blank(),
+#     axis.title = element_blank(),
+#     panel.grid = element_blank(),
+#     plot.margin = unit(rep(-1,4), "cm")      # Adjust the margin to make in sort labels are not truncated!
+#   ) +
+#   
+#   # This makes the coordinate polar instead of cartesian.
+#   coord_polar(start = 0) +
+#   
+#   # Add the labels, using the label_data dataframe that we have created before
+#   geom_text(data=label_data, aes(x=id,
+#                                 y=n,
+#                                 label=PFAS_type,
+#                                 hjust=hjust),
+#             color="black",
+#             fontface="plain",
+#             alpha=0.8,
+#             size=3.5,
+#             angle= label_data$angle,
+#             inherit.aes = FALSE )
+#  
+# p
 ```
 
 
@@ -823,7 +1054,7 @@ count(mdata, Human_animal_environment)
 # 5 Plants                       3
 ```
 
-Time-trend of SRs publications investigating each PFAS type
+Time-trend of SRs publications on main review subjects
 
 ```{r}
 trend_subjects <- mdata %>% 
@@ -834,9 +1065,9 @@ trend_subjects <- mdata %>%
 t_pfas_subjects <-  trend_subjects %>%
   ggplot(aes(x = Publication_year,
              y = cumulative,
-             color = Human_animal_environment)) +
+             color = reorder(Human_animal_environment, -cumulative))) +
   geom_line(size = 0.7) + 
-  geom_point(aes(color = Human_animal_environment), size = 3, shape = 21, fill = "white") +
+  geom_point(aes(color = reorder(Human_animal_environment, -cumulative)), size = 3, shape = 21, fill = "white") +
   geom_text(aes(label = n, x = Publication_year, y = cumulative), 
             size = 3.5, 
             hjust = 1.2,
@@ -866,6 +1097,7 @@ t_pfas_subjects <-  trend_subjects %>%
                                    hjust = 0.5)) +
   labs(color = "Review subject")
 
+t_pfas_subjects
 # ggsave(here("R_data", "time_trend_subjects.png"),
 #        width = 8,
 #        height = 6)
