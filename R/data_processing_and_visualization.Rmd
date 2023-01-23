@@ -110,7 +110,7 @@ mdata_biblio <- read_csv(here("data","ReviewMap_PFAS_main_Biblio_Analysis.csv"),
 bib_data <- read_csv(here("data", "bib_data.csv"), skip = 0)
 ```
 
-Cleaning and tiding data
+# Data Cleaning and Tiding
 
 ```{r merge data}
 mdata <- 
@@ -118,21 +118,28 @@ mdata <-
   select(-ends_with("checked")) %>% # Remove columns ending with "checked" 
   select(-("Timestamp")) %>% # Remove "Timestamp" columns
   select(-starts_with("Initials")) %>%  # Remove columns starting with "Initials"
+  select(-ends_with("comment")) %>% # Remove columns ending with "comment"
   drop_na(Author_year) %>% #remove last two rows because empty
   mutate(Journal = tolower(Journal)) #remove capital letters
 #dim(mdata) #109 rows 35 columns
 
 spdata <- 
   spdata %>%
-  select(-ends_with("checked"))
+  select(-ends_with("checked")) %>% 
+  select(-ends_with("comment"))
 #dim(spdata) #145 rows 5 columns
 
 ptdata <- 
   ptdata %>%
   select(-ends_with("checked")) %>%
+  select(-ends_with("comment")) %>% 
   select(-("Timestamp")) %>%
   select(-starts_with("Initials"))
 #dim(ptdata) #617 rows 3 columns
+
+pidata <- 
+  pidata %>% 
+  select(-ends_with("comment"))
 ```
 
 # Merge data stored across tables
@@ -153,7 +160,6 @@ ptidata <- left_join(ptdata, pidata, by = "PFAS_type")
 #str(ptidata)
 #View(ptidata)
 
-#Merge main data with PFAS data table
 mpidata <- left_join(mdata, ptidata, by = "Study_ID")
 #dim(mpidata) #176 rows 43 columns
 #names(mpidata)
@@ -214,7 +220,9 @@ publ_year <- mdata %>%
   ggplot(aes(x = Publication_year,
              y = cumulative)) + 
   geom_line(size = 0.7) + #add a line chart
-  geom_point(size = 3, shape = 21, fill = "white") + #add a scatter plot
+  geom_point(size = 3,
+             shape = 21,
+             fill = "white") + #add a scatter plot
   geom_text(aes(label = n, x = Publication_year, y = cumulative), 
             size = 3.5, 
             hjust = 1.2,
@@ -311,7 +319,7 @@ trend_by_review
 #TODO - Remove plants. Exclude the review? (S_070, Wang_2020)
 
 trend_subjects <- mdata %>% 
-  filter()
+  filter(Human_animal_environment != "Plants") %>% 
   group_by(Human_animal_environment) %>% 
   count(Publication_year) %>% 
   mutate(cumulative = cumsum(n))
@@ -443,11 +451,12 @@ pfas_focus <- mdata %>%
   count(Publication_year) %>% 
   mutate(cumulative = cumsum(n))
 
+
+
 t_pfas_focus <-  pfas_focus %>%
   ggplot(aes(x = Publication_year,
              y = cumulative,
-             color = fct_relevel(PFAS_focus, c("Yes",
-                                                          "No")))) +
+             color = reorder(PFAS_focus, - cumulative))) +
   geom_line(size = 0.7) + 
   geom_point(aes(color = PFAS_focus), size = 3, shape = 21, fill = "white") +
   geom_text(aes(label = n, x = Publication_year, y = cumulative), 
@@ -533,6 +542,58 @@ t_pfas_focus2
 #        width = 8,
 #        height = 6)
 ```
+
+### PFAS ocus Yes/No & One/Multiple
+
+```{r}
+pfas_focus3 <- mdata %>% 
+  group_by(PFAS_focus, PFAS_one_many) %>% 
+  count(Publication_year) %>% 
+  mutate(cumulative = cumsum(n))
+
+t_pfas_focus3 <-  pfas_focus3 %>%
+  ggplot(aes(x = Publication_year,
+             y = cumulative,
+             color = reorder(PFAS_focus, - cumulative))) +
+  geom_line(size = 0.4) + 
+  geom_point(aes(color = PFAS_focus), size = 1.5, shape = 21, fill = "white") +
+  facet_wrap(~ PFAS_focus + PFAS_one_many) +
+  geom_text(aes(label = n, x = Publication_year, y = cumulative), 
+            size = 2, 
+            hjust = 1.2,
+            vjust = -0.5) +
+  scale_x_continuous(name = "Year",
+                     breaks = seq(2011, 2022, by = 1),
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = "Number of published systematic reviews",
+                    breaks = seq(0, 110, by = 10),
+                    minor_breaks = NULL
+                    ) +
+  ggtitle("Time trend") + 
+  theme(plot.title = element_text(size = 12,
+                                  hjust = 0.5),
+       axis.text.x = element_text(size = 9,
+                                  margin = margin(t = 5, 
+                                                  r = 0,
+                                                  l = 0),
+                                  angle = 45),
+       axis.text.y = element_text(size = 9,
+                                  margin = margin(t = 0, 
+                                                  r = 5, 
+                                                  l = 5)),
+       axis.title.x = element_text(size = 10,
+                                   hjust = 0.5),
+       axis.title.y = element_text(size = 10,
+                                   hjust = 0.5),
+       legend.position = "none") 
+
+t_pfas_focus3
+# ggsave(here("R_data", "time_trend_pfas_focus3.png"),
+#        width = 8,
+#        height = 6)
+```
+
+
 
 ### PFAS types
 
@@ -689,6 +750,58 @@ t_pfas_group2
 #        height = 6)
 ```
 
+### PFAS carbon chain length
+
+```{r}
+trend_pfas_ccc <- mpidata %>% 
+  filter(!is.na(PFAS_carbon_chain)) %>% 
+  distinct(Study_ID, Publication_year, PFAS_carbon_chain) %>% 
+  group_by(PFAS_carbon_chain) %>% 
+  count(Publication_year) %>% 
+  mutate(cumulative = cumsum(n))
+
+t_pfas_ccc <-  trend_pfas_ccc %>%
+  ggplot(aes(x = Publication_year,
+             y = cumulative,
+             color = reorder(PFAS_carbon_chain, -cumulative))) +
+  geom_line(size = 0.7) + 
+  geom_point(aes(color = reorder(PFAS_carbon_chain, -cumulative)), size = 3, shape = 21, fill = "white") +
+  geom_text(aes(label = n, x = Publication_year, y = cumulative), 
+            size = 3.5, 
+            hjust = 1.2,
+            vjust = -0.5) +
+  scale_x_continuous(name = "Year",
+                     breaks = seq(2011, 2022, by = 1),
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = "Number of published systematic reviews",
+                    breaks = seq(0, 100, by = 10),
+                    minor_breaks = NULL
+                    ) +
+  ggtitle("Time trend") + 
+  theme(plot.title = element_text(size = 14,
+                                  hjust = 0.5),
+       axis.text.x = element_text(size = 11,
+                                  margin = margin(t = 5, 
+                                                  r = 0,
+                                                  l = 0),
+                                  angle = 45),
+       axis.text.y = element_text(size = 11,
+                                  margin = margin(t = 0, 
+                                                  r = 5, 
+                                                  l = 5)),
+       axis.title.x = element_text(size = 12,
+                                   hjust = 0.5),
+       axis.title.y = element_text(size = 12,
+                                   hjust = 0.5)) +
+  labs(color = "Carbon chain length")
+
+t_pfas_ccc
+# ggsave(here("R_data", "time_trend_pfas_ccc.png"),
+#        width = 8,
+#        height = 6)
+```
+
+
 ### Top 10 journals
 
 ```{r}
@@ -777,7 +890,7 @@ mdata_journals <- mdata %>%
 time_trend_top_journals <- mdata_journals %>%
   ggplot(aes(x = Publication_year,
              y = cumulative,
-             color = Journals)) +
+             color = reorder(Journals, - cumulative))) +
   geom_line(size = 0.7) + 
   geom_point(aes(color = Journals), size = 3, shape = 21, fill = "white") +
   geom_text(aes(label = n, x = Publication_year, y = cumulative), 
@@ -814,6 +927,7 @@ time_trend_top_journals
 #        width = 8,
 #        height = 6)
 ```
+
 
 ### Country first author
 
@@ -1025,6 +1139,53 @@ t_funding
 #        height = 6)
 ```
 
+### Type funding
+
+```{r}
+funding1 <- mdata %>% 
+  filter(Funding_statement == "Yes") %>% 
+  group_by(Non_profit_funding, Industry_funding) %>%
+  count(Publication_year) %>% 
+  mutate(cumulative = cumsum(n))
+
+funding2 <- mdata %>% 
+  filter(Funding_statement == "Yes") %>% 
+  group_by(Non_profit_funding, Industry_funding) %>%
+  count(Publication_year) %>% 
+  mutate(cumulative = cumsum(n))
+```
+
+
+## Journals
+
+```{r}
+top_journals <- mdata %>% 
+  group_by(Journal) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count)) %>%
+  head(10)
+
+top_journals$Journal <- reorder(top_journals$Journal, top_journals$count)
+
+top10_journals <- ggplot(top_journals, aes(x = Journal)) +
+  geom_col(aes(fill = "", y = count), width = 0.7) +
+  theme_light() +
+  labs(title = expression("Top 10 journals")) + 
+  coord_flip()+
+  scale_y_continuous(name = "Article count",
+                     breaks = seq(0, max(top_journals$count), by = 2)) +
+  scale_fill_manual(values = c("#919191")) +
+  theme(legend.position = "none",
+        axis.title.x = element_text(size = 12),
+        axis.title.y = element_blank(),
+        axis.text.y = element_text(size = 12))
+top10_journals
+
+# ggsave(here("R_data", "plot_top10_journals.png"),
+#        width = 8,
+#        height = 6)
+```
+
 
 ## Focus on PFAS, or POPs, and how many PFAS
 
@@ -1095,29 +1256,34 @@ count(mdata, PFAS_one_many)
 
 #str(ptidata)
 t_PFAStype <- ptidata %>%
+  filter(PFAS_type != "NA") %>% #filter out NA
   count(PFAS_type) %>%
-  arrange(desc(n)) %>%
-  filter(PFAS_type != "NA") #filter out NA
+  mutate(percent = (n/109 * 100)) #109 is the number of SRs included in this review
+
+t_PFAStype$percent <- round(t_PFAStype$percent, digits = 0)
+  
 
 t_PFAStype$PFAS_type <-
-  factor(t_PFAStype$PFAS_type, levels = t_PFAStype$PFAS_type[order(t_PFAStype$n, decreasing = FALSE)])
+  factor(t_PFAStype$PFAS_type, levels = t_PFAStype$PFAS_type[order(t_PFAStype$percent, decreasing = FALSE)])
 
 PFAS_levels_order <-
-  t_PFAStype$PFAS_type[order(t_PFAStype$n, decreasing = FALSE)] #save for another plot
+  t_PFAStype$PFAS_type[order(t_PFAStype$percent, decreasing = FALSE)] #save for another plot
 
 # simple barplot with PFAS types
 PFAS_types <- ggplot(t_PFAStype, aes(x = PFAS_type,
-                       y = n)) +
+                       y = percent)) +
   geom_col(aes(fill = ""), width = 0.7) +
   theme_light() +
   labs(title = expression("PFAS types reviewed")) + #~bold(A.)~' Type and subject'
   coord_flip()+
-  scale_y_continuous(name = "Article count") +
+  scale_y_continuous(name = "Percent (%)") +
   scale_fill_manual(values = c("#919191")) +
+  geom_text(aes(label = percent), hjust = -0.2, size = 2.7) +
   theme(legend.position = "none",
         axis.title.x = element_text(size = 11),
         axis.title.y = element_blank(),
         axis.text.y = element_text(size = 7))
+PFAS_types
 
 # ggsave(here("R_data", "plot_pfas_types.png"),
 #        width = 8,
@@ -1229,34 +1395,38 @@ colnames(t_MESH2) <- c("MeSH_terms",
 
 ```{r plot MeSH headings barplot, height = 4, width = 8}
 
-#count frequencies of headings
+#count percent frequencies of headings
 MeSH_headings_counts <- t_MESH2 %>%
-  select(MeSH_headings) %>%
-  count(MeSH_headings) %>%
-  arrange(desc(n)) %>% 
   filter(MeSH_headings != "NA") %>%
-  filter(MeSH_headings != "")
-#str(MeSH_headings_counts)
+  count(MeSH_headings) %>% 
+  mutate(percent = (n/109 * 100))
+  
+MeSH_headings_counts$percent <- round(MeSH_headings_counts$percent, digits = 0)
 
-MeSH_headings_counts$MeSH_headings <- 
-  factor(MeSH_headings_counts$MeSH_headings, levels = MeSH_headings_counts$MeSH_headings[order(MeSH_headings_counts$n, decreasing = FALSE)])
+MeSH_headings_counts$MeSH_headings <- factor(MeSH_headings_counts$MeSH_headings, levels = MeSH_headings_counts$MeSH_headings[order(MeSH_headings_counts$percent, decreasing = FALSE)])
+
+MeSH_headings_counts <- MeSH_headings_counts %>% 
+  top_n(10, percent)
 
 MESH_headings_order <- 
-  MeSH_headings_counts$MeSH_headings[order(MeSH_headings_counts$n, decreasing = FALSE)] #save for the next plot
+  MeSH_headings_counts$MeSH_headings[order(MeSH_headings_counts$percent, decreasing = FALSE)] #save for the next plot
 
 # simple barplot with top 10 MESH headings
-p_mesh_headings <- ggplot(MeSH_headings_counts[1:10, ], aes(x = MeSH_headings, y = n)) +
+p_mesh_headings <- ggplot(MeSH_headings_counts, aes(x = MeSH_headings, y = percent)) +
   geom_col(aes(fill = ""), width = 0.7) +
   theme_light() +
-  labs(title = expression("Top 10 MeSH headings reviewed")) + #~bold(A.)~' Type and subject'
+  labs(title = expression("Top 10 MeSH headings reviewed")) +
   coord_flip() +
-  scale_y_continuous(name = "Article count") +
+  scale_y_continuous(name = "Percent (%)",
+                     breaks = seq(0, 90, by = 20)) +
   scale_fill_manual(values = c("#919191")) +
+  geom_text(aes(label = percent), hjust = -0.2, size = 2.7) +
   theme(legend.position = "none",
         axis.title.x = element_text(size = 13),
         axis.title.y = element_blank(),
         axis.text = element_text(size = 10))
 
+p_mesh_headings
 # ggsave(here("R_data", "plot_mesh_headings.png"),
 #        width = 8,
 #        height = 6)
@@ -1327,10 +1497,11 @@ MeSH_qualifiers_counts
 
 #str(mdata)
 t_subject <- mdata %>%
-  count(Human_animal_environment) %>%
-  arrange(desc(n)) %>% 
-  filter(Human_animal_environment != "NA") %>%
-  filter(Human_animal_environment != "") #filter out NA
+  filter(Human_animal_environment != "NA") %>% #filter out NA
+  count(Human_animal_environment) %>% 
+  mutate(percent = (n/109 * 100))
+
+t_subject$percent <- round(t_subject$percent, digits = 0)
 
 t_subject$Human_animal_environment <-
   factor(t_subject$Human_animal_environment, levels = unique(t_subject$Human_animal_environment[order(t_subject$n, decreasing = FALSE)]))
@@ -1339,18 +1510,20 @@ subjects_levels_order <-
   t_subject$Human_animal_environment[order(t_subject$n, decreasing = FALSE)] #save for another plot
 
 # simple barplot with MESH_heading
-p_subj <- ggplot(t_subject, aes(x = Human_animal_environment, y = n)) +
+p_subj <- ggplot(t_subject, aes(x = Human_animal_environment, y = percent)) +
   geom_col(aes(fill = ""), width = 0.7) +
   theme_light() +
   labs(title = expression("Main subjects reviewed")) + #~bold(A.)~' Type and subject'
   coord_flip()+
-  scale_y_continuous(name = "Article count",
-                     expand = c(0,0)) +
+  scale_y_continuous(name = "Percent (%)",
+                     breaks = seq(0, 80, by = 20)) +
   scale_fill_manual(values = c("#919191")) +
+  geom_text(aes(label = percent), hjust = -0.2, size = 2.7) +
   theme(legend.position = "none",
         axis.title.x = element_text(size = 10),
         axis.title.y = element_blank(),
         axis.text = element_text(size = 10))
+p_subj
 
 # ggsave(here("R_data", "plot_subjects.png"),
 #        width = 8,

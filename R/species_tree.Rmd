@@ -3,8 +3,15 @@ title: "species tree"
 author: "LR"
 date: "2022-10-31"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 https://github.com/elmacartney/Nongen_map_of_reviews/blob/main/R/Main_Figures.Rmd#L140
+
+# Setup
+
+Set global code chunk parameters and load packages.
+
 ```{r setup, include = TRUE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
@@ -26,18 +33,28 @@ pacman::p_load(tidyverse,
                ggtree,
                ggnewscale,
                ggtreeExtra)
+```
 
-
-
+# Load  data
+```{r}
 # Data from .csv file - Species_info sheet
 spdata <- read_csv(here("data","ReviewMap_PFAS_species.csv"), skip = 0)
+```
 
+# Data Cleaning and Tiding
+
+```{r}
 spdata <- 
   spdata %>%
-  select(-ends_with("checked"))
+  select(-ends_with("checked")) %>% 
+  select(-ends_with("comment"))
+```
 
+# Exploring analysis
 
-length(unique(spdata$Species_common_name)) # 104
+```{r}
+length(unique(spdata$Species_common_name)) 
+# [1] 104
 
 # Make a table of how many words each name has:
 table((lengths(gregexpr("\\W+", spdata$Species_common_name)) + 1)) 
