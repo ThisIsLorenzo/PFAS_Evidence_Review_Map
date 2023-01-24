@@ -316,8 +316,6 @@ trend_by_review
 ### Review subject
 
 ```{r}
-#TODO - Remove plants. Exclude the review? (S_070, Wang_2020)
-
 trend_subjects <- mdata %>% 
   filter(Human_animal_environment != "Plants") %>% 
   group_by(Human_animal_environment) %>% 
@@ -1218,9 +1216,12 @@ p_PFAS_focus <-
   guides(fill = guide_legend(title="How many PFAS types:")) +
   theme_light() +
   coord_flip() +
-  # geom_text(aes(label = paste0(round((n/sum(n))*100,1),'%'), x = PFAS_focus), 
-  #           position = position_stack(vjust = 0.5), 
-  #           size = 3.5) +
+  geom_text(aes(fill = fct_relevel(PFAS_one_many, c("Not specified",
+                                                    "Multiple", 
+                                                    "One")),
+                label = paste0(round((n/sum(n))*100,1),'%'), x = PFAS_focus),
+            position = position_stack(vjust = 0.5),
+            size = 3.5) +
   ggtitle(expression(bold("Is the review focused on PFAS?"))) +
   theme(legend.position = "bottom",
        legend.box.background = element_rect(colour = "black"), 
@@ -1231,6 +1232,9 @@ p_PFAS_focus <-
        legend.background = element_blank())
 
 p_PFAS_focus
+# ggsave(here("R_data", "plot_pfas_focus.png"),
+#        width = 8,
+#        height = 6)
 ```
 
 
@@ -1260,25 +1264,24 @@ t_PFAStype <- ptidata %>%
   count(PFAS_type) %>%
   mutate(percent = (n/109 * 100)) #109 is the number of SRs included in this review
 
-t_PFAStype$percent <- round(t_PFAStype$percent, digits = 0)
-  
-
 t_PFAStype$PFAS_type <-
-  factor(t_PFAStype$PFAS_type, levels = t_PFAStype$PFAS_type[order(t_PFAStype$percent, decreasing = FALSE)])
+  factor(t_PFAStype$PFAS_type, levels = t_PFAStype$PFAS_type[order(t_PFAStype$n, decreasing = FALSE)])
 
 PFAS_levels_order <-
-  t_PFAStype$PFAS_type[order(t_PFAStype$percent, decreasing = FALSE)] #save for another plot
+  t_PFAStype$PFAS_type[order(t_PFAStype$n, decreasing = FALSE)] #save for another plot
 
 # simple barplot with PFAS types
 PFAS_types <- ggplot(t_PFAStype, aes(x = PFAS_type,
-                       y = percent)) +
+                       y = n)) +
   geom_col(aes(fill = ""), width = 0.7) +
   theme_light() +
   labs(title = expression("PFAS types reviewed")) + #~bold(A.)~' Type and subject'
   coord_flip()+
-  scale_y_continuous(name = "Percent (%)") +
+  scale_y_continuous(name = "Reviews count") +
   scale_fill_manual(values = c("#919191")) +
-  geom_text(aes(label = percent), hjust = -0.2, size = 2.7) +
+  geom_text(aes(label = paste0(round((n/109)*100,1),'%'), x = PFAS_type), 
+            position = position_stack(vjust = 0.5), 
+            size = 3) + 
   theme(legend.position = "none",
         axis.title.x = element_text(size = 11),
         axis.title.y = element_blank(),
@@ -1287,7 +1290,7 @@ PFAS_types
 
 # ggsave(here("R_data", "plot_pfas_types.png"),
 #        width = 8,
-#        height = 6,)
+#        height = 6)
 ```
 
 ```{r, eval=FALSE}
@@ -1366,7 +1369,7 @@ Some MeSH headings also have qualifiers (sometimes called subheadings) - these a
 
 ```{r plot main topics barplot prep, height = 4, width = 8}
 
-# change to long format (one species per row - one or multple rows per study):
+# change to long format (one species per row - one or multiple rows per study):
 t_MESH <-
   mdata %>%
   select(MeSH_terms) %>%
@@ -1395,34 +1398,33 @@ colnames(t_MESH2) <- c("MeSH_terms",
 
 ```{r plot MeSH headings barplot, height = 4, width = 8}
 
-#count percent frequencies of headings
+#count frequencies of headings
 MeSH_headings_counts <- t_MESH2 %>%
   filter(MeSH_headings != "NA") %>%
-  count(MeSH_headings) %>% 
-  mutate(percent = (n/109 * 100))
+  count(MeSH_headings)
   
-MeSH_headings_counts$percent <- round(MeSH_headings_counts$percent, digits = 0)
-
-MeSH_headings_counts$MeSH_headings <- factor(MeSH_headings_counts$MeSH_headings, levels = MeSH_headings_counts$MeSH_headings[order(MeSH_headings_counts$percent, decreasing = FALSE)])
+MeSH_headings_counts$MeSH_headings <- factor(MeSH_headings_counts$MeSH_headings, levels = MeSH_headings_counts$MeSH_headings[order(MeSH_headings_counts$n, decreasing = FALSE)])
 
 MeSH_headings_counts <- MeSH_headings_counts %>% 
-  top_n(10, percent)
+  top_n(10, n)
 
 MESH_headings_order <- 
-  MeSH_headings_counts$MeSH_headings[order(MeSH_headings_counts$percent, decreasing = FALSE)] #save for the next plot
+  MeSH_headings_counts$MeSH_headings[order(MeSH_headings_counts$n, decreasing = FALSE)] #save for the next plot
 
 # simple barplot with top 10 MESH headings
-p_mesh_headings <- ggplot(MeSH_headings_counts, aes(x = MeSH_headings, y = percent)) +
+p_mesh_headings <- ggplot(MeSH_headings_counts, aes(x = MeSH_headings, y = n)) +
   geom_col(aes(fill = ""), width = 0.7) +
   theme_light() +
-  labs(title = expression("Top 10 MeSH headings reviewed")) +
+  labs(title = expression("Top 10 MeSH headings")) +
   coord_flip() +
-  scale_y_continuous(name = "Percent (%)",
+  scale_y_continuous(name = "Headings count",
                      breaks = seq(0, 90, by = 20)) +
   scale_fill_manual(values = c("#919191")) +
-  geom_text(aes(label = percent), hjust = -0.2, size = 2.7) +
+  geom_text(aes(label = paste0(round((n/sum(n))*100,1),'%'), x = MeSH_headings), 
+            position = position_stack(vjust = 0.5), 
+            size = 3.5) +
   theme(legend.position = "none",
-        axis.title.x = element_text(size = 13),
+        axis.title.x = element_text(size = 11),
         axis.title.y = element_blank(),
         axis.text = element_text(size = 10))
 
@@ -1433,39 +1435,41 @@ p_mesh_headings
 ```
 
 ```{r plot MeSH qualifiers barplot, height = 4, width = 8}
-
 #count frequencies of qualifiers
 MeSH_qualifiers_counts <- t_MESH2 %>%
-  select(MeSH_qualifiers) %>%
-  count(MeSH_qualifiers) %>%
-  arrange(desc(n)) %>%
-  filter(MeSH_qualifiers != "NA") %>%
-  filter(MeSH_qualifiers != "")
-#str(MeSH_qualifiers_counts)
+  filter(!is.na(MeSH_qualifiers) & MeSH_qualifiers != "") %>%
+  count(MeSH_qualifiers)
 
 MeSH_qualifiers_counts$MeSH_qualifiers <- 
   factor(MeSH_qualifiers_counts$MeSH_qualifiers, levels = MeSH_qualifiers_counts$MeSH_qualifiers[order(MeSH_qualifiers_counts$n, decreasing = FALSE)])
+
+MeSH_qualifiers_counts <- MeSH_qualifiers_counts %>% 
+  top_n(10, n)
 
 MESH_qualifiers_order <- 
   MeSH_qualifiers_counts$MeSH_qualifiers[order(MeSH_qualifiers_counts$n, decreasing = FALSE)] #save for the next plot
 
 # simple barplot with MESH qualifiers
-p_mesh_qualifiers <- ggplot(MeSH_qualifiers_counts[, ], aes(x = MeSH_qualifiers,
+p_mesh_qualifiers <- ggplot(MeSH_qualifiers_counts, aes(x = MeSH_qualifiers,
                                        y = n)) +
   geom_col(aes(fill = ""), 
-           width = 0.9,
+           width = 0.7,
            position = 'dodge') +
   theme_light() +
-  labs(title = expression("MeSH qualifiers reviewed")) + #~bold(A.)~' Type and subject'
+  labs(title = expression("MeSH qualifiers reviewed")) +
   coord_flip() +
-  scale_y_continuous(name = "Article count",
-                     expand = c(0,0)) +
+  scale_y_continuous(name = "Qualifiers count",
+                     breaks = seq(0, 110, by = 20)) +
   scale_fill_manual(values = c("#919191")) +
+  geom_text(aes(label = paste0(round((n/sum(n))*100,1),'%'), x = MeSH_qualifiers), 
+            position = position_stack(vjust = 0.5), 
+            size = 3.5) +
   theme(legend.position = "none",
         axis.title.x = element_text(size = 13),
         axis.title.y = element_blank(),
         axis.text = element_text(size = 10))
 
+p_mesh_qualifiers
 # ggsave(here("R_data", "plot_mesh_qualifiers.png"),
 #        width = 8,
 #        height = 6)
@@ -1494,14 +1498,10 @@ MeSH_qualifiers_counts
 ## Main review subjects
 
 ```{r plot main subjects barplot, height = 2, width = 8}
-
 #str(mdata)
 t_subject <- mdata %>%
   filter(Human_animal_environment != "NA") %>% #filter out NA
-  count(Human_animal_environment) %>% 
-  mutate(percent = (n/109 * 100))
-
-t_subject$percent <- round(t_subject$percent, digits = 0)
+  count(Human_animal_environment)
 
 t_subject$Human_animal_environment <-
   factor(t_subject$Human_animal_environment, levels = unique(t_subject$Human_animal_environment[order(t_subject$n, decreasing = FALSE)]))
@@ -1510,15 +1510,17 @@ subjects_levels_order <-
   t_subject$Human_animal_environment[order(t_subject$n, decreasing = FALSE)] #save for another plot
 
 # simple barplot with MESH_heading
-p_subj <- ggplot(t_subject, aes(x = Human_animal_environment, y = percent)) +
+p_subj <- ggplot(t_subject, aes(x = Human_animal_environment, y = n)) +
   geom_col(aes(fill = ""), width = 0.7) +
   theme_light() +
   labs(title = expression("Main subjects reviewed")) + #~bold(A.)~' Type and subject'
   coord_flip()+
-  scale_y_continuous(name = "Percent (%)",
+  scale_y_continuous(name = "Reviews count",
                      breaks = seq(0, 80, by = 20)) +
   scale_fill_manual(values = c("#919191")) +
-  geom_text(aes(label = percent), hjust = -0.2, size = 2.7) +
+  geom_text(aes(label = paste0(round((n/sum(n))*100,1),'%'), x = Human_animal_environment), 
+            position = position_stack(vjust = 0.5), 
+            size = 3.5) + 
   theme(legend.position = "none",
         axis.title.x = element_text(size = 10),
         axis.title.y = element_blank(),
@@ -1542,7 +1544,7 @@ count(mdata, Human_animal_environment)
 # 5 Plants                       3
 ```
 
-## Combining MeSH qualifiers with main review subjects
+## MeSH qualifiers & main review subjects
 
 ```{r plot MeSH qualifiers with main review subjects barplot, height = 4, width = 8}
 
@@ -1583,26 +1585,18 @@ colnames(t_MESHby2) <-
 
 t_topic_subject <-
   t_MESHby2 %>%
-  count(MeSH_qualifiers, Subject) %>%
-  arrange(desc(n)) %>%
   filter(MeSH_qualifiers != "NA") %>% 
-  filter(MeSH_qualifiers != "") #filter out NA
+  filter(MeSH_qualifiers != "") %>% 
+  count(MeSH_qualifiers, Subject)
 
-t_topic_subject$Subject <-
-  factor(t_topic_subject$Subject, 
-         levels = subjects_levels_order) #use order from the previous graph
-
-t_topic_subject$MeSH_qualifiers <-
-  factor(t_topic_subject$MeSH_qualifiers, 
-         levels = MESH_qualifiers_order) #use order from the previous graph
-#str(t_topic_subject)
+t_topic_subject$MeSH_qualifiers <- fct_reorder(t_topic_subject$MeSH_qualifiers, t_topic_subject$n, .fun = sum, .desc = FALSE)
 
 #Set palette
 cbp2 <- c("#56B4E9",
           "#E69F00",
           "#F0E442",
-          "#009E73",
           "#999999",
+          "#009E73",
           "#0072B2",
           "#D55E00",
           "#CC79A7")
@@ -1613,32 +1607,31 @@ p_mesh_subject <- ggplot(t_topic_subject, aes(x = MeSH_qualifiers,
  labs(title = expression("MeSH qualifiers and subjects reviewed")) +
  coord_flip()  +
  scale_fill_brewer() +
- geom_col(aes(fill = fct_relevel(Subject, c("Mixed", 
-                                            "Plants", 
+ geom_col(aes(fill = fct_relevel(Subject, c("Mixed",
                                             "Environment", 
                                             "Animals", 
                                             "Humans"))), width = 0.7) + 
   scale_fill_manual(values=cbp2,
                      breaks=c("Humans", 
                               "Animals", 
-                              "Environment", 
-                              "Plants", 
+                              "Environment",
                               "Mixed")) +
-  scale_y_continuous(name = "Article count",
-                     expand = c(0,0)) +
+  scale_y_continuous(name = "Qualifiers count",
+                     expand = c(0,2.5)) +
  theme_light() +
  theme(legend.position = c(0.7, 0.5),
        legend.box.background = element_rect(colour = "black"),
        legend.title = element_blank(),
-       legend.text = element_text(size = 13),
-       axis.title.x = element_text(size = 15),
+       legend.text = element_text(size =10),
+       axis.title.x = element_text(size = 11),
        axis.title.y = element_blank(),
-       axis.text = element_text(size = 8),
+       axis.text = element_text(size = 9),
        legend.background = element_blank())
 
+p_mesh_subject
 # ggsave(here("R_data", "plot_mesh_subjects.png"),
 #        width = 8,
-#        height = 6,)
+#        height = 6)
 
 ```
 
@@ -1714,30 +1707,36 @@ p_PFAStype <-
   coord_flip()  +
   scale_fill_brewer() +
   geom_col(aes(fill = fct_relevel(Human_animal_environment, c("Mixed",
-                                                              "Plants",
                                                               "Environment",
                                                               "Animals",
                                                               "Humans"))), width = 0.7) +
+  theme_light() +
   scale_fill_manual(values=cbp2,
                     breaks=c("Humans",
                              "Animals",
                              "Environment",
-                             "Plants", 
                              "Mixed")) +
-  scale_y_continuous(name = "Article count",
-                     expand = c(0,0)) +
+  scale_y_continuous(name = "Reviews count",
+                     expand = c(0,1)) +
+  geom_text(aes(fill = fct_relevel(Human_animal_environment, c("Mixed",
+                                                    "Environment",
+                                                    "Animals",
+                                                    "Humans")),
+                label = paste0(round((n/109)*100,1)), x = PFAS_type),
+            position = position_stack(vjust = 0.5),
+            size = 1.8) +
   theme(legend.position = c(0.6, 0.5),
        legend.box.background = element_rect(colour = "black"),
        legend.title = element_blank(),
-       legend.text=element_text(size = 13),
-       title = element_text(size = 14),
-       axis.title.x = element_text(size = 15),
+       legend.text=element_text(size = 8),
+       title = element_text(size = 10),
+       axis.title.x = element_text(size = 8),
        axis.title.y = element_blank(),
        legend.background = element_blank())
-
-# ggsave(here("R_data", "plot_pfas_subjects.png"),
-#        width = 8,
-#        height = 6)
+p_PFAStype
+ggsave(here("R_data", "plot_pfas_subjects.png"),
+       width = 8,
+       height = 6)
 ```
 
 ```{r, eval = FALSE}
