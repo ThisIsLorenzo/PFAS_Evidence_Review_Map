@@ -1184,44 +1184,33 @@ top10_journals
 #        height = 6)
 ```
 
+## Focus on PFAS or POPs
 
-## Focus on PFAS, or POPs, and how many PFAS
-
-```{r PFAS focus one_many barplot, height = 2, width = 8}
-#str(mdata)
+```{r}
 t_PFASfocus <-
   mdata %>%
-  count(PFAS_focus, PFAS_one_many) %>%
-  arrange(desc(n)) %>% 
-  filter(PFAS_focus != "NA") #filter out NA
+  filter(PFAS_focus != "NA") %>% 
+  count(PFAS_focus) %>%
+  arrange(desc(n))
 
-#Use a colorblind-friendly palette:
 cbp1 <- c("#56B4E9",
           "#E69F00",
           "#999999")
           
-
 p_PFAS_focus <- 
   ggplot(t_PFASfocus, aes(x = PFAS_focus,
                           y = n)) +
-  geom_col(aes(fill = fct_relevel(PFAS_one_many, c("Not specified",
-                                                   "Multiple",
-                                                   "One"))), width = 0.7) + 
-  scale_fill_manual(values = cbp1, 
-                    breaks=c('One', 
-                             'Multiple',
-                             'Not specified')) +
-  scale_y_continuous(name = "Article count") +
+  geom_col(width = 0.7,
+           fill = "#919191") +
   scale_x_discrete(name = NULL) +
-  guides(fill = guide_legend(title="How many PFAS types:")) +
   theme_light() +
   coord_flip() +
-  geom_text(aes(fill = fct_relevel(PFAS_one_many, c("Not specified",
-                                                    "Multiple", 
-                                                    "One")),
-                label = paste0(round((n/sum(n))*100,1),'%'), x = PFAS_focus),
-            position = position_stack(vjust = 0.5),
-            size = 3.5) +
+  scale_y_continuous(name = "Reviews count",
+                     breaks = seq(0, 60, by = 20),
+                     expand = c(0,1)) +
+  geom_text(aes(label = paste0(round((n/sum(n))*100),'%'), x = PFAS_focus), 
+            position = position_stack(vjust = 0.5), 
+            size = 3.5) + 
   ggtitle(expression(bold("Is the review focused on PFAS?"))) +
   theme(legend.position = "bottom",
        legend.box.background = element_rect(colour = "black"), 
@@ -1233,6 +1222,54 @@ p_PFAS_focus <-
 
 p_PFAS_focus
 # ggsave(here("R_data", "plot_pfas_focus.png"),
+#        width = 8,
+#        height = 6)
+```
+
+
+## Focus on PFAS, or POPs, and how many PFAS
+
+```{r PFAS focus one_many barplot, height = 2, width = 8}
+#str(mdata)
+t2_PFASfocus <-
+  mdata %>%
+  count(PFAS_focus, PFAS_one_many) %>%
+  arrange(desc(n)) %>% 
+  filter(PFAS_focus != "NA") #filter out NA
+          
+p2_PFAS_focus <- 
+  ggplot(t2_PFASfocus, aes(x = PFAS_focus,
+                          y = n)) +
+  geom_col(aes(fill = fct_relevel(PFAS_one_many, c("Not specified",
+                                                   "Multiple",
+                                                   "One"))), width = 0.7) + 
+  scale_fill_manual(values = cbp1, 
+                    breaks=c('One', 
+                             'Multiple',
+                             'Not specified')) +
+  scale_y_continuous(name = "Article count",
+                     expand = c(0,1)) +
+  scale_x_discrete(name = NULL) +
+  guides(fill = guide_legend(title="How many PFAS types:")) +
+  theme_light() +
+  coord_flip() +
+  geom_text(aes(fill = fct_relevel(PFAS_one_many, c("Not specified",
+                                                    "Multiple", 
+                                                    "One")),
+                label = paste0(round((n/sum(n))*100),'%'), x = PFAS_focus),
+            position = position_stack(vjust = 0.5),
+            size = 3.5) +
+  ggtitle(expression(bold("Is the review focused on PFAS?"))) +
+  theme(legend.position = "bottom",
+       legend.box.background = element_rect(colour = "black"), 
+       legend.title = element_text(size=10),
+       legend.text = element_text(size = 10), 
+       axis.title.x = element_text(size = 10),
+       axis.title.y = element_blank(),
+       legend.background = element_blank())
+
+p2_PFAS_focus
+# ggsave(here("R_data", "plot_pfas_focus2.png"),
 #        width = 8,
 #        height = 6)
 ```
@@ -1279,7 +1316,7 @@ PFAS_types <- ggplot(t_PFAStype, aes(x = PFAS_type,
   coord_flip()+
   scale_y_continuous(name = "Reviews count") +
   scale_fill_manual(values = c("#919191")) +
-  geom_text(aes(label = paste0(round((n/109)*100,1),'%'), x = PFAS_type), 
+  geom_text(aes(label = paste0(round((n/109)*100),'%'), x = PFAS_type), 
             position = position_stack(vjust = 0.5), 
             size = 3) + 
   theme(legend.position = "none",
@@ -1420,7 +1457,7 @@ p_mesh_headings <- ggplot(MeSH_headings_counts, aes(x = MeSH_headings, y = n)) +
   scale_y_continuous(name = "Headings count",
                      breaks = seq(0, 90, by = 20)) +
   scale_fill_manual(values = c("#919191")) +
-  geom_text(aes(label = paste0(round((n/sum(n))*100,1),'%'), x = MeSH_headings), 
+  geom_text(aes(label = paste0(round((n/sum(n))*100),'%'), x = MeSH_headings), 
             position = position_stack(vjust = 0.5), 
             size = 3.5) +
   theme(legend.position = "none",
@@ -1461,7 +1498,7 @@ p_mesh_qualifiers <- ggplot(MeSH_qualifiers_counts, aes(x = MeSH_qualifiers,
   scale_y_continuous(name = "Qualifiers count",
                      breaks = seq(0, 110, by = 20)) +
   scale_fill_manual(values = c("#919191")) +
-  geom_text(aes(label = paste0(round((n/sum(n))*100,1),'%'), x = MeSH_qualifiers), 
+  geom_text(aes(label = paste0(round((n/sum(n))*100),'%'), x = MeSH_qualifiers), 
             position = position_stack(vjust = 0.5), 
             size = 3.5) +
   theme(legend.position = "none",
@@ -1518,7 +1555,7 @@ p_subj <- ggplot(t_subject, aes(x = Human_animal_environment, y = n)) +
   scale_y_continuous(name = "Reviews count",
                      breaks = seq(0, 80, by = 20)) +
   scale_fill_manual(values = c("#919191")) +
-  geom_text(aes(label = paste0(round((n/sum(n))*100,1),'%'), x = Human_animal_environment), 
+  geom_text(aes(label = paste0(round((n/sum(n))*100),'%'), x = Human_animal_environment), 
             position = position_stack(vjust = 0.5), 
             size = 3.5) + 
   theme(legend.position = "none",
@@ -1529,7 +1566,7 @@ p_subj
 
 # ggsave(here("R_data", "plot_subjects.png"),
 #        width = 8,
-#        height = 6,)
+#        height = 6)
 ```
 
 ```{r}
