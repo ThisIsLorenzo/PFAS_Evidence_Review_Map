@@ -48,6 +48,31 @@ pacman::p_load(tidyverse, #includes ggplot2, dplyr, and tidyr. Used for data man
                ochRe) #for working with and visualizing data from the "OpenCoEHST" package
 ```
 
+Palettes
+
+```{r}
+#Seta general palette
+cbp1 <- c("#707070",
+          "#999999",
+          "#CCCCCC",
+          "#F5F5F5")
+          
+#Set palette for Review Subjects
+cbp2 <- c("#A29F15",#Green is often associated with nature and life, making it fitting for the category of humans
+          "#938274",#Brown is a common color for animals, representing their fur or feathers
+          "#3C7A89",#Blue is commonly associated with the sky and sea, making it fitting for the category of the environment
+          "#B8B8B8")#Grey is a neutral color
+          
+#Set a palette for PFAS one/multiple
+cbp3 <- c("#D2664B",
+          "#E6AF2E",
+          "#B8B8B8")
+          
+#Set a palette for transparency assessment
+cbp4 <- c("#588157",
+          "#DE6449")
+```
+
 # Load  data
 
 Manually extracted pilot data is stored in four separate **.csv** files representing different aspects of the data (extracted via structured predefined Google Forms - one per table). Additional fixed table stores pre-extracted data on PFAS types included in this map.
@@ -214,42 +239,47 @@ Here we aim to reveal what areas in the realm of PFAS health-related and environ
 ### Overall
 
 ```{r area plots year, height = 2, width = 8}
-publ_year <- mdata %>% 
+tt1 <- mdata %>% 
   count(Publication_year) %>% #counting the number of rows for each unique value of the "Publication_year" variable
   mutate(cumulative = cumsum(n)) %>% #add a new column to the output of the previous step, named "cumulative", which contains the cumulative sum of the "n" column
   ggplot(aes(x = Publication_year,
              y = cumulative)) + 
+  labs(title = expression(bold("a)"))) +
   geom_line(size = 0.7) + #add a line chart
-  geom_point(size = 3,
-             shape = 21,
+  geom_point(size = 1.5,
+             shape = 19,
              fill = "white") + #add a scatter plot
   geom_text(aes(label = n, x = Publication_year, y = cumulative), 
-            size = 3.5, 
+            size = 2, 
             hjust = 1.2,
             vjust = -0.5) + #add text labels to the ggplot object
-  scale_x_continuous(name = "Year",
+  scale_x_continuous(#name = "Year",
                      breaks = seq(2011, 2022, by = 1),
                      minor_breaks = NULL) +
-  scale_y_continuous(name = "Number of published systematic reviews",
+  scale_y_continuous(#name = "Number of published systematic reviews",
                     breaks = seq(0, 140, by = 10),
                     minor_breaks = NULL) +
-  ggtitle("Time trend") + #adds a title to the plot
-  theme(plot.title = element_text(size = 14,
-                                  hjust = 0.5), 
-       axis.text.x = element_text(size = 11,
+  theme_light() +
+  theme(plot.title = element_text(size = 9), 
+       axis.text.x = element_text(size = 6,
                                   margin = margin(t = 5, 
                                                   r = 0,
                                                   l = 0),
                                   angle = 45),
-       axis.text.y = element_text(size = 11,
+       axis.text.y = element_text(size = 6,
                                   margin = margin(t = 0, 
                                                   r = 5, 
                                                   l = 5)),
-       axis.title.x = element_text(size = 12,
-                                   hjust = 0.5),
-       axis.title.y = element_text(size = 12,
-                                   hjust = 0.5)) #add theme elements
-publ_year
+       axis.title.x = element_blank(),
+       axis.title.y = element_blank(), #add theme elements
+       panel.grid.major = element_line(color = "grey", 
+                                       linewidth  = 0.2, 
+                                       linetype = "dashed"),
+       panel.grid.minor = element_line(color = "grey", 
+                                      linewidth  = 0.2, 
+                                      linetype = "dotted"))
+
+tt1
 # ggsave(here("R_data", "time_trend.png"),
 #        width = 8,
 #        height = 6)
@@ -271,43 +301,54 @@ review_trend <- mdata2 %>%
   count(Publication_year) %>% 
   mutate(cumulative = cumsum(n))
 
-trend_by_review <- review_trend %>%
+tt2 <- review_trend %>%
   ggplot(aes(x = Publication_year,
              y = cumulative,
              color = fct_relevel(review_type, c("systematic review",
                                                           "meta-analysis")))) +
+  labs(title = expression(bold("b)"))) +
   geom_line(size = 0.7) + 
-  geom_point(aes(color = review_type), size = 3, shape = 21, fill = "white") +
+  geom_point(aes(color = review_type),
+             size = 1.5, 
+             shape = 19,
+             fill = "white") +
   geom_text(aes(label = n, x = Publication_year, y = cumulative), 
-            size = 3.5, 
+            size = 2, 
             hjust = 1.2,
             vjust = -0.5) +
-  scale_x_continuous(name = "Year",
+  scale_x_continuous(#name = "Year",
                      breaks = seq(2011, 2022, by = 1),
                      minor_breaks = NULL) +
-  scale_y_continuous(name = "Number of published systematic reviews",
+  scale_y_continuous(name = "Number of reviews",
                     breaks = seq(0, 110, by = 10),
                     minor_breaks = NULL
                     ) +
-  ggtitle("Time trend") + 
-  theme(plot.title = element_text(size = 14,
-                                  hjust = 0.5),
-       axis.text.x = element_text(size = 11,
+  theme_light() +
+  theme(plot.title = element_text(size = 9),
+       legend.title = element_blank(),
+       legend.text = element_text(size = 7),
+       legend.key.size = unit(0.4, "cm"),
+       axis.text.x = element_text(size = 6,
                                   margin = margin(t = 5, 
                                                   r = 0,
                                                   l = 0),
                                   angle = 45),
-       axis.text.y = element_text(size = 11,
+       axis.text.y = element_text(size = 6,
                                   margin = margin(t = 0, 
                                                   r = 5, 
                                                   l = 5)),
-       axis.title.x = element_text(size = 12,
+       axis.title.x = element_blank(),
+       axis.title.y = element_text(size = 9,
                                    hjust = 0.5),
-       axis.title.y = element_text(size = 12,
-                                   hjust = 0.5)) +
+       panel.grid.major = element_line(color = "grey", 
+                                       linewidth  = 0.2, 
+                                       linetype = "dashed"),
+       panel.grid.minor = element_line(color = "grey", 
+                                      linewidth  = 0.2, 
+                                      linetype = "dotted")) +
   labs(color = "Review type")
 
-trend_by_review
+tt2
 # ggsave(here("R_data", "time_trend_review_types.png"),
 #        width = 8,
 #        height = 6)
@@ -322,45 +363,70 @@ trend_subjects <- mdata %>%
   count(Publication_year) %>% 
   mutate(cumulative = cumsum(n))
 
-t_pfas_subjects <-  trend_subjects %>%
+#Set palette for Review Subjects
+cbp2.1 <- c("#A29F15",
+            "#B8B8B8",
+            "#3C7A89",
+            "#938274")
+
+tt3 <-  trend_subjects %>%
   ggplot(aes(x = Publication_year,
              y = cumulative,
              color = reorder(Human_animal_environment, -cumulative))) +
+  labs(title = expression(bold("c)"))) +
   geom_line(size = 0.7) + 
-  geom_point(aes(color = reorder(Human_animal_environment, -cumulative)), size = 3, shape = 21, fill = "white") +
+  geom_point(aes(color = reorder(Human_animal_environment, -cumulative)), 
+             size = 1.5, 
+             shape = 19,
+             fill = "white") +
   geom_text(aes(label = n, x = Publication_year, y = cumulative), 
-            size = 3.5, 
+            size = 2, 
             hjust = 1.2,
             vjust = -0.5) +
   scale_x_continuous(name = "Year",
                      breaks = seq(2011, 2022, by = 1),
                      minor_breaks = NULL) +
-  scale_y_continuous(name = "Number of published systematic reviews",
+  scale_y_continuous(#name = "Number of published systematic reviews",
                     breaks = seq(0, 110, by = 10),
                     minor_breaks = NULL
                     ) +
-  ggtitle("Time trend") + 
-  theme(plot.title = element_text(size = 14,
-                                  hjust = 0.5),
-       axis.text.x = element_text(size = 11,
+  scale_color_manual(values = cbp2.1) +
+  theme_light() + 
+  theme(plot.title = element_text(size = 9),
+        legend.title = element_blank(),
+       legend.text = element_text(size = 7),
+       legend.key.size = unit(0.4, "cm"),
+       axis.text.x = element_text(size = 6,
                                   margin = margin(t = 5, 
                                                   r = 0,
                                                   l = 0),
                                   angle = 45),
-       axis.text.y = element_text(size = 11,
+       axis.text.y = element_text(size = 6,
                                   margin = margin(t = 0, 
                                                   r = 5, 
                                                   l = 5)),
-       axis.title.x = element_text(size = 12,
+       axis.title.x = element_text(size = 7,
                                    hjust = 0.5),
-       axis.title.y = element_text(size = 12,
-                                   hjust = 0.5)) +
+       axis.title.y = element_blank(),
+       panel.grid.major = element_line(color = "grey", 
+                                       linewidth  = 0.2, 
+                                       linetype = "dashed"),
+       panel.grid.minor = element_line(color = "grey", 
+                                      linewidth  = 0.2, 
+                                      linetype = "dotted")) +
   labs(color = "Review subject")
 
-t_pfas_subjects
+tt3
 # ggsave(here("R_data", "time_trend_subjects.png"),
 #        width = 8,
 #        height = 6)
+```
+###COMBINED
+```{r}
+tt1/tt2/tt3
+# ggsave(here("R_data", "3_combined.png"),
+#        width = 9,
+#        height = 8.5)
 ```
 
 ### Broad taxa
@@ -451,42 +517,54 @@ pfas_focus <- mdata %>%
 
 
 
-t_pfas_focus <-  pfas_focus %>%
+tt4 <-  pfas_focus %>%
   ggplot(aes(x = Publication_year,
              y = cumulative,
-             color = reorder(PFAS_focus, - cumulative))) +
-  geom_line(size = 0.7) + 
-  geom_point(aes(color = PFAS_focus), size = 3, shape = 21, fill = "white") +
+             color = reorder(PFAS_focus, cumulative))) +
+  labs(title = expression(bold("a)"))) +
+  geom_line(size = 0.5) + 
+  geom_point(aes(color = PFAS_focus), 
+             size = 1, 
+             shape = 19, 
+             fill = "white") +
   geom_text(aes(label = n, x = Publication_year, y = cumulative), 
-            size = 3.5, 
+            size = 2, 
             hjust = 1.2,
             vjust = -0.5) +
   scale_x_continuous(name = "Year",
-                     breaks = seq(2011, 2022, by = 1),
+                     breaks = c(seq(2011, 2022, by = 2), 2022),
                      minor_breaks = NULL) +
-  scale_y_continuous(name = "Number of published systematic reviews",
+  scale_y_continuous(name = "Number of reviews",
                     breaks = seq(0, 110, by = 10),
                     minor_breaks = NULL
                     ) +
-  ggtitle("Time trend") + 
-  theme(plot.title = element_text(size = 14,
-                                  hjust = 0.5),
-       axis.text.x = element_text(size = 11,
+  theme_light() +
+  theme(plot.title = element_text(size = 9),
+        legend.position = "bottom",
+        legend.title = element_text(size = 7),
+       legend.text = element_text(size = 6),
+       legend.key.size = unit(0.3, "cm"),
+       axis.text.x = element_text(size = 5,
                                   margin = margin(t = 5, 
                                                   r = 0,
                                                   l = 0),
                                   angle = 45),
-       axis.text.y = element_text(size = 11,
+       axis.text.y = element_text(size = 6,
                                   margin = margin(t = 0, 
                                                   r = 5, 
                                                   l = 5)),
-       axis.title.x = element_text(size = 12,
+       axis.title.x = element_text(size = 8,
                                    hjust = 0.5),
-       axis.title.y = element_text(size = 12,
-                                   hjust = 0.5)) +
-  labs(color = "Focus on PFAS")
+       axis.title.y = element_blank(),
+       panel.grid.major = element_line(color = "grey", 
+                                       linewidth  = 0.2, 
+                                       linetype = "dashed"),
+       panel.grid.minor = element_line(color = "grey", 
+                                      linewidth  = 0.2, 
+                                      linetype = "dotted")) +
+  labs(color = "PFAS focus:")
 
-t_pfas_focus
+tt4
 # ggsave(here("R_data", "time_trend_pfas_focus.png"),
 #        width = 8,
 #        height = 6)
@@ -500,48 +578,63 @@ pfas_focus2 <- mdata %>%
   count(Publication_year) %>% 
   mutate(cumulative = cumsum(n))
 
-t_pfas_focus2 <-  pfas_focus2 %>%
+pfas_focus2 <- pfas_focus2 %>% 
+  mutate(PFAS_one_many = ifelse(PFAS_one_many == "Not specified", "NS", PFAS_one_many))
+
+tt5 <-  pfas_focus2 %>%
   ggplot(aes(x = Publication_year,
              y = cumulative,
              color = reorder(PFAS_one_many, -cumulative))) +
-  geom_line(size = 0.7) + 
-  geom_point(aes(color = PFAS_one_many), size = 3, shape = 21, fill = "white") +
+  labs(title = expression(bold("b)"))) +
+  geom_line(size = 0.5) + 
+  geom_point(aes(color = PFAS_one_many), 
+             size = 1,
+             shape = 19,
+             fill = "white") +
   geom_text(aes(label = n, x = Publication_year, y = cumulative), 
-            size = 3.5, 
+            size = 2, 
             hjust = 1.2,
             vjust = -0.5) +
   scale_x_continuous(name = "Year",
-                     breaks = seq(2011, 2022, by = 1),
+                     breaks = c(seq(2011, 2022, by = 2), 2022),
                      minor_breaks = NULL) +
-  scale_y_continuous(name = "Number of published systematic reviews",
+  scale_y_continuous(#name = "Number of reviews",
                     breaks = seq(0, 110, by = 10),
                     minor_breaks = NULL
                     ) +
-  ggtitle("Time trend") + 
-  theme(plot.title = element_text(size = 14,
-                                  hjust = 0.5),
-       axis.text.x = element_text(size = 11,
+  theme_light() +
+  theme(plot.title = element_text(size = 9),
+        legend.position = "bottom",
+        legend.title = element_text(size = 7),
+       legend.text = element_text(size = 6),
+       legend.key.size = unit(0.3, "cm"),
+       axis.text.x = element_text(size = 5,
                                   margin = margin(t = 5, 
                                                   r = 0,
                                                   l = 0),
                                   angle = 45),
-       axis.text.y = element_text(size = 11,
+       axis.text.y = element_text(size = 6,
                                   margin = margin(t = 0, 
                                                   r = 5, 
                                                   l = 5)),
-       axis.title.x = element_text(size = 12,
+       axis.title.x = element_text(size = 8,
                                    hjust = 0.5),
-       axis.title.y = element_text(size = 12,
-                                   hjust = 0.5)) +
-  labs(color = "Focus on PFAS")
+       axis.title.y = element_blank(),
+       panel.grid.major = element_line(color = "grey", 
+                                       linewidth  = 0.2, 
+                                       linetype = "dashed"),
+       panel.grid.minor = element_line(color = "grey", 
+                                      linewidth  = 0.2, 
+                                      linetype = "dotted")) +
+  labs(color = "PFAS reviewed:")
 
-t_pfas_focus2
+tt5
 # ggsave(here("R_data", "time_trend_pfas_focus2.png"),
 #        width = 8,
 #        height = 6)
 ```
 
-### PFAS ocus Yes/No & One/Multiple
+### PFAS focus Yes/No & One/Multiple
 
 ```{r}
 pfas_focus3 <- mdata %>% 
@@ -597,18 +690,23 @@ t_pfas_focus3
 
 ```{r}
 trend_pfas_types <- mpidata %>% 
+  filter(PFAS_type != "All PFAS") %>% 
   group_by(PFAS_type) %>% 
   count(Publication_year) %>% 
   mutate(cumulative = cumsum(n))
 
-t_pfas_types <-  trend_pfas_types %>%
+tt6 <-  trend_pfas_types %>%
   ggplot(aes(x = Publication_year,
              y = cumulative,
              color = reorder(PFAS_type, -cumulative))) +
-  geom_line(size = 0.7) + 
-  geom_point(aes(color = reorder(PFAS_type, -cumulative)), size = 3, shape = 21, fill = "white") +
+  labs(title = expression(bold("d)"))) +
+  geom_line(size = 0.4) + 
+  geom_point(aes(color = reorder(PFAS_type, -cumulative)),
+             size = 1, 
+             shape = 19, 
+             fill = "white") +
   geom_text(aes(label = n, x = Publication_year, y = cumulative), 
-            size = 3.5, 
+            size = 2, 
             hjust = 1.2,
             vjust = -0.5) +
   scale_x_continuous(name = "Year",
@@ -618,25 +716,33 @@ t_pfas_types <-  trend_pfas_types %>%
                     breaks = seq(0, 110, by = 10),
                     minor_breaks = NULL
                     ) +
-  ggtitle("Time trend") + 
-  theme(plot.title = element_text(size = 14,
-                                  hjust = 0.5),
-       axis.text.x = element_text(size = 11,
+  scale_color_discrete(guide = guide_legend(ncol = 1)) +
+  theme_light() +
+  theme(plot.title = element_text(size = 9),
+        legend.title = element_blank(),
+       legend.text = element_text(size = 6),
+       legend.key.size = unit(0.3, "cm"),
+       axis.text.x = element_text(size = 6,
                                   margin = margin(t = 5, 
                                                   r = 0,
                                                   l = 0),
                                   angle = 45),
-       axis.text.y = element_text(size = 11,
+       axis.text.y = element_text(size = 6,
                                   margin = margin(t = 0, 
                                                   r = 5, 
                                                   l = 5)),
-       axis.title.x = element_text(size = 12,
+       axis.title.x = element_text(size = 8,
                                    hjust = 0.5),
-       axis.title.y = element_text(size = 12,
-                                   hjust = 0.5)) +
+       axis.title.y = element_blank(),
+       panel.grid.major = element_line(color = "grey", 
+                                       linewidth  = 0.2, 
+                                       linetype = "dashed"),
+       panel.grid.minor = element_line(color = "grey", 
+                                      linewidth  = 0.2, 
+                                      linetype = "dotted")) +
   labs(color = "PFAS type")
 
-t_pfas_types
+tt6
 # ggsave(here("R_data", "time_trend_pfas_types.png"),
 #        width = 8,
 #        height = 6)
@@ -656,35 +762,46 @@ t_pfas_group <-  trend_pfas_groups %>%
   ggplot(aes(x = Publication_year,
              y = cumulative,
              color = reorder(PFAS_group, -cumulative))) +
+  labs(title = expression(bold(")"))) +
   geom_line(size = 0.7) + 
-  geom_point(aes(color = reorder(PFAS_group, -cumulative)), size = 3, shape = 21, fill = "white") +
+  geom_point(aes(color = reorder(PFAS_group, -cumulative)), 
+             size = 1.5,
+             shape = 19, 
+             fill = "white") +
   geom_text(aes(label = n, x = Publication_year, y = cumulative), 
-            size = 3.5, 
+            size = 3, 
             hjust = 1.2,
             vjust = -0.5) +
   scale_x_continuous(name = "Year",
                      breaks = seq(2011, 2022, by = 1),
                      minor_breaks = NULL) +
-  scale_y_continuous(name = "Number of published systematic reviews",
+  scale_y_continuous(name = "Number of reviews",
                     breaks = seq(0, 90, by = 10),
                     minor_breaks = NULL
                     ) +
-  ggtitle("Time trend") + 
-  theme(plot.title = element_text(size = 14,
-                                  hjust = 0.5),
-       axis.text.x = element_text(size = 11,
+  theme_light() +
+  theme(plot.title = element_text(size = 9),
+        legend.title = element_blank(),
+       legend.text = element_text(size = 7),
+       legend.key.size = unit(0.4, "cm"),
+       axis.text.x = element_text(size = 6,
                                   margin = margin(t = 5, 
                                                   r = 0,
                                                   l = 0),
                                   angle = 45),
-       axis.text.y = element_text(size = 11,
+       axis.text.y = element_text(size = 6,
                                   margin = margin(t = 0, 
                                                   r = 5, 
                                                   l = 5)),
-       axis.title.x = element_text(size = 12,
+       axis.title.x = element_text(size = 8,
                                    hjust = 0.5),
-       axis.title.y = element_text(size = 12,
-                                   hjust = 0.5)) +
+       axis.title.y = element_text(size = 8),
+       panel.grid.major = element_line(color = "grey", 
+                                       linewidth  = 0.2, 
+                                       linetype = "dashed"),
+       panel.grid.minor = element_line(color = "grey", 
+                                      linewidth  = 0.2, 
+                                      linetype = "dotted")) +
   labs(color = "PFAS group")
 
 t_pfas_group
@@ -700,6 +817,10 @@ mpidata$PFAS_group2 <- ifelse(mpidata$PFAS_group == "Perfluoroalkane sulfonic ac
                               mpidata$PFAS_group == "Perfluoroalkyl carboxylic acids (PFCA)" ,
                               mpidata$PFAS_group, "Others")
 
+mpidata$PFAS_group2 <- gsub("Perfluoroalkane sulfonic acids \\(PFSA\\)", "PFSA", mpidata$PFAS_group2)
+mpidata$PFAS_group2 <- gsub("Perfluoroalkyl carboxylic acids \\(PFCA\\)", "PFCA", mpidata$PFAS_group2)
+
+
 trend_pfas_groups2 <- mpidata %>% 
   drop_na(PFAS_group2) %>%
   distinct(Study_ID, Publication_year, PFAS_group2) %>%
@@ -707,42 +828,54 @@ trend_pfas_groups2 <- mpidata %>%
   count(Publication_year) %>% 
   mutate(cumulative = cumsum(n))
   
-t_pfas_group2 <-  trend_pfas_groups2 %>%
+tt7 <-  trend_pfas_groups2 %>%
   ggplot(aes(x = Publication_year,
              y = cumulative,
              color = reorder(PFAS_group2, -cumulative))) +
-  geom_line(size = 0.7) + 
-  geom_point(aes(color = reorder(PFAS_group2, -cumulative)), size = 3, shape = 21, fill = "white") +
+  labs(title = expression(bold("c)"))) +
+  geom_line(size = 0.5) + 
+  geom_point(aes(color = reorder(PFAS_group2, -cumulative)), 
+             size = 1, 
+             shape = 19,
+             fill = "white") +
   geom_text(aes(label = n, x = Publication_year, y = cumulative), 
-            size = 3.5, 
+            size = 2, 
             hjust = 1.2,
             vjust = -0.5) +
   scale_x_continuous(name = "Year",
                      breaks = seq(2011, 2022, by = 1),
                      minor_breaks = NULL) +
-  scale_y_continuous(name = "Number of published systematic reviews",
+  scale_y_continuous(name = "Number of reviews",
                     breaks = seq(0, 90, by = 10),
                     minor_breaks = NULL
                     ) +
-  ggtitle("Time trend") + 
-  theme(plot.title = element_text(size = 14,
-                                  hjust = 0.5),
-       axis.text.x = element_text(size = 11,
+  theme_light() +
+  theme(plot.title = element_text(size = 9),
+        legend.position = "bottom",
+        legend.title = element_text(size = 7),
+       legend.text = element_text(size = 6),
+       legend.key.size = unit(0.3, "cm"),
+       axis.text.x = element_text(size = 6,
                                   margin = margin(t = 5, 
                                                   r = 0,
                                                   l = 0),
                                   angle = 45),
-       axis.text.y = element_text(size = 11,
+       axis.text.y = element_text(size = 6,
                                   margin = margin(t = 0, 
                                                   r = 5, 
                                                   l = 5)),
-       axis.title.x = element_text(size = 12,
+       axis.title.x = element_text(size = 8,
                                    hjust = 0.5),
-       axis.title.y = element_text(size = 12,
-                                   hjust = 0.5)) +
-  labs(color = "PFAS group")
+       axis.title.y = element_blank(),
+       panel.grid.major = element_line(color = "grey", 
+                                       linewidth  = 0.2, 
+                                       linetype = "dashed"),
+       panel.grid.minor = element_line(color = "grey", 
+                                      linewidth  = 0.2, 
+                                      linetype = "dotted")) +
+  labs(color = "")
 
-t_pfas_group2
+tt7
 # ggsave(here("R_data", "time_trend_pfas_group_semplified.png"),
 #        width = 8,
 #        height = 6)
@@ -758,45 +891,63 @@ trend_pfas_ccc <- mpidata %>%
   count(Publication_year) %>% 
   mutate(cumulative = cumsum(n))
 
-t_pfas_ccc <-  trend_pfas_ccc %>%
+tt8 <-  trend_pfas_ccc %>%
   ggplot(aes(x = Publication_year,
              y = cumulative,
              color = reorder(PFAS_carbon_chain, -cumulative))) +
-  geom_line(size = 0.7) + 
-  geom_point(aes(color = reorder(PFAS_carbon_chain, -cumulative)), size = 3, shape = 21, fill = "white") +
+  labs(title = expression(bold("e)"))) +
+  geom_line(size = 0.4) + 
+  geom_point(aes(color = reorder(PFAS_carbon_chain, -cumulative)),
+             size = 1, 
+             shape = 19,
+             fill = "white") +
   geom_text(aes(label = n, x = Publication_year, y = cumulative), 
-            size = 3.5, 
+            size = 2, 
             hjust = 1.2,
             vjust = -0.5) +
   scale_x_continuous(name = "Year",
                      breaks = seq(2011, 2022, by = 1),
                      minor_breaks = NULL) +
-  scale_y_continuous(name = "Number of published systematic reviews",
+  scale_y_continuous(name = "Number of reviews",
                     breaks = seq(0, 100, by = 10),
                     minor_breaks = NULL
                     ) +
-  ggtitle("Time trend") + 
-  theme(plot.title = element_text(size = 14,
-                                  hjust = 0.5),
-       axis.text.x = element_text(size = 11,
+  theme_light() +
+  theme(plot.title = element_text(size = 9),
+        legend.title = element_text(size = 7),
+       legend.text = element_text(size = 6),
+       legend.key.size = unit(0.3, "cm"),
+       axis.text.x = element_text(size = 6,
                                   margin = margin(t = 5, 
                                                   r = 0,
                                                   l = 0),
                                   angle = 45),
-       axis.text.y = element_text(size = 11,
+       axis.text.y = element_text(size = 6,
                                   margin = margin(t = 0, 
                                                   r = 5, 
                                                   l = 5)),
-       axis.title.x = element_text(size = 12,
+       axis.title.x = element_text(size = 8,
                                    hjust = 0.5),
-       axis.title.y = element_text(size = 12,
-                                   hjust = 0.5)) +
+       axis.title.y = element_blank(),
+       panel.grid.major = element_line(color = "grey", 
+                                       linewidth  = 0.2, 
+                                       linetype = "dashed"),
+       panel.grid.minor = element_line(color = "grey", 
+                                      linewidth  = 0.2, 
+                                      linetype = "dotted")) +
   labs(color = "Carbon chain length")
 
-t_pfas_ccc
+tt8
 # ggsave(here("R_data", "time_trend_pfas_ccc.png"),
 #        width = 8,
 #        height = 6)
+```
+### COMBINED
+```{r}
+(tt4-tt5-tt7)/(tt6-tt8)
+ggsave(here("R_data", "4_combined.png"),
+       width = 10,
+       height = 8)
 ```
 
 
@@ -1000,10 +1151,14 @@ t_guideline <-  rep_guideline %>%
   ggplot(aes(x = Publication_year,
              y = cumulative,
              color = reorder(Reporting_guideline, -cumulative))) +
+  labs(title = expression(bold(")"))) +
   geom_line(size = 0.7) + 
-  geom_point(aes(color = Reporting_guideline), size = 3, shape = 21, fill = "white") +
+  geom_point(aes(color = Reporting_guideline),
+             size = 1.5, 
+             shape = 19, 
+             fill = "white") +
   geom_text(aes(label = n, x = Publication_year, y = cumulative), 
-            size = 3.5, 
+            size = 2, 
             hjust = 1.2,
             vjust = -0.5) +
   scale_x_continuous(name = "Year",
@@ -1013,22 +1168,29 @@ t_guideline <-  rep_guideline %>%
                     breaks = seq(0, 110, by = 10),
                     minor_breaks = NULL
                     ) +
-  ggtitle("Time trend") + 
-  theme(plot.title = element_text(size = 14,
-                                  hjust = 0.5),
-       axis.text.x = element_text(size = 11,
+  theme_light() + 
+  theme(plot.title = element_text(size = 9),
+        legend.title = element_text(size = 7),
+       legend.text = element_text(size = 6),
+       legend.key.size = unit(0.3, "cm"),
+       axis.text.x = element_text(size = 6,
                                   margin = margin(t = 5, 
                                                   r = 0,
                                                   l = 0),
                                   angle = 45),
-       axis.text.y = element_text(size = 11,
+       axis.text.y = element_text(size = 6,
                                   margin = margin(t = 0, 
                                                   r = 5, 
                                                   l = 5)),
-       axis.title.x = element_text(size = 12,
+       axis.title.x = element_text(size = 8,
                                    hjust = 0.5),
-       axis.title.y = element_text(size = 12,
-                                   hjust = 0.5)) +
+       axis.title.y = element_blank(),
+       panel.grid.major = element_line(color = "grey", 
+                                       linewidth  = 0.2, 
+                                       linetype = "dashed"),
+       panel.grid.minor = element_line(color = "grey", 
+                                      linewidth  = 0.2, 
+                                      linetype = "dotted")) +
   labs(color = "Reporting guideline")
 
 t_guideline
@@ -1050,10 +1212,14 @@ t_coi <-  coi_statement %>%
   ggplot(aes(x = Publication_year,
              y = cumulative,
              color = reorder(COI_statement, -cumulative))) +
-  geom_line(size = 0.7) + 
-  geom_point(aes(color = COI_statement), size = 3, shape = 21, fill = "white") +
+  labs(title = expression(bold("a)"))) +
+  geom_line(size = 0.4) + 
+  geom_point(aes(color = COI_statement),
+             size = 1,
+             shape = 19,
+             fill = "white") +
   geom_text(aes(label = n, x = Publication_year, y = cumulative), 
-            size = 3.5, 
+            size = 2, 
             hjust = 1.2,
             vjust = -0.5) +
   scale_x_continuous(name = "Year",
@@ -1063,22 +1229,31 @@ t_coi <-  coi_statement %>%
                     breaks = seq(0, 110, by = 10),
                     minor_breaks = NULL
                     ) +
-  ggtitle("Time trend") + 
-  theme(plot.title = element_text(size = 14,
-                                  hjust = 0.5),
-       axis.text.x = element_text(size = 11,
+  scale_color_manual(values = c("Yes" = "#028090",
+                                "No" = "#D17A22")) +
+  theme_light() + 
+  theme(plot.title = element_text(size = 9),
+        legend.title = element_text(size = 7),
+       legend.text = element_text(size = 6),
+       legend.key.size = unit(0.3, "cm"),
+       axis.text.x = element_text(size = 6,
                                   margin = margin(t = 5, 
                                                   r = 0,
                                                   l = 0),
                                   angle = 45),
-       axis.text.y = element_text(size = 11,
+       axis.text.y = element_text(size = 6,
                                   margin = margin(t = 0, 
                                                   r = 5, 
                                                   l = 5)),
-       axis.title.x = element_text(size = 12,
+       axis.title.x = element_text(size = 8,
                                    hjust = 0.5),
-       axis.title.y = element_text(size = 12,
-                                   hjust = 0.5)) +
+       axis.title.y = element_blank(),
+       panel.grid.major = element_line(color = "grey", 
+                                       linewidth  = 0.2, 
+                                       linetype = "dashed"),
+       panel.grid.minor = element_line(color = "grey", 
+                                      linewidth  = 0.2, 
+                                      linetype = "dotted")) +
   labs(color = "COI statement")
 
 t_coi
@@ -1087,6 +1262,65 @@ t_coi
 #        height = 6)
 ```
 
+### COI present
+
+```{r}
+coi_present <- mdata %>% 
+  group_by(COI_present) %>% 
+  count(Publication_year) %>% 
+  mutate(cumulative = cumsum(n))
+
+t_coi2 <-  coi_present %>%
+  ggplot(aes(x = Publication_year,
+             y = cumulative,
+             color = reorder(COI_present, -cumulative))) +
+  labs(title = expression(bold("b)"))) +
+  geom_line(size = 0.4) + 
+  geom_point(aes(color = COI_present), 
+             size = 1, 
+             shape = 19, 
+             fill = "white") +
+  geom_text(aes(label = n, x = Publication_year, y = cumulative), 
+            size = 2, 
+            hjust = 1.2,
+            vjust = -0.5) +
+  scale_x_continuous(name = "Year",
+                     breaks = seq(2011, 2022, by = 1),
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = "Number of reviews",
+                    breaks = seq(0, 110, by = 10),
+                    minor_breaks = NULL
+                    ) +
+  theme_light() +
+  theme(plot.title = element_text(size = 9),
+        legend.title = element_text(size = 7),
+       legend.text = element_text(size = 6),
+       legend.key.size = unit(0.3, "cm"),
+       axis.text.x = element_text(size = 6,
+                                  margin = margin(t = 5, 
+                                                  r = 0,
+                                                  l = 0),
+                                  angle = 45),
+       axis.text.y = element_text(size = 6,
+                                  margin = margin(t = 0, 
+                                                  r = 5, 
+                                                  l = 5)),
+       axis.title.x = element_text(size = 8,
+                                   hjust = 0.5),
+       axis.title.y = element_blank(),
+       panel.grid.major = element_line(color = "grey", 
+                                       linewidth  = 0.2, 
+                                       linetype = "dashed"),
+       panel.grid.minor = element_line(color = "grey", 
+                                      linewidth  = 0.2, 
+                                      linetype = "dotted")) +
+  labs(color = "COI present")
+
+t_coi2
+# ggsave(here("R_data", "time_trend_coi_statement.png"),
+#        width = 8,
+#        height = 6)
+```
 
 ### Funding statement
 
@@ -1100,35 +1334,46 @@ t_funding <-  funding_statement %>%
   ggplot(aes(x = Publication_year,
              y = cumulative,
              color = reorder(Funding_statement, -cumulative))) +
-  geom_line(size = 0.7) + 
-  geom_point(aes(color = Funding_statement), size = 3, shape = 21, fill = "white") +
+  labs(title = expression(bold("c)"))) +
+  geom_line(size = 0.4) + 
+  geom_point(aes(color = Funding_statement),
+             size = 1, 
+             shape = 19,
+             fill = "white") +
   geom_text(aes(label = n, x = Publication_year, y = cumulative), 
-            size = 3.5, 
+            size = 2, 
             hjust = 1.2,
             vjust = -0.5) +
   scale_x_continuous(name = "Year",
                      breaks = seq(2011, 2022, by = 1),
                      minor_breaks = NULL) +
-  scale_y_continuous(name = "Number of published systematic reviews",
+  scale_y_continuous(name = "Number of reviews",
                     breaks = seq(0, 110, by = 10),
                     minor_breaks = NULL
                     ) +
-  ggtitle("Time trend") + 
-  theme(plot.title = element_text(size = 14,
-                                  hjust = 0.5),
-       axis.text.x = element_text(size = 11,
+  theme_light() +
+  theme(plot.title = element_text(size = 9),
+        legend.title = element_text(size = 7),
+       legend.text = element_text(size = 6),
+       legend.key.size = unit(0.3, "cm"),
+       axis.text.x = element_text(size = 6,
                                   margin = margin(t = 5, 
                                                   r = 0,
                                                   l = 0),
                                   angle = 45),
-       axis.text.y = element_text(size = 11,
+       axis.text.y = element_text(size = 6,
                                   margin = margin(t = 0, 
                                                   r = 5, 
                                                   l = 5)),
-       axis.title.x = element_text(size = 12,
+       axis.title.x = element_text(size = 8,
                                    hjust = 0.5),
-       axis.title.y = element_text(size = 12,
-                                   hjust = 0.5)) +
+       axis.title.y = element_blank(),
+       panel.grid.major = element_line(color = "grey", 
+                                       linewidth  = 0.2, 
+                                       linetype = "dashed"),
+       panel.grid.minor = element_line(color = "grey", 
+                                      linewidth  = 0.2, 
+                                      linetype = "dotted")) +
   labs(color = "Funding statement")
 
 t_funding
@@ -1137,22 +1382,76 @@ t_funding
 #        height = 6)
 ```
 
-### Type funding
+### Type of funding
 
 ```{r}
 funding1 <- mdata %>% 
-  filter(Funding_statement == "Yes") %>% 
-  group_by(Non_profit_funding, Industry_funding) %>%
+  filter(No_profit_funding == "Yes") %>% 
+  group_by(No_profit_funding) %>%
   count(Publication_year) %>% 
-  mutate(cumulative = cumsum(n))
+  mutate(cumulative1 = cumsum(n))
 
 funding2 <- mdata %>% 
-  filter(Funding_statement == "Yes") %>% 
-  group_by(Non_profit_funding, Industry_funding) %>%
+  filter(Industry_funding == "Yes") %>% 
+  group_by(Industry_funding) %>%
   count(Publication_year) %>% 
-  mutate(cumulative = cumsum(n))
-```
+  mutate(cumulative2 = cumsum(n))
 
+df <- rbind(funding1, funding2)
+
+df$type <- ifelse(is.na(df$No_profit_funding), "Industry_funding", "No_profit_funding")
+
+df$cumulative <- ifelse(is.na(df$cumulative1), df$cumulative2, df$cumulative1)
+
+
+t_funding2 <-  df %>%
+  ggplot(aes(x = Publication_year,
+             y = cumulative,
+             color = reorder(type, cumulative))) +
+  labs(title = expression(bold("d)"))) +
+  geom_line(size = 0.4) + 
+  geom_point(aes(color = type),
+             size = 1, 
+             shape = 19,
+             fill = "white") +
+  geom_text(aes(label = n, x = Publication_year, y = cumulative), 
+            size = 2, 
+            hjust = 1.2,
+            vjust = -0.5) +
+  scale_x_continuous(name = "Year",
+                     breaks = seq(2011, 2022, by = 1),
+                     minor_breaks = NULL) +
+  scale_y_continuous(name = "Number of reviews",
+                    breaks = seq(0, 110, by = 10),
+                    minor_breaks = NULL
+                    ) +
+  theme_light() +
+  theme(plot.title = element_text(size = 9),
+        legend.title = element_text(size = 7),
+       legend.text = element_text(size = 6),
+       legend.key.size = unit(0.3, "cm"),
+       axis.text.x = element_text(size = 6,
+                                  margin = margin(t = 5, 
+                                                  r = 0,
+                                                  l = 0),
+                                  angle = 45),
+       axis.text.y = element_text(size = 6,
+                                  margin = margin(t = 0, 
+                                                  r = 5, 
+                                                  l = 5)),
+       axis.title.x = element_text(size = 8,
+                                   hjust = 0.5),
+       axis.title.y = element_blank(),
+       panel.grid.major = element_line(color = "grey", 
+                                       linewidth  = 0.2, 
+                                       linetype = "dashed"),
+       panel.grid.minor = element_line(color = "grey", 
+                                      linewidth  = 0.2, 
+                                      linetype = "dotted")) +
+  labs(color = "Type of funding")
+
+t_funding2
+```
 
 ### Journals
 
@@ -1184,6 +1483,15 @@ top10_journals
 #        height = 6)
 ```
 
+### COMBINED
+
+```{r}
+(t_coi+t_coi2)/(t_funding+t_funding2)
+# ggsave(here("R_data", "6_combined.png"),
+#        width = 8,
+#        height = 6)
+```
+
 ## Focus on PFAS or POPs
 
 ```{r}
@@ -1192,22 +1500,6 @@ t_PFASfocus <-
   filter(PFAS_focus != "NA") %>% 
   count(PFAS_focus) %>%
   arrange(desc(n))
-
-#Set palette
-cbp1 <- c("#707070",
-          "#999999",
-          "#CCCCCC",
-          "#F5F5F5")
-          
-#Set palette for Subjects
-cbp2 <- c("#A29F15",#Green is often associated with nature and life, making it fitting for the category of humans
-          "#938274",#Brown is a common color for animals, representing their fur or feathers
-          "#3C7A89",#Blue is commonly associated with the sky and sea, making it fitting for the category of the environment
-          "#CCCCCC")#Grey is a neutral color
-          
-cbp3 <- c("#D2664B",
-          "#E6AF2E",
-          "#CCCCCC")
           
 p_PFAS_focus <- 
   ggplot(t_PFASfocus, aes(x = PFAS_focus,
@@ -1223,7 +1515,7 @@ p_PFAS_focus <-
   geom_text(aes(label = paste0(round((n/sum(n))*100)), x = PFAS_focus), 
             position = position_stack(vjust = 0.5), 
             size = 2) + 
-  ggtitle(expression(bold("a)"))) +
+  ggtitle(expression(bold(")"))) +
   theme(legend.box.background = element_rect(colour = "black"), 
        axis.title.x = element_text(size = 8),
        axis.title.y = element_text(size = 8),
@@ -1275,16 +1567,15 @@ p2_PFAS_focus <-
                 label = paste0(round((n/sum(n))*100)), x = PFAS_focus),
             position = position_stack(vjust = 0.5),
             size = 2) +
-  ggtitle(expression(bold("b)"))) +
+  ggtitle(expression(bold("a)"))) +
   theme(legend.position = "bottom",
-       legend.box.background = element_rect(colour = "black"), 
        legend.title = element_blank(),
-       legend.text = element_text(size = 7), 
+       legend.text = element_text(size = 6), 
        legend.key.size = unit(0.3, "cm"),
        title = element_text(size = 9),
-       axis.title.x = element_text(size = 8),
-       axis.title.y = element_text(size = 8),
-       axis.text = element_text(size = 7),
+       axis.title.x = element_text(size = 7),
+       axis.title.y = element_text(size = 7),
+       axis.text = element_text(size = 6),
        legend.background = element_blank(),
        panel.grid.major = element_line(color = "grey", 
                                        linewidth  = 0.2, 
@@ -1439,10 +1730,10 @@ Some MeSH headings also have qualifiers (sometimes called subheadings) - these a
 
 ```{r plot main topics barplot prep, height = 4, width = 8}
 
-# change to long format (one species per row - one or multiple rows per study):
+# change to long format:
 t_MESH <-
   mdata %>%
-  select(MeSH_terms) %>%
+  select(MeSH_terms, Human_animal_environment) %>%
   separate_rows(MeSH_terms, sep = ";\\\n") %>%
   separate_rows(MeSH_terms, sep = "; ")
 #bring to lower case and remove ending and trailing whitespace from character strings, single character vector:
@@ -1456,13 +1747,15 @@ tmesh <-
 tmesh2 <- 
   str_split_fixed(tmesh, " / ", n = 2)
 
+Human_animal_environment <- t_MESH$Human_animal_environment
 #create a MeSH dataframe with three columns: terms, headings, qualifiers
 t_MESH2 <- 
-  bind_cols(tmesh, tmesh2[,1], tmesh2[,2])
+  bind_cols(tmesh, tmesh2[,1], tmesh2[,2], Human_animal_environment)
 
 colnames(t_MESH2) <- c("MeSH_terms",
                        "MeSH_headings",
-                       "MeSH_qualifiers")
+                       "MeSH_qualifiers",
+                       "Subject")
 
 ```
 
@@ -1497,8 +1790,8 @@ p_mesh_headings <- ggplot(MeSH_headings_counts, aes(x = MeSH_headings, y = n)) +
             size = 2) +
   theme(title = element_text(size = 9),
         legend.position = "none",
-        axis.title.x = element_text(size = 8),
-        axis.title.y = element_text(size = 8),
+        axis.title.x = element_text(size = 7),
+        axis.title.y = element_text(size = 7),
         axis.text = element_text(size = 6),
         panel.grid.major = element_line(color = "grey", 
                                        linewidth  = 0.2, 
@@ -1547,8 +1840,8 @@ p_mesh_qualifiers <- ggplot(MeSH_qualifiers_counts, aes(x = MeSH_qualifiers,
             size = 2) +
   theme(title = element_text(size = 9),
         legend.position = "none",
-        axis.title.x = element_text(size = 8),
-        axis.title.y = element_text(size = 8),
+        axis.title.x = element_text(size = 7),
+        axis.title.y = element_text(size = 7),
         axis.text = element_text(size = 6),
         panel.grid.major = element_line(color = "grey", 
                                        linewidth  = 0.2, 
@@ -1614,9 +1907,9 @@ p_subj <- ggplot(t_subject, aes(x = Human_animal_environment,
             size = 2) + 
   theme(title = element_text(size = 9),
         legend.position = "none",
-        axis.title.x = element_text(size = 8),
-        axis.title.y = element_text(size = 8),
-        axis.text = element_text(size = 7),
+        axis.title.x = element_text(size = 7),
+        axis.title.y = element_text(size = 7),
+        axis.text = element_text(size = 6),
         panel.grid.major = element_line(color = "grey", 
                                        linewidth  = 0.2, 
                                        linetype = "dashed"),
@@ -1647,7 +1940,7 @@ count(mdata, Human_animal_environment)
 ```{r plot MeSH qualifiers with main review subjects barplot, height = 4, width = 8}
 
 t_topic_subject <-
-  t_MESHby2 %>%
+  t_MESH2 %>%
   filter(MeSH_qualifiers != "NA") %>% 
   filter(MeSH_qualifiers != "") %>% 
   count(MeSH_qualifiers, Subject)
@@ -1669,8 +1962,8 @@ p_mesh_subject <- ggplot(t_topic_subject, aes(x = MeSH_qualifiers,
                               "Animals", 
                               "Environment",
                               "Mixed")) +
-  scale_x_discrete(name = "MeSH Qualifiers") +
-  scale_y_continuous(name = "Qualifiers count",
+  scale_x_discrete(name = "MeSH qualifiers") +
+  scale_y_continuous(name = "Number of qualifiers",
                      expand = c(0,2.5)) +
   geom_text(aes(fill = fct_relevel(Subject, c("Mixed",
                                             "Environment", 
@@ -1683,12 +1976,13 @@ p_mesh_subject <- ggplot(t_topic_subject, aes(x = MeSH_qualifiers,
   theme_light() +
   theme(title = element_text(size = 9),
         legend.position = c(0.7, 0.5),
-       legend.box.background = element_rect(colour = "black"),
+       legend.box.background = element_rect(size = 0.1,
+                                            colour = "black"),
        legend.title = element_blank(),
-       legend.text = element_text(size = 7),
+       legend.text = element_text(size = 6),
        legend.key.size = unit(0.3, "cm"),
-       axis.title.x = element_text(size = 8),
-       axis.title.y = element_text(size = 8),
+       axis.title.x = element_text(size = 7),
+       axis.title.y = element_text(size = 7),
        axis.text = element_text(size = 6),
        legend.background = element_blank(),
        panel.grid.major = element_line(color = "grey", 
@@ -1702,14 +1996,13 @@ p_mesh_subject
 # ggsave(here("R_data", "plot_mesh_subjects.png"),
 #        width = 8,
 #        height = 6)
-
 ```
 
 ```{r}
 (p_subj/p_mesh_headings/p_mesh_qualifiers) - p_mesh_subject
-ggsave(here("R_data", "plot_subjects_mesh_combined.png"),
-       width = 8,
-       height = 6)
+# ggsave(here("R_data", "1_combined.png"),
+#        width = 8,
+#        height = 6)
 ```
 
 ## PFAS focus by main review subject
@@ -1725,7 +2018,7 @@ pp1 <- ggplot(t1, aes(x = PFAS_one_many ,
                y = n)) +
  coord_flip()  +
   theme_light() +
- labs(title = expression(bold("c)"))) +
+ labs(title = expression(bold("b)"))) +
  geom_col(aes(fill = fct_relevel(Human_animal_environment, c("Mixed",
                                                              "Environment",
                                                              "Animals", 
@@ -1739,14 +2032,13 @@ pp1 <- ggplot(t1, aes(x = PFAS_one_many ,
                              "Mixed")) +
  theme_light() +  
  theme(legend.position = "bottom",
-       legend.box.background = element_rect(colour = "black"),
        legend.title = element_blank(),
-       legend.text = element_text(size = 7),
+       legend.text = element_text(size = 6),
        legend.key.size = unit(0.3, "cm"),
        title = element_text(size = 9),
-       axis.title.x = element_text(size = 8),
-       axis.title.y = element_text(size = 8),
-       axis.text = element_text(size = 7),
+       axis.title.x = element_text(size = 7),
+       axis.title.y = element_text(size = 7),
+       axis.text = element_text(size = 6),
        legend.background = element_blank(),
        panel.grid.major = element_line(color = "grey", 
                                        linewidth  = 0.2, 
@@ -1791,7 +2083,7 @@ t_PFAStype$PFAS_type <-
 p_PFAStype <-
   ggplot(t_PFAStype, aes(x = PFAS_type,
                          y = n)) +
-  labs(title = expression(bold("d)"))) +
+  labs(title = expression(bold("c)"))) +
   coord_flip()  +
   scale_fill_brewer() +
   geom_col(aes(fill = fct_relevel(Human_animal_environment, c("Mixed",
@@ -1815,13 +2107,14 @@ p_PFAStype <-
             position = position_stack(vjust = 0.5),
             size = 2) +
   theme(legend.position = c(0.6, 0.5),
-       legend.box.background = element_rect(colour = "black"),
+       legend.box.background = element_rect(size = 0.1,
+                                            colour = "black"),
        legend.title = element_blank(),
-       legend.text = element_text(size = 7),
+       legend.text = element_text(size = 6),
        legend.key.size = unit(0.3, "cm"),
        title = element_text(size = 9),
-       axis.title.x = element_text(size = 8),
-       axis.title.y = element_text(size = 8),
+       axis.title.x = element_text(size = 7),
+       axis.title.y = element_text(size = 7),
        axis.text = element_text(size = 6),
        legend.background = element_blank(),
        panel.grid.major = element_line(color = "grey", 
@@ -1838,9 +2131,9 @@ p_PFAStype
 
 ```{r}
 (p2_PFAS_focus/pp1)-p_PFAStype
-ggsave(here("R_data", "plot_pfas_combined.png"),
-       width = 8,
-       height = 6)
+# ggsave(here("R_data", "2_combined.png"),
+#        width = 8,
+#        height = 6)
 ```
 
 
@@ -2182,17 +2475,27 @@ p1 <-
   geom_col(aes(fill = fct_relevel(COI_statement,
                                   c("Yes", "No")),
                                   width = 0.7)) +
-  scale_fill_manual(values = c("#7A7A7A", "#CCCCCC"),
+  scale_fill_manual(values = cbp4,
                     breaks = c("Yes", "No")) +
-  scale_y_continuous(name = "Article count") +
-  scale_x_discrete(name = NULL) +
-  guides(fill = FALSE) +
-  theme_light() +
+  scale_y_continuous(name = "Number of reviews") +
+  scale_x_discrete(name = "COI statement provided") +
   coord_flip() +
   geom_text(aes(label = paste0(round((n/sum(n))*100,1)), x = COI_statement), 
             position = position_stack(vjust = 0.5), 
-            size = 3.5) + 
-  ggtitle(expression(bold("a)") ~ " Is the COI statement provided?"))
+            size = 2) + 
+  ggtitle(expression(bold("a)"))) +
+  theme_light() +
+  theme(title = element_text(size = 9),
+        legend.position = "none",
+        axis.title.x = element_text(size = 7),
+        axis.title.y = element_text(size = 7),
+        axis.text = element_text(size = 6),
+        panel.grid.major = element_line(color = "grey", 
+                                       linewidth  = 0.2, 
+                                       linetype = "dashed"),
+       panel.grid.minor = element_line(color = "grey", 
+                                      linewidth  = 0.2, 
+                                      linetype = "dotted"))
   
 p1
 
@@ -2216,17 +2519,27 @@ p2 <-
   geom_col(aes(fill = fct_relevel(COI_present,
                                   c("No", "Yes")),
                width = 0.7)) + 
-  scale_fill_manual(values = c("#7A7A7A", "#CCCCCC"),
+  scale_fill_manual(values = cbp4,
                     breaks = c("Yes", "No")) +
-  scale_y_continuous(name = "Article count") +
-  scale_x_discrete(name = NULL) +
-  guides(fill = FALSE) +
+  scale_y_continuous(name = "Number of reviews") +
+  scale_x_discrete(name = "COI present") +
   coord_flip() +
-  theme_light() +
   geom_text(aes(label = paste0(round((n/sum(n))*100,1)), x = COI_present), 
             position = position_stack(vjust = 0.5),
-            size = 3.5) +
-  ggtitle(expression(bold("b)") ~ " Is potential COI acknowledge?"))
+            size = 2) +
+  ggtitle(expression(bold("b)"))) +
+  theme_light() +
+  theme(title = element_text(size = 9),
+        legend.position = "none",
+        axis.title.x = element_text(size = 7),
+        axis.title.y = element_text(size = 7),
+        axis.text = element_text(size = 6),
+        panel.grid.major = element_line(color = "grey", 
+                                       linewidth  = 0.2, 
+                                       linetype = "dashed"),
+       panel.grid.minor = element_line(color = "grey", 
+                                      linewidth  = 0.2, 
+                                      linetype = "dotted"))
 p2
 ```
 
@@ -2246,19 +2559,29 @@ p3 <-
                                   y = n)) +
   geom_col(aes(fill = fct_relevel(Funding_statement,
                                   c("Yes", "No")), width = 0.7)) + 
-  scale_fill_manual(values = c("#7A7A7A", "#CCCCCC"),
+  scale_fill_manual(values = cbp4,
                     breaks = c("Yes", "No")) +
-  scale_y_continuous(name = "Article count") +
-  scale_x_discrete(name = NULL) +
-  guides(fill = FALSE) +
+  scale_y_continuous(name = "Number of reviews") +
+  scale_x_discrete(name = "Funding statement provided") +
   theme(legend.position = "none", 
         axis.title.y = element_blank()) +
-  theme_light() +
   coord_flip() +
   geom_text(aes(label = paste0(round((n/sum(n))*100,1)), x = Funding_statement), 
             position = position_stack(vjust = 0.5), 
-            size = 3.5) +
-  ggtitle(expression(bold("c)") ~ " Is the funding statement provided?"))
+            size = 2) +
+  ggtitle(expression(bold("c)"))) +
+  theme_light() +
+  theme(title = element_text(size = 9),
+        legend.position = "none",
+        axis.title.x = element_text(size = 7),
+        axis.title.y = element_text(size = 7),
+        axis.text = element_text(size = 6),
+        panel.grid.major = element_line(color = "grey", 
+                                       linewidth  = 0.2, 
+                                       linetype = "dashed"),
+       panel.grid.minor = element_line(color = "grey", 
+                                      linewidth  = 0.2, 
+                                      linetype = "dotted"))
 
 p3
 ```
@@ -2282,17 +2605,27 @@ p4 <-
         axis.title.y = element_blank()) +
   geom_col(aes(fill = fct_relevel(Non_profit_funding,
                                   c("Yes", "No")), width = 0.7)) + 
-  scale_fill_manual(values = c("#7A7A7A", "#CCCCCC"),
+  scale_fill_manual(values = cbp4,
                     breaks = c("Yes", "No")) + 
-  scale_y_continuous(name = "Article count") +
-  scale_x_discrete(name = NULL) +
-  guides(fill = FALSE) +
-  theme_light() +
+  scale_y_continuous(name = "Number of reviews") +
+  scale_x_discrete(name = "No-profit fundings") +
   coord_flip() +
   geom_text(aes(label = paste0(round((n/sum(n))*100,1)), x = Non_profit_funding), 
             position = position_stack(vjust = 0.5),
-            size = 3.5) +
-  ggtitle(expression(bold("d)") ~ " Fundings from non-profit sector"))
+            size = 2) +
+  ggtitle(expression(bold("d)"))) +
+  theme_light() +
+  theme(title = element_text(size = 9),
+        legend.position = "none",
+        axis.title.x = element_text(size = 7),
+        axis.title.y = element_text(size = 7),
+        axis.text = element_text(size = 6),
+        panel.grid.major = element_line(color = "grey", 
+                                       linewidth  = 0.2, 
+                                       linetype = "dashed"),
+       panel.grid.minor = element_line(color = "grey", 
+                                      linewidth  = 0.2, 
+                                      linetype = "dotted"))
 
 p4
 
@@ -2316,17 +2649,27 @@ p5 <-
         axis.title.y = element_blank()) +
   geom_col(aes(fill = fct_relevel(Industry_funding,
                                   c("Yes", "No")), width = 0.7)) + 
-  scale_fill_manual(values = c("#7A7A7A", "#CCCCCC"),
+  scale_fill_manual(values = cbp4,
                     breaks = c("Yes", "No")) + 
-  scale_y_continuous(name = "Article count") +
-  scale_x_discrete(name = NULL) +
-  guides(fill = FALSE) +
-  theme_light() +
+  scale_y_continuous(name = "Number of reviews") +
+  scale_x_discrete(name = "For-profit fundings") +
   coord_flip() +
   geom_text(aes(label = paste0(round((n/sum(n))*100,1)), x = Industry_funding),
             position = position_stack(vjust = 0.5),
-            size = 3.5) +
-  ggtitle(expression(bold("e)") ~ " Fundings from industry sector"))
+            size = 2) +
+  ggtitle(expression(bold("e)"))) +
+  theme_light() +
+  theme(title = element_text(size = 9),
+        legend.position = "none",
+        axis.title.x = element_text(size = 7),
+        axis.title.y = element_text(size = 7),
+        axis.text = element_text(size = 6),
+        panel.grid.major = element_line(color = "grey", 
+                                       linewidth  = 0.2, 
+                                       linetype = "dashed"),
+       panel.grid.minor = element_line(color = "grey", 
+                                      linewidth  = 0.2, 
+                                      linetype = "dotted"))
 
 p5
 ```
@@ -2349,17 +2692,27 @@ p6 <- ggplot(t_Raw_data, aes(x = Raw_data,
        axis.title.y = element_blank()) +
   geom_col(aes(fill = fct_relevel(Raw_data,
                                   c("Yes", "No")), width = 0.7)) + 
-  scale_fill_manual(values = c("#7A7A7A", "#CCCCCC"),
+  scale_fill_manual(values = cbp4,
                     breaks = c("Yes", "No")) +
-  scale_y_continuous(name = "Article count") +
-  scale_x_discrete(name = NULL) +
-  guides(fill = FALSE) + 
-  theme_light() +
+  scale_y_continuous(name = "Number of reviews") +
+  scale_x_discrete(name = "Raw data available") +
   coord_flip() +
   geom_text(aes(label = paste0(round((n/sum(n))*100,1)), x = Raw_data),
             position = position_stack(vjust = 0.5),
-            size = 3.5) +
-  ggtitle(expression(bold("f)") ~ " Are review's data available?"))
+            size = 2) +
+  ggtitle(expression(bold("f)"))) +
+  theme_light() +
+  theme(title = element_text(size = 9),
+        legend.position = "none",
+        axis.title.x = element_text(size = 7),
+        axis.title.y = element_text(size = 7),
+        axis.text = element_text(size = 6),
+        panel.grid.major = element_line(color = "grey", 
+                                       linewidth  = 0.2, 
+                                       linetype = "dashed"),
+       panel.grid.minor = element_line(color = "grey", 
+                                      linewidth  = 0.2, 
+                                      linetype = "dotted"))
 
 p6
 
@@ -2385,17 +2738,29 @@ p7 <- ggplot(t_Analysis_code, aes(x = Analysis_code,
        axis.title.y = element_blank()) +
   geom_col(aes(fill = fct_relevel(Analysis_code,
                                   c("Yes", "No")), width = 0.7)) + 
-  scale_fill_manual(values = c("#7A7A7A", "#CCCCCC"),
+  scale_fill_manual(values = cbp4,
                     breaks = c("Yes", "No")) +
-  scale_y_continuous(name = "Article count") +
-  scale_x_discrete(name = NULL) +
-  guides(fill = FALSE) + 
+  scale_y_continuous(name = "Number of reviews") +
+  scale_x_discrete(name = "Analysis code available") +
   theme_light() +
   coord_flip() +
   geom_text(aes(label = paste0(round((n/sum(n))*100,1)), x = Analysis_code),
             position = position_stack(vjust = 0.5), 
-            size = 3.5) +
-  ggtitle(expression(bold("g)") ~ " Is the review's analysis code available?"))
+            size = 2) +
+  ggtitle(expression(bold("g)"))) +
+  theme_light() +
+  theme(title = element_text(size = 9),
+        legend.position = "none",
+        axis.title.x = element_text(size = 7),
+        axis.title.y = element_text(size = 7),
+        axis.text = element_text(size = 6),
+        panel.grid.major = element_line(color = "grey", 
+                                       linewidth  = 0.2, 
+                                       linetype = "dashed"),
+       panel.grid.minor = element_line(color = "grey", 
+                                      linewidth  = 0.2, 
+                                      linetype = "dotted"))
+  
 p7
 ```
 
@@ -2428,7 +2793,7 @@ pp3 <- (p6+p7)
 
 ```{r}
 pp1+pp2+pp3
-# ggsave(here("R_data", "plots_transparency_combined.png"),
+# ggsave(here("R_data", "5_combined.png"),
 #        width = 8,
 #        height = 6)
 ```
