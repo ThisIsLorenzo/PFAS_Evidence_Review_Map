@@ -78,6 +78,7 @@ fig <-
   expand_limits(x = world_map$long,
                 y = world_map$lat) +
   coord_map("moll") +
+  theme_light() +
   theme_map(line_size = 0.5) + 
   theme(legend.position="right") +
   scale_fill_gradient(low = "#FEE08B",
@@ -88,5 +89,9 @@ fig <-
                                 barheight = unit(40, units = "mm")))
 
 fig
+
+# ggsave(here("R_data", "heatmap_world.png"),
+#        width = 8,
+#        height = 6)
 ```
 

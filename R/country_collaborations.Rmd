@@ -210,13 +210,12 @@ fig2
 net_matrix3 <- net_matrix2
 diag(net_matrix3) <- 0 #get rid of collaboration with same country
 
-pdf(here("figs", "inter_countries_collab.pdf"), width = 21, height = 21)
+pdf(here("R_data", "inter_countries_collab.pdf"), width = 21, height = 21)
+
 fig3 <- chordDiagram(net_matrix3,
                annotationTrack = "grid",
                preAllocateTracks = 1, 
-               grid.col = my.cols2
-  )
-
+               grid.col = my.cols2)
 
 circos.trackPlotRegion(track.index = 1, 
                        panel.fun = function(x, y) {
@@ -241,8 +240,8 @@ circos.trackPlotRegion(track.index = 1,
 },
 bg.border = NA)
 #title("Country collaborations", font.main = 1, cex.main = 3, adj = 0.5, line = -1)
-
 dev.off()
+
 ```
 
 

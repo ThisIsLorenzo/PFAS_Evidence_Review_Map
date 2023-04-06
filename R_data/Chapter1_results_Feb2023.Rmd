@@ -1,0 +1,155 @@
+---
+title: "Chapter 1 - Feb2023"
+author: "Lorenzo Ricolfi"
+date: "2023-02-20"
+output:
+  html_document:
+    code_folding: hide
+    toc: yes
+    toc_float: yes
+    toc_collapsed: yes
+    toc_depth: 2
+    number_sections: yes
+    theme: cerulean
+  pdf_document:
+    toc: yes
+    toc_depth: '2'
+---
+
+# Intro
+
+**Project title:** PFAS exposure of humans, animals and environmental compartments: an evidence review map and bibliometric analysis
+
+In this document I provide the results of my Evidence Review Map (Chapter 1 of my thesis). Results are organized in 3 objectives.
+
+# Project's objectives
+
+-   **Objective 1** *Mapping*
+
+What evidence on PFAS has been systematically synthesized?
+
+I aim to reveal what areas in the realm of PFAS health-related and environmental research have been synthesized the most and where syntheses of evidence are lacking.
+
+-   **Objective 2** *Critical appraisal*
+
+How robust are systematic syntheses of PFAS evidence?
+
+I examine the included syntheses for their reporting quality and potential biases, in order to assess reliability of reviews' conclusions, reveal syntheses that should be re-done, and highlight the aspects of review methodology that need to be improved.
+
+-   **Objective 3** *Bibliometrics*
+
+How is synthesized PFAS evidence connected?
+
+I examine which countries and institutions are mostly involved in secondary PFAS research and what do the networks between these institutions look like.
+
+# Search and screening outcomes
+
+![PRISMA flowchart](R_data/PRISMA_diagram.png)
+
+-   109 included systematic reviews (SRs)
+
+*However, we have 42 more SRs found during an update search up to end 2022.*
+
+------------------------------------------------------------------------
+
+# Objective 1
+
+**Mapping**: What evidence on PFAS has been systematically synthesized?
+
+![](R_data/1_combined.png)
+
+-   Humans are the most reviewed subject in SRs on PFAS exposure, with 82 SRs, followed by multiple subjects (12), environmental compartments (8), and animals (7).
+
+-   "Humans" and "toxicity" were the most frequently used MeSH terms across all subjects, followed by "fluorocarbons" and "chemically induced".
+
+------------------------------------------------------------------------
+
+![](R_data/2_combined.png)
+
+-   Most SRs investigated multiple types of PFAS, with PFOA and PFOS being the most reviewed PFAS types, followed by PFHxs, PFNA, and PFDA.
+
+------------------------------------------------------------------------
+
+![](R_data/3+4_combined.png)
+
+-   The number of SRs published annually has steadily increased over time, with a significant spike in 2021.
+
+-   Recent syntheses are less likely to include quantitative synthesis through meta-analysis.
+
+-   The increase in published SRs over the years is due to SRs on humans.
+
+-   Reviews after 2019 tend to focus on PFAS and not on POPs in general.
+
+-   PFCA and PFSA are still the two most reviewed groups.
+
+-   PFAS with a short or long carbon chain are less reviewed than PFAS with a medium-length carbon chain.
+
+------------------------------------------------------------------------
+
+## Supplementary materials
+
+Species plots:
+
+![](R_data/7_combined.png)
+
+
+
+# Objective 2
+
+**Critical appraisal**: How robust are systematic syntheses of PFAS evidence?
+
+![](R_data/5_combined.png)
+
+-   Most SRs included a statement regarding conflicts of interest and few acknowledged the potential presence of COI.
+
+-   Most SRs reported receiving funding, with the majority funded by non-profit organizations.
+
+-   Most SRs did not make their raw data or analysis code available, limiting the ability to verify findings or replicate analysis.
+
+------------------------------------------------------------------------
+
+![](R_data/AMSTAR2_summary.png)
+
+-   Over 50% of the SRs received poor scores (i.e., 0 or 0.5 scores) on a majority of AMSTAR 2 questions, indicating a need for improvement in the rigor and quality of the literature.
+
+-   The highest scoring assessment questions related to clarity of explanation and reporting of conflict of interest.
+
+-   The lowest scoring questions related to transparency measures, such as reporting sources of funding of the included studies and list excluded studies.
+
+-   Many SRs lacked clear research questions and inclusion criteria, established review methods prior to the conduct of the review, and used a comprehensive literature search strategy.
+
+-   Many SRs also had limited reviewer involvement in study selection and data extraction, and inadequate techniques for assessing the risk of bias and discussing heterogeneity and publication bias.
+
+------------------------------------------------------------------------
+
+![](R_data/6_combined.png)
+
+-   Only half of the recent SRs follow reporting guidelines.
+
+-   Recent SRs are more likely to include a conflict-of-interest statement and a funding statement than earlier reviews.
+
+-   Almost all the reviews are founded by no-profit organizations.
+
+## Supplementary materials
+
+Quality of reviews (AMSTAR2 score) differs according to field of research, publication year, review type, publication source. *work in progress*
+
+------------------------------------------------------------------------
+
+# Objective 3
+
+**Bibliometric analysis**: How are PFAS reviews connected?
+
+*work in progress*
+
+Figures in the main paper:
+
+1.  Heat map of the world showing the number of reviews affiliated with each country. Example:
+
+![](R_data/heatmap_world.png)
+
+2.  Chord diagram of the collaborations between affiliate countries. Example: *check pdf file*
+
+3.  Chord diagram showing connectedness of review subjects (humans, animals, environment)
+
+Plus more analyses in supplementary materials

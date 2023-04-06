@@ -1,7 +1,7 @@
 ---
 title: "Chapter 1"
 author: "L. Ricolfi"
-date: "`r Sys.Date()`"
+date: "December 2022"
 output: 
   html_document:
     code_folding: hide

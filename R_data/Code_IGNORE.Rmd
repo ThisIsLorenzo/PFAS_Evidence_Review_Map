@@ -1,0 +1,415 @@
+---
+title: "Code"
+author: "LR"
+date: '2022-06-29'
+output: html_document
+---
+# PFAS exposure of humans, animals and the environment: a Systematic Meta-review Map and Bibliometric analysis  
+
+*Supplementary Material - data processing and data visualization*
+
+## Purpose: This .Rmd document provides the workflow and code so that anyone can replicate our analysis. 
+## Structure: Different chunks for different tasks. A brief introduction and description of the chunk is always provided for ease of reading.
+The following code has three main parts, one for every map's objective.
+- Objective 1 = **Mapping**
+  + What evidence on PFAS has been synthesized so far?
+  + We aim to reveal what areas in the realm of PFAS health-related and environmental research have been synthesized the most and where syntheses of evidence are lacking.
+- Objective 2 = **Critical appraisal**
+  + How robust are syntheses of PFAS evidence?
+  + We will examine the included syntheses for their reporting quality and potential biases, in order to assess reliability of reviews’ conclusions, reveal syntheses that should be re-done, and highlight the aspects of review methodology that need to be improved.
+- Objective 3 = **Bibliometrics**:
+  + How is synthesized PFAS evidence connected?
+  + We will examine which countries and institutions are mostly involved in secondary PFAS research and what do the networks between these institutions look like.
+
+## Setup
+### Packages loading
+
+```{r packages loading, include = FALSE}
+library(tidyverse)
+library(here)
+library(stringr)
+library(knitr)
+library(formatR)
+library(forcats)
+library(ggplot2)
+library(hrbrthemes) 
+library(patchwork)
+library(bibliometrix)
+library(igraph)
+```
+
+### Suppressing messages and warnings from the output document
+
+```{r suppressing}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+## Load Data
+
+### Overview:
+We extracted data from the included reviews using Google Forms. Manually extracted data is organized in four difference .csv files representing four different aspects of the data. We related the .csv files each other using key_IDs that allow merging and breking down data. An additional fixed table stores pre-extracted data on PFAS types included in this map. Bibliographic data records are exported from Scopus (including the cited references field) in .bib format.
+
+### Name, description and location of data:
+1. **main_data.csv** = main spreadsheet used to draw the systematic map. It includes both systematic and non-systematic reviews.
+  + PFAS_Systematic_MetaReview_Map/data/Main_data.csv
+2. **quality_assessment.csv** = AMSTAR2 quality assessment spreadsheet of the included systematic reviews.
+  + PFAS_Systematic_MetaReview_Map/data/AMSTAR2_assessment.csv
+3. **PFAS_types.csv** = PFAS types investigated in the included systematic reviews.
+  + PFAS_Systematic_MetaReview_Map/data/PFAS_types.csv
+4. **species_info.csv** = species investigated in the included systematic reviews.
+  + PFAS_Systematic_MetaReview_Map/data/Species_info.csv
+5. **PFAS_info** = fixed table of pre-extracted data on PFAS types included in this meta-review map.
+  + PFAS_Systematic_MetaReview_Map/data/PFAS_info.csv
+6. **Scopus.bib** = bibliographic data records.
+  + PFAS_Systematic_MetaReview_Map/data/Scopus.bib
+  
+### Loading data
+
+```{r loading data}
+# Data from .csv file - main data sheet
+mdata <- read_csv(here("data", "main_data.csv"))
+dim(mdata) #174 rows 37 columns
+spdata <- read.csv(here("data", "species_info.csv"))
+dim(spdata) #428 rows 4 columns
+qdata <- read.csv(here("data", "quality_assessment.csv"))
+dim(qdata) #107 rows 41 columns
+ptdata <- read.csv(here("data", "PFAS_types.csv"))
+dim(ptdata) #172 rows 5 columns
+# Change to long format
+ptdata <- ptdata %>% 
+  filter(PFAS_type != "") %>% 
+  separate_rows(PFAS_type, sep = ', ')
+dim(ptdata) #811 rows 5 columns
+pidata <- read_csv(here("data", "PFAS_info.csv"))
+dim(pidata) #35 rows 7 columns
+#bib_sco <- convert2df(here("data","scopus.bib"), dbsource = "scopus", format = "bibtex") #
+```
+
+## Merge data sets
+
+Here we merge data stored across the five different flat spreadsheets. This step is necessary to perform some of the analysis that requires data from two or more spreadsheets.
+
+```{r merge data}
+## Prepare - remove columns ending with "Checked". In addition, remove "timestamp" column (info on data checking - these fields will be present in the final extraction sheet).
+mdata <- mdata %>% select(-starts_with("Initials")) %>% select(-("Timestamp"))
+spdata <- spdata %>% select(-starts_with("Initials"))
+ptdata <- ptdata %>% select(-starts_with("Initials")) %>% select(-("Timestamp"))
+pidata <- pidata %>% select(-starts_with("Initials"))
+#Merge main data with species info
+mspdata <- left_join(mdata, spdata, by = "Study_ID")
+dim(mspdata) # 577 rows 37 columns
+names(mspdata)
+str(mspdata)
+View(mspdata)
+#Merge PFAS types data with PFAS info and then with main data
+ptidata <- left_join(ptdata, pidata, by = "PFAS_type")
+dim(ptidata) #811 rows 11 columns
+names(ptidata)
+str(ptidata)
+View(ptidata)
+mpidata <- left_join(mdata, ptidata, by = "Study_ID")
+dim(mpidata) #814 rows 44 columns
+names(mpidata)
+str(mpidata)
+View(mpidata)
+```
+
+## Simple summary table of the included reviews
+
+```{r simple table included reviews}
+knitr::kable(select(mdata, Study_ID,	Author_year,	Paper_title, DOI), caption = "Table of included studies")
+```
+
+## OBJECTIVE 1: Mapping: What evidence on PFAS has been synthesized so far?
+
+- How many reviews are focused on PFAS?
+- How many reviews investigate one PFAS type and how many investigate multiple PFAS types?
+
+```{r PFAS focus one_many barplot, height = 2, width = 8}
+t_PFASfocus <- mdata %>%
+  count(PFAS_focus, PFAS_one_many) %>%
+  arrange(desc(n)) %>%
+  filter(PFAS_focus != "NA") #filter out NA
+
+ggplot(t_PFASfocus, aes(x = PFAS_focus, y = n)) +
+ theme_light() +
+ labs(title = expression("PFAS focus")) + #~bold(A.)~' Type and subject'
+ coord_flip() +
+ scale_fill_brewer() +
+ guides(fill=guide_legend(title="PFAS:")) + 
+ geom_col(aes(fill = PFAS_one_many), width = 0.7) + 
+ scale_y_continuous(name = "Article count") +
+ theme_light() +
+ theme(legend.position = "bottom", legend.box.background = element_rect(colour = "black"), 
+       legend.title = element_text(size=10),  legend.text=element_text(size = 10), 
+       axis.title.x = element_text(size = 10), axis.title.y = element_blank())
+# ggsave(here("plots","figure_PFAS_focus.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
+```
+
+- What are the PFAS types investigated the most?
+
+```{r plot PFAS types barplot, height = 8, width = 8}
+t_PFAStype <- ptidata %>%
+  count(PFAS_type) %>%
+  arrange(desc(n)) %>%
+  filter(PFAS_type != "NA") #filter out NA
+t_PFAStype$PFAS_type <- factor(t_PFAStype$PFAS_type, levels = t_PFAStype$PFAS_type[order(t_PFAStype$n, decreasing = FALSE)])
+PFAS_levels_order <- t_PFAStype$PFAS_type[order(t_PFAStype$n, decreasing = FALSE)] #save for another plot
+# simple barplot with PFAS types
+ggplot(t_PFAStype, aes(x = PFAS_type, y = n)) +
+  geom_col(aes(fill = ""), width = 0.7) +
+  theme_light() +
+  labs(title = expression("PFAS types reviewed")) + #~bold(A.)~' Type and subject'
+  coord_flip()+
+  scale_y_continuous(name = "Reviews count") +
+  scale_fill_manual(values = c("#919191")) +
+  theme(legend.position = "none", axis.title.x = element_text(size = 10), axis.title.y = element_blank())
+#ggsave(here("plots","figure_PFAS_types.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
+```
+### Main review topics (MeSH terms)
+```{r plot main topics barplot prep, height = 4, width = 8}
+
+```
+
+```{r plot MeSH headings barplot, height = 4, width = 8}
+
+```
+
+```{r plot MeSH qualifiers barplot, height = 4, width = 8}
+
+```
+
+### Main review subjects
+```{r plot main subjects barplot, height = 2, width = 8}
+t_subject <- mdata %>%
+  count(Human_animal_environment) %>%
+  arrange(desc(n)) %>% 
+  filter(Human_animal_environment != "NA") %>%
+  filter(Human_animal_environment != "") #filter out NA
+t_subject$Human_animal_environment <- factor(t_subject$Human_animal_environment, levels = unique(t_subject$Human_animal_environment[order(t_subject$n, decreasing = FALSE)]))
+subjects_levels_order <- t_subject$Human_animal_environment[order(t_subject$n, decreasing = FALSE)] #save for another plot
+# simple barplot with MESH_heading
+ggplot(t_subject, aes(x = Human_animal_environment, y = n)) +
+  geom_col(aes(fill = ""), width = 0.7) +
+  theme_light() +
+  labs(title = expression("Main subjects reviewed")) + #~bold(A.)~' Type and subject'
+  coord_flip()+
+  scale_y_continuous(name = "Article count") +
+  scale_fill_manual(values = c("#919191")) +
+  theme(legend.position = "none", axis.title.x = element_text(size = 10), axis.title.y = element_blank())
+#ggsave(here("plots","figure_subjects.pdf"), width = 4, height = 2, units = "cm", scale = 2, device = cairo_pdf)
+```
+
+### Combining MeSH qualifiers with main review subjects
+```{r plot MeSH qualifiers with main review subjects barplot, height = 4, width = 8}
+
+```
+
+### PFAS focus by main review subject
+```{r plot PFAS focus by Human_animal_environment barplot, height = 2, width = 8}
+# PFAS_one_many vs. Human_animal_environment contingency table
+t1 <- mdata %>%
+  count(Human_animal_environment, PFAS_one_many)
+ggplot(t1, aes(x = PFAS_one_many , y = n)) +
+ coord_flip()  +
+ geom_col(aes(fill = Human_animal_environment), width = 0.7) +
+ theme_light() +  
+ theme(legend.position = "bottom", legend.box.background = element_rect(colour = "black")) +
+ ylab("Article count") +
+ xlab("PFAS") +
+ guides(fill=guide_legend(title="Subject:"))
+#ggsave(here("plots","figure_PFAS_focus_subjects.pdf"), width = 4, height = 2, units = "cm", scale = 2, device = cairo_pdf)
+```
+
+### PFAS types by main review subject
+```{r plot PFAS types by Human_animal_environment barplot, height = 8, width = 8}
+t_PFAStype <- mpidata %>%
+  count(PFAS_type, Human_animal_environment) %>%
+  arrange(desc(n)) %>%
+  filter(PFAS_type != "NA") #filter out NA
+#t_PFAStype$PFAS_type <- factor(t_PFAStype$PFAS_type, levels = unique(t_PFAStype$PFAS_type[order(t_PFAStype$n, decreasing = FALSE)]))
+t_PFAStype$PFAS_type <- factor(t_PFAStype$PFAS_type, levels = PFAS_levels_order) #use order from the previous graph
+p_PFAStype <- ggplot(t_PFAStype, aes(x = PFAS_type, y = n)) +
+ theme_light() +
+ labs(title = expression("PFAS type and main subjects reviewed")) + #~bold(A.)~' Type and subject'
+ coord_flip()  +
+ scale_fill_brewer() +
+ geom_col(aes(fill = Human_animal_environment), width = 0.7) + 
+ scale_y_continuous(name = "Article count") +
+ theme_light() +
+ theme(legend.position = "bottom", legend.box.background = element_rect(colour = "black"), legend.title = element_blank(),  legend.text=element_text(size = 10), axis.title.x = element_text(size = 10), axis.title.y = element_blank()) +
+  theme(legend.position = c(0.8, 0.5), legend.background = element_rect(fill = "white", color = "black")) #lace legend inside plot area
+#theme(legend.position = "none", axis.title.x = element_text(size = 10), axis.title.y = element_blank())
+p_PFAStype
+#ggsave(here("plots","figure_PFAStype_subject.pdf"), width = 6, height = 8, units = "cm", scale = 2, device = cairo_pdf)
+```
+
+### How many species and which ones
+```{r species focus one_many barplot, height = 4, width = 8}
+t_spfocus <- mspdata %>%
+  count(Species_scientific_name, Species_one_many, Review_type_claimed) %>%
+  arrange(desc(n)) %>%
+  filter(Species_one_many != "NA") #filter out NA
+t_spfocus <- split(t_spfocus, (seq(nrow(t_spfocus))-1) %/% 50) 
+
+
+ggplot(t_spfocus$`0`, aes(x = Species_scientific_name, y = n)) +
+ theme_light() +
+ labs(title = expression("Species focus")) + #~bold(A.)~' Type and subject'
+ coord_flip()  +
+ scale_fill_brewer() +
+ guides(fill=guide_legend(title="Species:")) + 
+ geom_col(aes(fill = Species_one_many), width = 0.7) + 
+ scale_y_continuous(name = "Article count") +
+ theme_light() +
+ theme(legend.position = "bottom", legend.box.background = element_rect(colour = "black"), legend.title = element_text(size=10),  legend.text=element_text(size = 10), axis.title.x = element_text(size = 10), axis.title.y = element_blank()) #+
+#ggsave(here("plots","figure_species_focus_1.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
+
+ggplot(t_spfocus$`1`, aes(x = Species_scientific_name, y = n)) +
+ theme_light() +
+ labs(title = expression("Species focus")) + #~bold(A.)~' Type and subject'
+ coord_flip()  +
+ scale_fill_brewer() +
+ guides(fill=guide_legend(title="Species:")) + 
+ geom_col(aes(fill = Species_one_many), width = 0.7) + 
+ scale_y_continuous(name = "Article count") +
+ theme_light() +
+ theme(legend.position = "bottom", legend.box.background = element_rect(colour = "black"), legend.title = element_text(size=10),  legend.text=element_text(size = 10), axis.title.x = element_text(size = 10), axis.title.y = element_blank()) #+
+#ggsave(here("plots","figure_species_focus_2.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
+
+ggplot(t_spfocus$`2`, aes(x = Species_scientific_name, y = n)) +
+ theme_light() +
+ labs(title = expression("Species focus")) + #~bold(A.)~' Type and subject'
+ coord_flip()  +
+ scale_fill_brewer() +
+ guides(fill=guide_legend(title="Species:")) + 
+ geom_col(aes(fill = Species_one_many), width = 0.7) + 
+ scale_y_continuous(name = "Article count") +
+ theme_light() +
+ theme(legend.position = "bottom", legend.box.background = element_rect(colour = "black"), legend.title = element_text(size=10),  legend.text=element_text(size = 10), axis.title.x = element_text(size = 10), axis.title.y = element_blank()) #+
+#ggsave(here("plots","figure_species_focus_3.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
+
+ggplot(t_spfocus$`3`, aes(x = Species_scientific_name, y = n)) +
+ theme_light() +
+ labs(title = expression("Species focus")) + #~bold(A.)~' Type and subject'
+ coord_flip()  +
+ scale_fill_brewer() +
+ guides(fill=guide_legend(title="Species:")) + 
+ geom_col(aes(fill = Species_one_many), width = 0.7) + 
+ scale_y_continuous(name = "Article count") +
+ theme_light() +
+ theme(legend.position = "bottom", legend.box.background = element_rect(colour = "black"), legend.title = element_text(size=10),  legend.text=element_text(size = 10), axis.title.x = element_text(size = 10), axis.title.y = element_blank()) #+
+#ggsave(here("plots","figure_species_focus_4.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
+
+ggplot(t_spfocus$`4`, aes(x = Species_scientific_name, y = n)) +
+ theme_light() +
+ labs(title = expression("Species focus")) + #~bold(A.)~' Type and subject'
+ coord_flip()  +
+ scale_fill_brewer() +
+ guides(fill=guide_legend(title="Species:")) + 
+ geom_col(aes(fill = Species_one_many), width = 0.7) + 
+ scale_y_continuous(name = "Article count") +
+ theme_light() +
+ theme(legend.position = "bottom", legend.box.background = element_rect(colour = "black"), legend.title = element_text(size=10),  legend.text=element_text(size = 10), axis.title.x = element_text(size = 10), axis.title.y = element_blank()) #+
+#ggsave(here("plots","figure_species_focus_5.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
+
+ggplot(t_spfocus$`5`, aes(x = Species_scientific_name, y = n)) +
+ theme_light() +
+ labs(title = expression("Species focus")) + #~bold(A.)~' Type and subject'
+ coord_flip()  +
+ scale_fill_brewer() +
+ guides(fill=guide_legend(title="Species:")) + 
+ geom_col(aes(fill = Species_one_many), width = 0.7) + 
+ scale_y_continuous(name = "Article count") +
+ theme_light() +
+ theme(legend.position = "bottom", legend.box.background = element_rect(colour = "black"), legend.title = element_text(size=10),  legend.text=element_text(size = 10), axis.title.x = element_text(size = 10), axis.title.y = element_blank()) #+
+#ggsave(here("plots","figure_species_focus_6.pdf"), width = 4, height = 6, units = "cm", scale = 2, device = cairo_pdf)
+```
+
+### Make a table with AMSTAR questions
+```{r AMSTAR questions table}
+questions_list <- qdata %>% select(starts_with("Q") & !ends_with("_comment")) %>% colnames()
+questions <- tibble(questions = questions_list, label = c("question and criteria", "a priori protocol", "included study designs", "comprehensive search", "selection duplicated", "extraction duplicated", "list of excluded studies", "summary of included studies", "critical appraisal", "sources of funding", "quantitative synthesis", "risk of bias", "effect of bias", "variability investigated", "publication bias", "conflict of interest"))
+knitr::kable(questions, caption = "Table. List of AMSTAR2 questions with labeld for plotting")
+```
+### Summary plot for pilot AMSTAR2 data
+```{r simplify column names to Q + number format}
+qtable <- qdata %>% filter(Study_ID != "NA") %>% select(starts_with("Q") & !ends_with("_comment"))
+names(qtable) <- gsub("\\..*", "", names(qtable))
+```
+
+
+### Time-trends
+```{r}
+mdata %>% count(Publication_year) %>% ggplot(aes(x = Publication_year, y = n)) + 
+  geom_line(color = 'black', size = 0.5) +
+  geom_area(fill = '#E69F00', alpha = 0.4) +
+  geom_point(size=1, color = 'black')
+```
+
+
+{r removed code stored here for a later time}
+# Remove columns that are unnecessary for analysis (i.e., Comment)
+spdata <- spdata %>% 
+  select(-Comment)
+# Replace special characters that are exporting mistakes (e.g., replace "Ã¼" with "ü")
+spdata <- apply(spdata, 2, function (x) gsub("â€™", "'", x))
+spdata <- apply(spdata, 2, function (x) gsub("Ã¼", "ü", x))
+spdata <- apply(spdata, 2, function (x) gsub("Ã©", "e", x))
+spdata <- as_tibble(spdata)
+
+# Remove columns that are unnecessary for analysis (i.e., Timestamp, Initials_data_extraction, initials_data_checked, and all answers comment [e.g., Q1_comment])
+qdata <- qdata %>% 
+  select(-c(Timestamp, Initials_data_extraction, initials_data_checked)) %>% 
+  select(- ends_with("Comment"))
+# Replace special characters that are exporting mistakes (e.g., replace "â€œYesâ€" with "Yes")
+qdata <- apply(qdata, 2, function (x) gsub("â€œYesâ€", "Yes", x))
+qdata <- apply(qdata, 2, function (x) gsub("â€Noâ€", "No", x))
+qdata <- apply(qdata, 2, function (x) gsub("â€œCanâ€™t", "Cannot", x))
+qdata <- apply(qdata, 2, function (x) gsub("â€", "", x))
+qdata <- apply(qdata, 2, function (x) gsub("â€œ", "", x))
+qdata <- as_tibble(qdata)
+
+{r removing unnecessary columns}
+mdata <- mdata %>% select(- ends_with("comment")) %>% 
+  select("Study_ID":"DOI")
+colnames(qdata)
+qdata <- qdata %>% select(- ends_with("comment")) %>% 
+  select("Study_ID":"Q16..Did.the.review.authors.report.any.potential.sources.of.conflict.of.interest..including.any.funding.they.received.for.conducting.the.review.") # I WANT TO REDUCE IT AS ONLY "Q16"
+ptdata <- ptdata %>% select( "Study_ID":"PFAS_type")
+spdata <- spdata %>% select(- "Comment")
+pidata <- pidata %>% select(- "PFAS_comment")
+
+# change data format
+ptdata <- ptdata %>% 
+  select(Study_ID:PFAS_type) %>% 
+  separate_rows(PFAS_type, sep = ', ')
+
+#remove comment column
+pidata <- pidata %>% 
+  select(- PFAS_comment)
+
+#number of publication per year
+mdata %>% count(Publication_year)%>% ggplot(aes(x = Publication_year, y = n)) + 
+  geom_area(fill = '#919195', alpha = 1) +
+  geom_line(color = 'black', size = 0.11) + 
+  geom_point(size=0.05, color = 'black') +
+  theme_minimal() +
+  scale_x_continuous(name = "") +
+  scale_y_continuous(name = "Article count") +
+  ggtitle("Publication year") + 
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
